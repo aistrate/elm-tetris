@@ -17,8 +17,9 @@ main =
 board =
     { columns = 10
     , rows = 20
-    , blockSize = 35.0
     , borderWidth = 2.0
+    , blockSize = 35.0
+    , blockBorderWidth = 1.0
     }
 
 
@@ -79,8 +80,38 @@ view model =
             , width (String.fromFloat (boardWidth - .borderWidth board))
             , height (String.fromFloat (boardHeight - .borderWidth board))
             , fill "transparent"
-            , stroke "black"
+            , stroke "#D3BCA3"
             , strokeWidth (String.fromFloat (.borderWidth board))
             ]
             []
+        , viewBlock ( 4, 0 )
+        , viewBlock ( 5, 0 )
+        , viewBlock ( 5, 1 )
+        , viewBlock ( 6, 1 )
+        , viewBlock ( 0, 19 )
+        , viewBlock ( 1, 19 )
+        , viewBlock ( 2, 19 )
+        , viewBlock ( 7, 19 )
+        , viewBlock ( 9, 19 )
         ]
+
+
+viewBlock : ( Int, Int ) -> Svg msg
+viewBlock ( col, row ) =
+    let
+        size =
+            .blockSize board
+
+        borderWidth =
+            .blockBorderWidth board
+    in
+    rect
+        [ x (String.fromFloat (toFloat col * size + borderWidth / 2))
+        , y (String.fromFloat (toFloat row * size + borderWidth / 2))
+        , width (String.fromFloat (size - borderWidth))
+        , height (String.fromFloat (size - borderWidth))
+        , fill "silver"
+        , stroke "white"
+        , strokeWidth (String.fromFloat (.blockBorderWidth board))
+        ]
+        []
