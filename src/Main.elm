@@ -37,6 +37,10 @@ block =
 -- MODEL
 
 
+type Location
+    = Loc Int Int
+
+
 type alias Model =
     ()
 
@@ -114,20 +118,20 @@ viewBoard contents =
 
 viewBlocks : Model -> List (Svg msg)
 viewBlocks model =
-    [ viewBlock ( 4, 0 )
-    , viewBlock ( 5, 0 )
-    , viewBlock ( 5, 1 )
-    , viewBlock ( 6, 1 )
-    , viewBlock ( 0, 19 )
-    , viewBlock ( 1, 19 )
-    , viewBlock ( 2, 19 )
-    , viewBlock ( 7, 19 )
-    , viewBlock ( 9, 19 )
+    [ viewBlock (Loc 4 0)
+    , viewBlock (Loc 5 0)
+    , viewBlock (Loc 5 1)
+    , viewBlock (Loc 6 1)
+    , viewBlock (Loc 0 19)
+    , viewBlock (Loc 1 19)
+    , viewBlock (Loc 2 19)
+    , viewBlock (Loc 7 19)
+    , viewBlock (Loc 9 19)
     ]
 
 
-viewBlock : ( Int, Int ) -> Svg msg
-viewBlock ( col, row ) =
+viewBlock : Location -> Svg msg
+viewBlock (Loc col row) =
     let
         size =
             .size block
