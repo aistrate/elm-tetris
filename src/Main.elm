@@ -18,8 +18,9 @@ board =
     { columns = 10
     , rows = 20
     , borderWidth = 2.0
+    , padding = 1.5
     , blockSize = 35.0
-    , blockBorderWidth = 1.0
+    , blockBorderWidth = 0.5
     }
 
 
@@ -53,7 +54,7 @@ view : Model -> Svg msg
 view model =
     let
         boardSize blocks =
-            blocks * .blockSize board + 2 * .borderWidth board
+            blocks * .blockSize board + 2 * (.borderWidth board + .padding board)
 
         boardWidth =
             boardSize (.columns board)
@@ -65,9 +66,9 @@ view model =
         [ width "100%"
         , height (String.fromFloat boardHeight)
         , viewBox
-            (String.fromFloat -(.borderWidth board)
+            (String.fromFloat -(.borderWidth board + .padding board)
                 ++ " "
-                ++ String.fromFloat -(.borderWidth board)
+                ++ String.fromFloat -(.borderWidth board + .padding board)
                 ++ " "
                 ++ String.fromFloat boardWidth
                 ++ " "
@@ -75,8 +76,8 @@ view model =
             )
         ]
         [ rect
-            [ x (String.fromFloat -(.borderWidth board / 2))
-            , y (String.fromFloat -(.borderWidth board / 2))
+            [ x (String.fromFloat -(.borderWidth board / 2 + .padding board))
+            , y (String.fromFloat -(.borderWidth board / 2 + .padding board))
             , width (String.fromFloat (boardWidth - .borderWidth board))
             , height (String.fromFloat (boardHeight - .borderWidth board))
             , fill "transparent"
