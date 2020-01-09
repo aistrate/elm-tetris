@@ -18,6 +18,7 @@ board =
     { columns = 10
     , rows = 20
     , borderWidth = 2.0
+    , marginTop = 12.0
     , padding = 1.5
     , blockSize = 35.0
     , blockBorderWidth = 0.5
@@ -64,15 +65,15 @@ view model =
     in
     svg
         [ width "100%"
-        , height (String.fromFloat boardHeight)
+        , height (String.fromFloat (.marginTop board + boardHeight))
         , viewBox
             (String.fromFloat -(.borderWidth board + .padding board)
                 ++ " "
-                ++ String.fromFloat -(.borderWidth board + .padding board)
+                ++ String.fromFloat -(.marginTop board + .borderWidth board + .padding board)
                 ++ " "
                 ++ String.fromFloat boardWidth
                 ++ " "
-                ++ String.fromFloat boardHeight
+                ++ String.fromFloat (.marginTop board + boardHeight)
             )
         ]
         [ rect
