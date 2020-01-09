@@ -45,7 +45,8 @@ type Location
 type Color
     = Red
     | Green
-    | Blue
+    | LightBlue
+    | DarkBlue
     | Orange
     | Purple
     | Gray
@@ -137,7 +138,8 @@ viewBlocks model =
     , viewBlock (Loc 2 19) Red
     , viewBlock (Loc 3 19) Orange
     , viewBlock (Loc 7 19) Green
-    , viewBlock (Loc 9 19) Blue
+    , viewBlock (Loc 8 19) DarkBlue
+    , viewBlock (Loc 9 19) LightBlue
     ]
 
 
@@ -171,8 +173,11 @@ colorToHex color =
         Green ->
             "#36C54C"
 
-        Blue ->
+        LightBlue ->
             "#2EA3F7"
+
+        DarkBlue ->
+            "#3968B0"
 
         Orange ->
             "#FA6600"
