@@ -23,6 +23,7 @@ game =
 board =
     { marginTop = 12.0
     , borderWidth = 2.0
+    , borderColor = "#D3BCA3"
     , padding = 1.5
     }
 
@@ -108,7 +109,7 @@ viewBoard contents =
             , width (String.fromFloat (boardWidth - borderWidth))
             , height (String.fromFloat (boardHeight - borderWidth))
             , fill "transparent"
-            , stroke "#D3BCA3"
+            , stroke (.borderColor board)
             , strokeWidth (String.fromFloat borderWidth)
             ]
             []
