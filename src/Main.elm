@@ -34,22 +34,21 @@ block =
     }
 
 
-blockColors =
-    { red = "#FD0000"
-    , green = "#36C54C"
-    , blue = "#2EA3F7"
-    , orange = "#FA6600"
-    , purple = "#CA55C3"
-    , gray = "#989898"
-    }
-
-
 
 -- MODEL
 
 
 type Location
     = Loc Int Int
+
+
+type Color
+    = Red
+    | Green
+    | Blue
+    | Orange
+    | Purple
+    | Gray
 
 
 type alias Model =
@@ -129,20 +128,20 @@ viewBoard contents =
 
 viewBlocks : Model -> List (Svg msg)
 viewBlocks model =
-    [ viewBlock (Loc 4 0) (.orange blockColors)
-    , viewBlock (Loc 5 0) (.orange blockColors)
-    , viewBlock (Loc 5 1) (.orange blockColors)
-    , viewBlock (Loc 6 1) (.orange blockColors)
-    , viewBlock (Loc 0 19) (.gray blockColors)
-    , viewBlock (Loc 1 19) (.purple blockColors)
-    , viewBlock (Loc 2 19) (.red blockColors)
-    , viewBlock (Loc 3 19) (.orange blockColors)
-    , viewBlock (Loc 7 19) (.green blockColors)
-    , viewBlock (Loc 9 19) (.blue blockColors)
+    [ viewBlock (Loc 4 0) Orange
+    , viewBlock (Loc 5 0) Orange
+    , viewBlock (Loc 5 1) Orange
+    , viewBlock (Loc 6 1) Orange
+    , viewBlock (Loc 0 19) Gray
+    , viewBlock (Loc 1 19) Purple
+    , viewBlock (Loc 2 19) Red
+    , viewBlock (Loc 3 19) Orange
+    , viewBlock (Loc 7 19) Green
+    , viewBlock (Loc 9 19) Blue
     ]
 
 
-viewBlock : Location -> String -> Svg msg
+viewBlock : Location -> Color -> Svg msg
 viewBlock (Loc col row) color =
     let
         size =
@@ -156,8 +155,30 @@ viewBlock (Loc col row) color =
         , y (String.fromFloat (toFloat row * size + borderWidth / 2))
         , width (String.fromFloat (size - borderWidth))
         , height (String.fromFloat (size - borderWidth))
-        , fill color
+        , fill (colorToHex color)
         , stroke "white"
         , strokeWidth (String.fromFloat borderWidth)
         ]
         []
+
+
+colorToHex : Color -> String
+colorToHex color =
+    case color of
+        Red ->
+            "#FD0000"
+
+        Green ->
+            "#36C54C"
+
+        Blue ->
+            "#2EA3F7"
+
+        Orange ->
+            "#FA6600"
+
+        Purple ->
+            "#CA55C3"
+
+        Gray ->
+            "#989898"
