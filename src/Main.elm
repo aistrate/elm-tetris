@@ -5,7 +5,7 @@ import Svg exposing (Svg, rect, svg)
 import Svg.Attributes exposing (..)
 
 
-main : Program () () msg
+main : Program () Model msg
 main =
     Browser.sandbox { init = init, update = update, view = view }
 
@@ -57,12 +57,29 @@ type Block
 
 
 type alias Model =
-    ()
+    { fallingPiece : List Block
+    , bottomBlocks : List Block
+    }
 
 
 init : Model
 init =
-    ()
+    { fallingPiece =
+        [ Block (Loc 4 0) Orange
+        , Block (Loc 5 0) Orange
+        , Block (Loc 5 1) Orange
+        , Block (Loc 6 1) Orange
+        ]
+    , bottomBlocks =
+        [ Block (Loc 0 19) Gray
+        , Block (Loc 1 19) Purple
+        , Block (Loc 2 19) Red
+        , Block (Loc 3 19) Orange
+        , Block (Loc 7 19) Green
+        , Block (Loc 8 19) DarkBlue
+        , Block (Loc 9 19) LightBlue
+        ]
+    }
 
 
 
@@ -71,7 +88,7 @@ init =
 
 update : msg -> Model -> Model
 update msg model =
-    ()
+    model
 
 
 
@@ -133,19 +150,7 @@ viewBoard contents =
 
 viewBlocks : Model -> List (Svg msg)
 viewBlocks model =
-    List.map viewBlock
-        [ Block (Loc 4 0) Orange
-        , Block (Loc 5 0) Orange
-        , Block (Loc 5 1) Orange
-        , Block (Loc 6 1) Orange
-        , Block (Loc 0 19) Gray
-        , Block (Loc 1 19) Purple
-        , Block (Loc 2 19) Red
-        , Block (Loc 3 19) Orange
-        , Block (Loc 7 19) Green
-        , Block (Loc 8 19) DarkBlue
-        , Block (Loc 9 19) LightBlue
-        ]
+    List.map viewBlock (model.fallingPiece ++ model.bottomBlocks)
 
 
 viewBlock : Block -> Svg msg
