@@ -58,8 +58,17 @@ update msg model =
 view : Model -> Svg msg
 view model =
     let
+        marginTop =
+            .marginTop board
+
+        borderWidth =
+            .borderWidth board
+
+        padding =
+            .padding board
+
         boardSize blocks =
-            blocks * .size block + 2 * (.borderWidth board + .padding board)
+            blocks * .size block + 2 * (borderWidth + padding)
 
         boardWidth =
             boardSize (.columns board)
@@ -69,25 +78,25 @@ view model =
     in
     svg
         [ width "100%"
-        , height (String.fromFloat (.marginTop board + boardHeight))
+        , height (String.fromFloat (marginTop + boardHeight))
         , viewBox
-            (String.fromFloat -(.borderWidth board + .padding board)
+            (String.fromFloat -(borderWidth + padding)
                 ++ " "
-                ++ String.fromFloat -(.marginTop board + .borderWidth board + .padding board)
+                ++ String.fromFloat -(marginTop + borderWidth + padding)
                 ++ " "
                 ++ String.fromFloat boardWidth
                 ++ " "
-                ++ String.fromFloat (.marginTop board + boardHeight)
+                ++ String.fromFloat (marginTop + boardHeight)
             )
         ]
         [ rect
-            [ x (String.fromFloat -(.borderWidth board / 2 + .padding board))
-            , y (String.fromFloat -(.borderWidth board / 2 + .padding board))
-            , width (String.fromFloat (boardWidth - .borderWidth board))
-            , height (String.fromFloat (boardHeight - .borderWidth board))
+            [ x (String.fromFloat -(borderWidth / 2 + padding))
+            , y (String.fromFloat -(borderWidth / 2 + padding))
+            , width (String.fromFloat (boardWidth - borderWidth))
+            , height (String.fromFloat (boardHeight - borderWidth))
             , fill "transparent"
             , stroke "#D3BCA3"
-            , strokeWidth (String.fromFloat (.borderWidth board))
+            , strokeWidth (String.fromFloat borderWidth)
             ]
             []
         , viewBlock ( 4, 0 )
