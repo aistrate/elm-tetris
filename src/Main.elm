@@ -17,11 +17,15 @@ main =
 board =
     { columns = 10
     , rows = 20
-    , borderWidth = 2.0
     , marginTop = 12.0
+    , borderWidth = 2.0
     , padding = 1.5
-    , blockSize = 35.0
-    , blockBorderWidth = 0.5
+    }
+
+
+block =
+    { size = 35.0
+    , borderWidth = 0.5
     }
 
 
@@ -55,7 +59,7 @@ view : Model -> Svg msg
 view model =
     let
         boardSize blocks =
-            blocks * .blockSize board + 2 * (.borderWidth board + .padding board)
+            blocks * .size block + 2 * (.borderWidth board + .padding board)
 
         boardWidth =
             boardSize (.columns board)
@@ -102,10 +106,10 @@ viewBlock : ( Int, Int ) -> Svg msg
 viewBlock ( col, row ) =
     let
         size =
-            .blockSize board
+            .size block
 
         borderWidth =
-            .blockBorderWidth board
+            .borderWidth block
     in
     rect
         [ x (String.fromFloat (toFloat col * size + borderWidth / 2))
@@ -114,6 +118,6 @@ viewBlock ( col, row ) =
         , height (String.fromFloat (size - borderWidth))
         , fill "silver"
         , stroke "white"
-        , strokeWidth (String.fromFloat (.blockBorderWidth board))
+        , strokeWidth (String.fromFloat borderWidth)
         ]
         []
