@@ -103,45 +103,36 @@ view model =
 viewBoard : List (Svg msg) -> Svg msg
 viewBoard contents =
     let
-        marginTop =
-            .marginTop board
-
-        borderWidth =
-            .borderWidth board
-
-        padding =
-            .padding board
-
-        boardSize blocks =
-            blocks * .size block + 2 * (borderWidth + padding)
+        boardSize blockCount =
+            blockCount * block.size + 2 * (board.borderWidth + board.padding)
 
         boardWidth =
-            boardSize (.columns game)
+            boardSize game.columns
 
         boardHeight =
-            boardSize (.rows game)
+            boardSize game.rows
     in
     svg
         [ width "100%"
-        , height (String.fromFloat (marginTop + boardHeight))
+        , height (String.fromFloat (board.marginTop + boardHeight))
         , viewBox
-            (String.fromFloat -(borderWidth + padding)
+            (String.fromFloat -(board.borderWidth + board.padding)
                 ++ " "
-                ++ String.fromFloat -(marginTop + borderWidth + padding)
+                ++ String.fromFloat -(board.marginTop + board.borderWidth + board.padding)
                 ++ " "
                 ++ String.fromFloat boardWidth
                 ++ " "
-                ++ String.fromFloat (marginTop + boardHeight)
+                ++ String.fromFloat (board.marginTop + boardHeight)
             )
         ]
         (rect
-            [ x (String.fromFloat -(borderWidth / 2 + padding))
-            , y (String.fromFloat -(borderWidth / 2 + padding))
-            , width (String.fromFloat (boardWidth - borderWidth))
-            , height (String.fromFloat (boardHeight - borderWidth))
+            [ x (String.fromFloat -(board.borderWidth / 2 + board.padding))
+            , y (String.fromFloat -(board.borderWidth / 2 + board.padding))
+            , width (String.fromFloat (boardWidth - board.borderWidth))
+            , height (String.fromFloat (boardHeight - board.borderWidth))
             , fill "transparent"
             , stroke (.borderColor board)
-            , strokeWidth (String.fromFloat borderWidth)
+            , strokeWidth (String.fromFloat board.borderWidth)
             ]
             []
             :: contents
@@ -155,21 +146,14 @@ viewBlocks model =
 
 viewBlock : Block -> Svg msg
 viewBlock (Block (Loc col row) color) =
-    let
-        size =
-            .size block
-
-        borderWidth =
-            .borderWidth block
-    in
     rect
-        [ x (String.fromFloat (toFloat col * size + borderWidth / 2))
-        , y (String.fromFloat (toFloat row * size + borderWidth / 2))
-        , width (String.fromFloat (size - borderWidth))
-        , height (String.fromFloat (size - borderWidth))
+        [ x (String.fromFloat (toFloat col * block.size + block.borderWidth / 2))
+        , y (String.fromFloat (toFloat row * block.size + block.borderWidth / 2))
+        , width (String.fromFloat (block.size - block.borderWidth))
+        , height (String.fromFloat (block.size - block.borderWidth))
         , fill (colorToHex color)
         , stroke "white"
-        , strokeWidth (String.fromFloat borderWidth)
+        , strokeWidth (String.fromFloat block.borderWidth)
         ]
         []
 
