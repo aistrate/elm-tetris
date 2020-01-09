@@ -1,7 +1,8 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (Html, text)
+import Svg exposing (Svg, rect, svg)
+import Svg.Attributes exposing (..)
 
 
 main : Program () () msg
@@ -35,6 +36,21 @@ update msg model =
 -- VIEW
 
 
-view : Model -> Html msg
+view : Model -> Svg msg
 view model =
-    text "Hello"
+    svg
+        [ width "100%"
+        , height "700"
+        , viewBox "0 0 350 700"
+        ]
+        [ rect
+            [ x "0"
+            , y "0"
+            , width "350"
+            , height "700"
+            , fill "transparent"
+            , stroke "black"
+            , strokeWidth "1"
+            ]
+            []
+        ]
