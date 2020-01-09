@@ -11,6 +11,18 @@ main =
 
 
 
+-- CONSTANTS
+
+
+board =
+    { columns = 10
+    , rows = 20
+    , blockSize = 35.0
+    , borderWidth = 2.0
+    }
+
+
+
 -- MODEL
 
 
@@ -38,19 +50,37 @@ update msg model =
 
 view : Model -> Svg msg
 view model =
+    let
+        boardSize blocks =
+            blocks * .blockSize board + 2 * .borderWidth board
+
+        boardWidth =
+            boardSize (.columns board)
+
+        boardHeight =
+            boardSize (.rows board)
+    in
     svg
         [ width "100%"
-        , height "700"
-        , viewBox "0 0 350 700"
+        , height (String.fromFloat boardHeight)
+        , viewBox
+            (String.fromFloat -(.borderWidth board)
+                ++ " "
+                ++ String.fromFloat -(.borderWidth board)
+                ++ " "
+                ++ String.fromFloat boardWidth
+                ++ " "
+                ++ String.fromFloat boardHeight
+            )
         ]
         [ rect
-            [ x "0"
-            , y "0"
-            , width "350"
-            , height "700"
+            [ x (String.fromFloat -(.borderWidth board / 2))
+            , y (String.fromFloat -(.borderWidth board / 2))
+            , width (String.fromFloat (boardWidth - .borderWidth board))
+            , height (String.fromFloat (boardHeight - .borderWidth board))
             , fill "transparent"
             , stroke "black"
-            , strokeWidth "1"
+            , strokeWidth (String.fromFloat (.borderWidth board))
             ]
             []
         ]
