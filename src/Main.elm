@@ -14,10 +14,14 @@ main =
 -- CONSTANTS
 
 
-board =
+game =
     { columns = 10
     , rows = 20
-    , marginTop = 12.0
+    }
+
+
+board =
+    { marginTop = 12.0
     , borderWidth = 2.0
     , padding = 1.5
     }
@@ -71,10 +75,10 @@ view model =
             blocks * .size block + 2 * (borderWidth + padding)
 
         boardWidth =
-            boardSize (.columns board)
+            boardSize (.columns game)
 
         boardHeight =
-            boardSize (.rows board)
+            boardSize (.rows game)
     in
     svg
         [ width "100%"
