@@ -52,6 +52,10 @@ type Color
     | Gray
 
 
+type Block
+    = Block Location Color
+
+
 type alias Model =
     ()
 
@@ -129,22 +133,23 @@ viewBoard contents =
 
 viewBlocks : Model -> List (Svg msg)
 viewBlocks model =
-    [ viewBlock (Loc 4 0) Orange
-    , viewBlock (Loc 5 0) Orange
-    , viewBlock (Loc 5 1) Orange
-    , viewBlock (Loc 6 1) Orange
-    , viewBlock (Loc 0 19) Gray
-    , viewBlock (Loc 1 19) Purple
-    , viewBlock (Loc 2 19) Red
-    , viewBlock (Loc 3 19) Orange
-    , viewBlock (Loc 7 19) Green
-    , viewBlock (Loc 8 19) DarkBlue
-    , viewBlock (Loc 9 19) LightBlue
-    ]
+    List.map viewBlock
+        [ Block (Loc 4 0) Orange
+        , Block (Loc 5 0) Orange
+        , Block (Loc 5 1) Orange
+        , Block (Loc 6 1) Orange
+        , Block (Loc 0 19) Gray
+        , Block (Loc 1 19) Purple
+        , Block (Loc 2 19) Red
+        , Block (Loc 3 19) Orange
+        , Block (Loc 7 19) Green
+        , Block (Loc 8 19) DarkBlue
+        , Block (Loc 9 19) LightBlue
+        ]
 
 
-viewBlock : Location -> Color -> Svg msg
-viewBlock (Loc col row) color =
+viewBlock : Block -> Svg msg
+viewBlock (Block (Loc col row) color) =
     let
         size =
             .size block
