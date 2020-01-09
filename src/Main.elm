@@ -34,6 +34,16 @@ block =
     }
 
 
+blockColors =
+    { red = "#FD0000"
+    , green = "#36C54C"
+    , blue = "#2EA3F7"
+    , orange = "#FA6600"
+    , purple = "#CA55C3"
+    , gray = "#989898"
+    }
+
+
 
 -- MODEL
 
@@ -119,20 +129,21 @@ viewBoard contents =
 
 viewBlocks : Model -> List (Svg msg)
 viewBlocks model =
-    [ viewBlock (Loc 4 0)
-    , viewBlock (Loc 5 0)
-    , viewBlock (Loc 5 1)
-    , viewBlock (Loc 6 1)
-    , viewBlock (Loc 0 19)
-    , viewBlock (Loc 1 19)
-    , viewBlock (Loc 2 19)
-    , viewBlock (Loc 7 19)
-    , viewBlock (Loc 9 19)
+    [ viewBlock (Loc 4 0) (.orange blockColors)
+    , viewBlock (Loc 5 0) (.orange blockColors)
+    , viewBlock (Loc 5 1) (.orange blockColors)
+    , viewBlock (Loc 6 1) (.orange blockColors)
+    , viewBlock (Loc 0 19) (.gray blockColors)
+    , viewBlock (Loc 1 19) (.purple blockColors)
+    , viewBlock (Loc 2 19) (.red blockColors)
+    , viewBlock (Loc 3 19) (.orange blockColors)
+    , viewBlock (Loc 7 19) (.green blockColors)
+    , viewBlock (Loc 9 19) (.blue blockColors)
     ]
 
 
-viewBlock : Location -> Svg msg
-viewBlock (Loc col row) =
+viewBlock : Location -> String -> Svg msg
+viewBlock (Loc col row) color =
     let
         size =
             .size block
@@ -145,7 +156,7 @@ viewBlock (Loc col row) =
         , y (String.fromFloat (toFloat row * size + borderWidth / 2))
         , width (String.fromFloat (size - borderWidth))
         , height (String.fromFloat (size - borderWidth))
-        , fill "silver"
+        , fill color
         , stroke "white"
         , strokeWidth (String.fromFloat borderWidth)
         ]
