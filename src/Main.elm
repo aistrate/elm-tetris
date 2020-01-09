@@ -61,6 +61,11 @@ update msg model =
 
 view : Model -> Svg msg
 view model =
+    viewBoard (viewBlocks model)
+
+
+viewBoard : List (Svg msg) -> Svg msg
+viewBoard contents =
     let
         marginTop =
             .marginTop board
@@ -93,7 +98,7 @@ view model =
                 ++ String.fromFloat (marginTop + boardHeight)
             )
         ]
-        [ rect
+        (rect
             [ x (String.fromFloat -(borderWidth / 2 + padding))
             , y (String.fromFloat -(borderWidth / 2 + padding))
             , width (String.fromFloat (boardWidth - borderWidth))
@@ -103,16 +108,22 @@ view model =
             , strokeWidth (String.fromFloat borderWidth)
             ]
             []
-        , viewBlock ( 4, 0 )
-        , viewBlock ( 5, 0 )
-        , viewBlock ( 5, 1 )
-        , viewBlock ( 6, 1 )
-        , viewBlock ( 0, 19 )
-        , viewBlock ( 1, 19 )
-        , viewBlock ( 2, 19 )
-        , viewBlock ( 7, 19 )
-        , viewBlock ( 9, 19 )
-        ]
+            :: contents
+        )
+
+
+viewBlocks : Model -> List (Svg msg)
+viewBlocks model =
+    [ viewBlock ( 4, 0 )
+    , viewBlock ( 5, 0 )
+    , viewBlock ( 5, 1 )
+    , viewBlock ( 6, 1 )
+    , viewBlock ( 0, 19 )
+    , viewBlock ( 1, 19 )
+    , viewBlock ( 2, 19 )
+    , viewBlock ( 7, 19 )
+    , viewBlock ( 9, 19 )
+    ]
 
 
 viewBlock : ( Int, Int ) -> Svg msg
