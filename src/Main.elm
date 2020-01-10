@@ -220,16 +220,20 @@ viewBlocks model =
 
 viewBlock : Block -> Svg msg
 viewBlock (Block col row color) =
-    rect
-        [ x (String.fromFloat (toFloat col * block.size + block.borderWidth / 2))
-        , y (String.fromFloat (toFloat row * block.size + block.borderWidth / 2))
-        , width (String.fromFloat (block.size - block.borderWidth))
-        , height (String.fromFloat (block.size - block.borderWidth))
-        , fill (colorToHex color)
-        , stroke "white"
-        , strokeWidth (String.fromFloat block.borderWidth)
-        ]
-        []
+    if 0 <= col && col < game.columns && 0 <= row && row < game.rows then
+        rect
+            [ x (String.fromFloat (toFloat col * block.size + block.borderWidth / 2))
+            , y (String.fromFloat (toFloat row * block.size + block.borderWidth / 2))
+            , width (String.fromFloat (block.size - block.borderWidth))
+            , height (String.fromFloat (block.size - block.borderWidth))
+            , fill (colorToHex color)
+            , stroke "white"
+            , strokeWidth (String.fromFloat block.borderWidth)
+            ]
+            []
+
+    else
+        rect [] []
 
 
 colorToHex : Color -> String
