@@ -53,6 +53,16 @@ type Block
     = Block Int Int Color
 
 
+type Shape
+    = IShape
+    | JShape
+    | LShape
+    | OShape
+    | SShape
+    | TShape
+    | ZShape
+
+
 type alias Model =
     { fallingPiece : List Block
     , bottomBlocks : List Block
@@ -62,11 +72,7 @@ type alias Model =
 init : Model
 init =
     { fallingPiece =
-        [ Block 4 0 Orange
-        , Block 5 0 Orange
-        , Block 5 1 Orange
-        , Block 6 1 Orange
-        ]
+        shapeToBlocks ZShape |> centerBlocks
     , bottomBlocks =
         [ Block 0 19 Gray
         , Block 1 19 Purple
@@ -86,6 +92,77 @@ init =
 update : msg -> Model -> Model
 update msg model =
     model
+
+
+shapeToBlocks : Shape -> List Block
+shapeToBlocks shape =
+    case shape of
+        IShape ->
+            [ Block 0 0 Red
+            , Block 1 0 Red
+            , Block 2 0 Red
+            , Block 3 0 Red
+            ]
+
+        JShape ->
+            [ Block 0 0 LightBlue
+            , Block 0 1 LightBlue
+            , Block 1 1 LightBlue
+            , Block 2 1 LightBlue
+            ]
+
+        LShape ->
+            [ Block 2 0 Green
+            , Block 0 1 Green
+            , Block 1 1 Green
+            , Block 2 1 Green
+            ]
+
+        OShape ->
+            [ Block 0 0 Gray
+            , Block 1 0 Gray
+            , Block 0 1 Gray
+            , Block 1 1 Gray
+            ]
+
+        SShape ->
+            [ Block 1 0 DarkBlue
+            , Block 2 0 DarkBlue
+            , Block 0 1 DarkBlue
+            , Block 1 1 DarkBlue
+            ]
+
+        TShape ->
+            [ Block 1 0 Purple
+            , Block 0 1 Purple
+            , Block 1 1 Purple
+            , Block 2 1 Purple
+            ]
+
+        ZShape ->
+            [ Block 0 0 Orange
+            , Block 1 0 Orange
+            , Block 1 1 Orange
+            , Block 2 1 Orange
+            ]
+
+
+centerBlocks : List Block -> List Block
+centerBlocks blocks =
+    let
+        columns =
+            List.map (\(Block col _ _) -> col) blocks
+
+        min =
+            List.minimum columns |> Maybe.withDefault 0
+
+        max =
+            List.maximum columns |> Maybe.withDefault 0
+
+        colShift =
+            -min + (game.columns - (max - min + 1)) // 2
+    in
+    List.map (\(Block col row color) -> Block (col + colShift) row color) blocks
 
 
 
