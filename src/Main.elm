@@ -79,7 +79,7 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { fallingPiece =
-            shapeToBlocks ZShape |> centerBlocks
+            shapeToBlocks ZShape |> centerHorizontally
       , bottomBlocks =
             [ Block 0 19 Gray
             , Block 1 19 Purple
@@ -108,13 +108,64 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MoveLeft ->
-            ( { model | fallingPiece = [] }, Cmd.none )
+            ( { model | fallingPiece = shiftHorizontallyBounded -1 model.fallingPiece }, Cmd.none )
 
         MoveRight ->
-            ( { model | fallingPiece = [] }, Cmd.none )
+            ( { model | fallingPiece = shiftHorizontallyBounded 1 model.fallingPiece }, Cmd.none )
 
         OtherKey ->
             ( model, Cmd.none )
+
+
+shiftHorizontallyBounded : Int -> List Block -> List Block
+shiftHorizontallyBounded delta blocks =
+    let
+        ( min, max ) =
+            columnRange blocks
+
+        adjustedDelta =
+            if min + delta < 0 then
+                -min
+
+            else if max + delta > game.columns - 1 then
+                game.columns - 1 - max
+
+            else
+                delta
+    in
+    shiftHorizontally adjustedDelta blocks
+
+
+shiftHorizontally : Int -> List Block -> List Block
+shiftHorizontally delta blocks =
+    List.map (\(Block col row color) -> Block (col + delta) row color) blocks
+
+
+centerHorizontally : List Block -> List Block
+centerHorizontally blocks =
+    let
+        ( min, max ) =
+            columnRange blocks
+
+        delta =
+            -min + (game.columns - (max - min + 1)) // 2
+    in
+    shiftHorizontally delta blocks
+
+
+columnRange : List Block -> ( Int, Int )
+columnRange blocks =
+    let
+        columns =
+            List.map (\(Block col _ _) -> col) blocks
+
+        min =
+            List.minimum columns |> Maybe.withDefault 0
+
+        max =
+            List.maximum columns |> Maybe.withDefault -1
+    in
+    ( min, max )
 
 
 shapeToBlocks : Shape -> List Block
@@ -168,24 +219,6 @@ shapeToBlocks shape =
             , Block 1 1 Orange
             , Block 2 1 Orange
             ]
-
-
-centerBlocks : List Block -> List Block
-centerBlocks blocks =
-    let
-        columns =
-            List.map (\(Block col _ _) -> col) blocks
-
-        min =
-            List.minimum columns |> Maybe.withDefault 0
-
-        max =
-            List.maximum columns |> Maybe.withDefault 0
-
-        colShift =
-            -min + (game.columns - (max - min + 1)) // 2
-    in
-    List.map (\(Block col row color) -> Block (col + colShift) row color) blocks
 
 
 
