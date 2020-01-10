@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (..)
 
 import Browser
 import Svg exposing (Svg, rect, svg)
@@ -14,6 +14,7 @@ main =
 -- CONSTANTS
 
 
+game : { columns : Int, rows : Int }
 game =
     { columns = 10
     , rows = 20
@@ -100,7 +101,7 @@ viewBoard : List (Svg msg) -> Svg msg
 viewBoard contents =
     let
         boardSize blockCount =
-            blockCount * block.size + 2 * (board.borderWidth + board.padding)
+            toFloat blockCount * block.size + 2 * (board.borderWidth + board.padding)
 
         boardWidth =
             boardSize game.columns
