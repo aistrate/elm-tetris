@@ -38,10 +38,6 @@ block =
 -- MODEL
 
 
-type Location
-    = Loc Int Int
-
-
 type Color
     = Red
     | Green
@@ -53,7 +49,7 @@ type Color
 
 
 type Block
-    = Block Location Color
+    = Block Int Int Color
 
 
 type alias Model =
@@ -65,19 +61,19 @@ type alias Model =
 init : Model
 init =
     { fallingPiece =
-        [ Block (Loc 4 0) Orange
-        , Block (Loc 5 0) Orange
-        , Block (Loc 5 1) Orange
-        , Block (Loc 6 1) Orange
+        [ Block 4 0 Orange
+        , Block 5 0 Orange
+        , Block 5 1 Orange
+        , Block 6 1 Orange
         ]
     , bottomBlocks =
-        [ Block (Loc 0 19) Gray
-        , Block (Loc 1 19) Purple
-        , Block (Loc 2 19) Red
-        , Block (Loc 3 19) Orange
-        , Block (Loc 7 19) Green
-        , Block (Loc 8 19) DarkBlue
-        , Block (Loc 9 19) LightBlue
+        [ Block 0 19 Gray
+        , Block 1 19 Purple
+        , Block 2 19 Red
+        , Block 3 19 Orange
+        , Block 7 19 Green
+        , Block 8 19 DarkBlue
+        , Block 9 19 LightBlue
         ]
     }
 
@@ -145,7 +141,7 @@ viewBlocks model =
 
 
 viewBlock : Block -> Svg msg
-viewBlock (Block (Loc col row) color) =
+viewBlock (Block col row color) =
     rect
         [ x (String.fromFloat (toFloat col * block.size + block.borderWidth / 2))
         , y (String.fromFloat (toFloat row * block.size + block.borderWidth / 2))
