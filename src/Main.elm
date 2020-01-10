@@ -1,13 +1,20 @@
 module Main exposing (..)
 
 import Browser
+import Browser.Events exposing (onKeyDown)
+import Json.Decode as Decode
 import Svg exposing (Svg, rect, svg)
 import Svg.Attributes exposing (..)
 
 
-main : Program () Model msg
+main : Program () Model Msg
 main =
-    Browser.sandbox { init = init, update = update, view = view }
+    Browser.element
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        }
 
 
 
@@ -69,29 +76,45 @@ type alias Model =
     }
 
 
-init : Model
-init =
-    { fallingPiece =
-        shapeToBlocks ZShape |> centerBlocks
-    , bottomBlocks =
-        [ Block 0 19 Gray
-        , Block 1 19 Purple
-        , Block 2 19 Red
-        , Block 3 19 Orange
-        , Block 7 19 Green
-        , Block 8 19 DarkBlue
-        , Block 9 19 LightBlue
-        ]
-    }
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( { fallingPiece =
+            shapeToBlocks ZShape |> centerBlocks
+      , bottomBlocks =
+            [ Block 0 19 Gray
+            , Block 1 19 Purple
+            , Block 2 19 Red
+            , Block 3 19 Orange
+            , Block 7 19 Green
+            , Block 8 19 DarkBlue
+            , Block 9 19 LightBlue
+            ]
+      }
+    , Cmd.none
+    )
 
 
 
 -- UPDATE
 
 
-update : msg -> Model -> Model
+type Msg
+    = MoveLeft
+    | MoveRight
+    | OtherKey
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    model
+    case msg of
+        MoveLeft ->
+            ( { model | fallingPiece = [] }, Cmd.none )
+
+        MoveRight ->
+            ( { model | fallingPiece = [] }, Cmd.none )
+
+        OtherKey ->
+            ( model, Cmd.none )
 
 
 shapeToBlocks : Shape -> List Block
@@ -166,15 +189,42 @@ centerBlocks blocks =
 
 
 
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    onKeyDown keyDecoder
+
+
+keyDecoder : Decode.Decoder Msg
+keyDecoder =
+    Decode.map toKeyboardMsg (Decode.field "key" Decode.string)
+
+
+toKeyboardMsg : String -> Msg
+toKeyboardMsg key =
+    case String.toLower key of
+        "arrowleft" ->
+            MoveLeft
+
+        "arrowright" ->
+            MoveRight
+
+        _ ->
+            OtherKey
+
+
+
 -- VIEW
 
 
-view : Model -> Svg msg
+view : Model -> Svg Msg
 view model =
     viewBoard (viewBlocks model)
 
 
-viewBoard : List (Svg msg) -> Svg msg
+viewBoard : List (Svg Msg) -> Svg Msg
 viewBoard contents =
     let
         boardSize blockCount =
@@ -213,12 +263,12 @@ viewBoard contents =
         )
 
 
-viewBlocks : Model -> List (Svg msg)
+viewBlocks : Model -> List (Svg Msg)
 viewBlocks model =
     List.map viewBlock (model.fallingPiece ++ model.bottomBlocks)
 
 
-viewBlock : Block -> Svg msg
+viewBlock : Block -> Svg Msg
 viewBlock (Block col row color) =
     if 0 <= col && col < game.columns && 0 <= row && row < game.rows then
         rect
