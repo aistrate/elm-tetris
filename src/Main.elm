@@ -3,8 +3,9 @@ module Main exposing (..)
 import Browser
 import Browser.Events exposing (onKeyDown)
 import Json.Decode as Decode
-import Svg exposing (Svg, rect, svg)
+import Svg exposing (Svg, g, rect, svg)
 import Svg.Attributes exposing (..)
+import Svg.Lazy exposing (lazy)
 
 
 main : Program () Model Msg
@@ -40,6 +41,18 @@ block =
     { size = 35.0
     , borderWidth = 0.5
     }
+
+
+boardSize blockCount =
+    toFloat blockCount * block.size + 2 * (board.borderWidth + board.padding)
+
+
+boardWidth =
+    boardSize game.columns
+
+
+boardHeight =
+    boardSize game.rows
 
 
 
@@ -133,7 +146,11 @@ shiftHorizontallyBounded delta blocks =
             else
                 delta
     in
-    shiftHorizontally adjustedDelta blocks
+    if adjustedDelta /= 0 then
+        shiftHorizontally adjustedDelta blocks
+
+    else
+        blocks
 
 
 shiftHorizontally : Int -> List Block -> List Block
@@ -254,21 +271,11 @@ toKeyboardMsg key =
 
 view : Model -> Svg Msg
 view model =
-    viewBoard (viewBlocks model)
+    lazy viewGame model
 
 
-viewBoard : List (Svg Msg) -> Svg Msg
-viewBoard contents =
-    let
-        boardSize blockCount =
-            toFloat blockCount * block.size + 2 * (board.borderWidth + board.padding)
-
-        boardWidth =
-            boardSize game.columns
-
-        boardHeight =
-            boardSize game.rows
-    in
+viewGame : Model -> Svg Msg
+viewGame model =
     svg
         [ width "100%"
         , height (String.fromFloat (board.marginTop + boardHeight))
@@ -282,23 +289,34 @@ viewBoard contents =
                 ++ String.fromFloat (board.marginTop + boardHeight)
             )
         ]
-        (rect
-            [ x (String.fromFloat -(board.borderWidth / 2 + board.padding))
-            , y (String.fromFloat -(board.borderWidth / 2 + board.padding))
-            , width (String.fromFloat (boardWidth - board.borderWidth))
-            , height (String.fromFloat (boardHeight - board.borderWidth))
-            , fill "transparent"
-            , stroke (.borderColor board)
-            , strokeWidth (String.fromFloat board.borderWidth)
-            ]
-            []
-            :: contents
+        [ lazy viewBoard ()
+        , lazy viewBlocks model.fallingPiece
+        , lazy viewBlocks model.bottomBlocks
+        ]
+
+
+viewBoard : () -> Svg Msg
+viewBoard _ =
+    rect
+        [ x (String.fromFloat -(board.borderWidth / 2 + board.padding))
+        , y (String.fromFloat -(board.borderWidth / 2 + board.padding))
+        , width (String.fromFloat (boardWidth - board.borderWidth))
+        , height (String.fromFloat (boardHeight - board.borderWidth))
+        , fill "transparent"
+        , stroke (.borderColor board)
+        , strokeWidth (String.fromFloat board.borderWidth)
+        ]
+        []
+
+
+viewBlocks : List Block -> Svg Msg
+viewBlocks blocks =
+    g
+        []
+        (List.map
+            viewBlock
+            blocks
         )
-
-
-viewBlocks : Model -> List (Svg Msg)
-viewBlocks model =
-    List.map viewBlock (model.fallingPiece ++ model.bottomBlocks)
 
 
 viewBlock : Block -> Svg Msg
