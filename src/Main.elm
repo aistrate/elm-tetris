@@ -174,22 +174,58 @@ shiftVertically delta blocks =
 rotateCounterclockwise : List Block -> List Block
 rotateCounterclockwise blocks =
     let
+        ( pivotCol, pivotRow ) =
+            pivot blocks
+
+        rotateBlock (Block col row color) =
+            Block (round (pivotCol + (toFloat row - pivotRow)))
+                (round (pivotRow - (toFloat col - pivotCol)))
+                color
+    in
+    List.map rotateBlock blocks
+
+
+pivot : List Block -> ( Float, Float )
+pivot blocks =
+    let
         ( minCol, maxCol ) =
             columnRange blocks
 
         ( minRow, maxRow ) =
             rowRange blocks
 
-        pivotCol =
-            minCol + (maxCol - minCol) // 2
+        width =
+            maxCol - minCol + 1
 
-        pivotRow =
-            minRow + (maxRow - minRow + 1) // 2
+        height =
+            maxRow - minRow + 1
 
-        rotateBlock (Block col row color) =
-            Block (pivotCol + (row - pivotRow)) (pivotRow - (col - pivotCol)) color
+        ( relCol, relRow ) =
+            relativePivot ( width, height )
     in
-    List.map rotateBlock blocks
+    ( toFloat minCol + relCol, toFloat minRow + relRow )
+
+
+relativePivot : ( Int, Int ) -> ( Float, Float )
+relativePivot size =
+    case size of
+        ( 4, 1 ) ->
+            ( 1.5, -0.5 )
+
+        ( 1, 4 ) ->
+            ( 0, 2 )
+
+        ( 3, 2 ) ->
+            ( 1, 0 )
+
+        ( 2, 3 ) ->
+            ( 0.5, 1.5 )
+
+        ( 2, 2 ) ->
+            ( 0.5, 0.5 )
+
+        _ ->
+            ( 0, 0 )
 
 
 centerHorizontally : List Block -> List Block
