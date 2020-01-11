@@ -123,13 +123,13 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MoveLeft ->
-            ( { model | fallingPiece = shiftHorizBounded -1 model.fallingPiece }, Cmd.none )
+            ( { model | fallingPiece = withinBoundsHoriz (shiftHoriz -1 model.fallingPiece) }, Cmd.none )
 
         MoveRight ->
-            ( { model | fallingPiece = shiftHorizBounded 1 model.fallingPiece }, Cmd.none )
+            ( { model | fallingPiece = withinBoundsHoriz (shiftHoriz 1 model.fallingPiece) }, Cmd.none )
 
         RotateCounterclockwise ->
-            ( { model | fallingPiece = rotateCounterclockwise model.fallingPiece }, Cmd.none )
+            ( { model | fallingPiece = withinBoundsHoriz (rotateCounterclockwise model.fallingPiece) }, Cmd.none )
 
         RotateClockwise ->
             ( model, Cmd.none )
@@ -138,24 +138,17 @@ update msg model =
             ( model, Cmd.none )
 
 
-shiftHorizBounded : Int -> List Block -> List Block
-shiftHorizBounded delta blocks =
+withinBoundsHoriz : List Block -> List Block
+withinBoundsHoriz blocks =
     let
         ( min, max ) =
             columnRange blocks
-
-        adjustedDelta =
-            if min + delta < 0 then
-                -min
-
-            else if max + delta > game.columns - 1 then
-                game.columns - 1 - max
-
-            else
-                delta
     in
-    if adjustedDelta /= 0 then
-        shiftHoriz adjustedDelta blocks
+    if min < 0 then
+        shiftHoriz -min blocks
+
+    else if max > game.columns - 1 then
+        shiftHoriz (game.columns - 1 - max) blocks
 
     else
         blocks
