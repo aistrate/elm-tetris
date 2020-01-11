@@ -86,13 +86,14 @@ type Shape
 type alias Model =
     { fallingPiece : List Block
     , bottomBlocks : List Block
+    , nextShapes : List Shape
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { fallingPiece =
-            shapeToBlocks ZShape |> centerHoriz |> shiftVert 4
+            shapeToBlocks IShape |> centerHoriz |> shiftVert 4
       , bottomBlocks =
             [ Block 0 19 Gray
             , Block 1 19 Purple
@@ -102,6 +103,8 @@ init _ =
             , Block 8 19 DarkBlue
             , Block 9 19 LightBlue
             ]
+      , nextShapes =
+            [ JShape, LShape, OShape, SShape, TShape, ZShape ]
       }
     , Cmd.none
     )
@@ -116,6 +119,7 @@ type Msg
     | MoveRight
     | RotateCounterclockwise
     | RotateClockwise
+    | NextPiece
     | OtherKey
 
 
@@ -133,6 +137,18 @@ update msg model =
 
         RotateClockwise ->
             ( { model | fallingPiece = withinBoundsHoriz (rotateClockwise model.fallingPiece) }, Cmd.none )
+
+        NextPiece ->
+            let
+                ( blocks, remainingShapes ) =
+                    case model.nextShapes of
+                        head :: tail ->
+                            ( shapeToBlocks head, tail )
+
+                        [] ->
+                            ( [], [] )
+            in
+            ( { model | fallingPiece = blocks |> centerHoriz |> shiftVert 4, nextShapes = remainingShapes }, Cmd.none )
 
         OtherKey ->
             ( model, Cmd.none )
@@ -351,6 +367,9 @@ toKeyboardMsg key =
 
         "arrowdown" ->
             RotateClockwise
+
+        " " ->
+            NextPiece
 
         _ ->
             OtherKey
