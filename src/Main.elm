@@ -132,7 +132,7 @@ update msg model =
             ( { model | fallingPiece = withinBoundsHoriz (rotateCounterclockwise model.fallingPiece) }, Cmd.none )
 
         RotateClockwise ->
-            ( model, Cmd.none )
+            ( { model | fallingPiece = withinBoundsHoriz (rotateClockwise model.fallingPiece) }, Cmd.none )
 
         OtherKey ->
             ( model, Cmd.none )
@@ -162,6 +162,18 @@ shiftHoriz delta blocks =
 shiftVert : Int -> List Block -> List Block
 shiftVert delta blocks =
     List.map (\(Block col row color) -> Block col (row + delta) color) blocks
+
+
+flipAxes : List Block -> List Block
+flipAxes blocks =
+    List.map (\(Block col row color) -> Block row col color) blocks
+
+
+rotateClockwise : List Block -> List Block
+rotateClockwise blocks =
+    flipAxes blocks
+        |> rotateCounterclockwise
+        |> flipAxes
 
 
 rotateCounterclockwise : List Block -> List Block
