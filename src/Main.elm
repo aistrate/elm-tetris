@@ -92,7 +92,7 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { fallingPiece =
-            shapeToBlocks ZShape |> centerHorizontally
+            shapeToBlocks ZShape |> centerHorizontally |> shiftVertically 4
       , bottomBlocks =
             [ Block 0 19 Gray
             , Block 1 19 Purple
@@ -114,6 +114,8 @@ init _ =
 type Msg
     = MoveLeft
     | MoveRight
+    | RotateCounterclockwise
+    | RotateClockwise
     | OtherKey
 
 
@@ -125,6 +127,12 @@ update msg model =
 
         MoveRight ->
             ( { model | fallingPiece = shiftHorizontallyBounded 1 model.fallingPiece }, Cmd.none )
+
+        RotateCounterclockwise ->
+            ( { model | fallingPiece = rotateCounterclockwise model.fallingPiece }, Cmd.none )
+
+        RotateClockwise ->
+            ( model, Cmd.none )
 
         OtherKey ->
             ( model, Cmd.none )
@@ -158,6 +166,32 @@ shiftHorizontally delta blocks =
     List.map (\(Block col row color) -> Block (col + delta) row color) blocks
 
 
+shiftVertically : Int -> List Block -> List Block
+shiftVertically delta blocks =
+    List.map (\(Block col row color) -> Block col (row + delta) color) blocks
+
+
+rotateCounterclockwise : List Block -> List Block
+rotateCounterclockwise blocks =
+    let
+        ( minCol, maxCol ) =
+            columnRange blocks
+
+        ( minRow, maxRow ) =
+            rowRange blocks
+
+        pivotCol =
+            minCol + (maxCol - minCol) // 2
+
+        pivotRow =
+            minRow + (maxRow - minRow + 1) // 2
+
+        rotateBlock (Block col row color) =
+            Block (pivotCol + (row - pivotRow)) (pivotRow - (col - pivotCol)) color
+    in
+    List.map rotateBlock blocks
+
+
 centerHorizontally : List Block -> List Block
 centerHorizontally blocks =
     let
@@ -172,15 +206,25 @@ centerHorizontally blocks =
 
 columnRange : List Block -> ( Int, Int )
 columnRange blocks =
+    range (\(Block col _ _) -> col) blocks
+
+
+rowRange : List Block -> ( Int, Int )
+rowRange blocks =
+    range (\(Block _ row _) -> row) blocks
+
+
+range : (Block -> Int) -> List Block -> ( Int, Int )
+range value blocks =
     let
-        columns =
-            List.map (\(Block col _ _) -> col) blocks
+        values =
+            List.map value blocks
 
         min =
-            List.minimum columns |> Maybe.withDefault 0
+            List.minimum values |> Maybe.withDefault 0
 
         max =
-            List.maximum columns |> Maybe.withDefault -1
+            List.maximum values |> Maybe.withDefault -1
     in
     ( min, max )
 
@@ -260,6 +304,12 @@ toKeyboardMsg key =
 
         "arrowright" ->
             MoveRight
+
+        "arrowup" ->
+            RotateCounterclockwise
+
+        "arrowdown" ->
+            RotateClockwise
 
         _ ->
             OtherKey
