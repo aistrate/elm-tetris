@@ -92,7 +92,7 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { fallingPiece =
-            shapeToBlocks ZShape |> centerHorizontally |> shiftVertically 4
+            shapeToBlocks ZShape |> centerHoriz |> shiftVert 4
       , bottomBlocks =
             [ Block 0 19 Gray
             , Block 1 19 Purple
@@ -123,10 +123,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MoveLeft ->
-            ( { model | fallingPiece = shiftHorizontallyBounded -1 model.fallingPiece }, Cmd.none )
+            ( { model | fallingPiece = shiftHorizBounded -1 model.fallingPiece }, Cmd.none )
 
         MoveRight ->
-            ( { model | fallingPiece = shiftHorizontallyBounded 1 model.fallingPiece }, Cmd.none )
+            ( { model | fallingPiece = shiftHorizBounded 1 model.fallingPiece }, Cmd.none )
 
         RotateCounterclockwise ->
             ( { model | fallingPiece = rotateCounterclockwise model.fallingPiece }, Cmd.none )
@@ -138,8 +138,8 @@ update msg model =
             ( model, Cmd.none )
 
 
-shiftHorizontallyBounded : Int -> List Block -> List Block
-shiftHorizontallyBounded delta blocks =
+shiftHorizBounded : Int -> List Block -> List Block
+shiftHorizBounded delta blocks =
     let
         ( min, max ) =
             columnRange blocks
@@ -155,19 +155,19 @@ shiftHorizontallyBounded delta blocks =
                 delta
     in
     if adjustedDelta /= 0 then
-        shiftHorizontally adjustedDelta blocks
+        shiftHoriz adjustedDelta blocks
 
     else
         blocks
 
 
-shiftHorizontally : Int -> List Block -> List Block
-shiftHorizontally delta blocks =
+shiftHoriz : Int -> List Block -> List Block
+shiftHoriz delta blocks =
     List.map (\(Block col row color) -> Block (col + delta) row color) blocks
 
 
-shiftVertically : Int -> List Block -> List Block
-shiftVertically delta blocks =
+shiftVert : Int -> List Block -> List Block
+shiftVert delta blocks =
     List.map (\(Block col row color) -> Block col (row + delta) color) blocks
 
 
@@ -228,8 +228,8 @@ relativePivot size =
             ( 0, 0 )
 
 
-centerHorizontally : List Block -> List Block
-centerHorizontally blocks =
+centerHoriz : List Block -> List Block
+centerHoriz blocks =
     let
         ( min, max ) =
             columnRange blocks
@@ -237,7 +237,7 @@ centerHorizontally blocks =
         delta =
             -min + (game.columns - (max - min + 1)) // 2
     in
-    shiftHorizontally delta blocks
+    shiftHoriz delta blocks
 
 
 columnRange : List Block -> ( Int, Int )
