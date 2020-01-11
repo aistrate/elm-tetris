@@ -3,6 +3,7 @@ module Main exposing (..)
 import Browser
 import Browser.Events exposing (onKeyDown)
 import Json.Decode as Decode
+import Random
 import Svg exposing (Svg, g, rect, svg)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (lazy)
@@ -86,14 +87,12 @@ type Shape
 type alias Model =
     { fallingPiece : List Block
     , bottomBlocks : List Block
-    , nextShapes : List Shape
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { fallingPiece =
-            shapeToBlocks IShape |> centerHoriz |> shiftVert 4
+    ( { fallingPiece = []
       , bottomBlocks =
             [ Block 0 19 Gray
             , Block 1 19 Purple
@@ -103,10 +102,8 @@ init _ =
             , Block 8 19 DarkBlue
             , Block 9 19 LightBlue
             ]
-      , nextShapes =
-            [ JShape, LShape, OShape, SShape, TShape, ZShape ]
       }
-    , Cmd.none
+    , Random.generate NewShape shapeGenerator
     )
 
 
@@ -119,7 +116,8 @@ type Msg
     | MoveRight
     | RotateCounterclockwise
     | RotateClockwise
-    | NextPiece
+    | DropPiece
+    | NewShape Shape
     | OtherKey
 
 
@@ -138,20 +136,26 @@ update msg model =
         RotateClockwise ->
             ( { model | fallingPiece = withinBoundsHoriz (rotateClockwise model.fallingPiece) }, Cmd.none )
 
-        NextPiece ->
-            let
-                ( blocks, remainingShapes ) =
-                    case model.nextShapes of
-                        head :: tail ->
-                            ( shapeToBlocks head, tail )
+        DropPiece ->
+            ( { model | fallingPiece = [] }
+            , Random.generate NewShape shapeGenerator
+            )
 
-                        [] ->
-                            ( [], [] )
-            in
-            ( { model | fallingPiece = blocks |> centerHoriz |> shiftVert 4, nextShapes = remainingShapes }, Cmd.none )
+        NewShape shape ->
+            ( { model
+                | fallingPiece =
+                    shapeToBlocks shape |> centerHoriz |> shiftVert 4
+              }
+            , Cmd.none
+            )
 
         OtherKey ->
             ( model, Cmd.none )
+
+
+shapeGenerator : Random.Generator Shape
+shapeGenerator =
+    Random.uniform IShape [ JShape, LShape, OShape, SShape, TShape, ZShape ]
 
 
 withinBoundsHoriz : List Block -> List Block
@@ -369,7 +373,7 @@ toKeyboardMsg key =
             RotateClockwise
 
         " " ->
-            NextPiece
+            DropPiece
 
         _ ->
             OtherKey
