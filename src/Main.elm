@@ -93,15 +93,7 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { fallingPiece = []
-      , bottomBlocks =
-            [ Block 0 19 Gray
-            , Block 1 19 Purple
-            , Block 2 19 Red
-            , Block 3 19 Orange
-            , Block 7 19 Green
-            , Block 8 19 DarkBlue
-            , Block 9 19 LightBlue
-            ]
+      , bottomBlocks = []
       }
     , Random.generate NewShape shapeGenerator
     )
@@ -157,14 +149,16 @@ update msg model =
             )
 
         DropPiece ->
-            ( { model | fallingPiece = [] }
+            ( { model
+                | fallingPiece = []
+              }
             , Random.generate NewShape shapeGenerator
             )
 
         NewShape shape ->
             ( { model
                 | fallingPiece =
-                    shapeToBlocks shape |> centerHoriz |> shiftVert 4
+                    shapeToBlocks shape |> centerHoriz |> shiftVert 2
               }
             , Cmd.none
             )
