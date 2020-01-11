@@ -125,16 +125,36 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MoveLeft ->
-            ( { model | fallingPiece = withinBoundsHoriz (shiftHoriz -1 model.fallingPiece) }, Cmd.none )
+            ( { model
+                | fallingPiece =
+                    withinBoundsHoriz (shiftHoriz -1 model.fallingPiece)
+              }
+            , Cmd.none
+            )
 
         MoveRight ->
-            ( { model | fallingPiece = withinBoundsHoriz (shiftHoriz 1 model.fallingPiece) }, Cmd.none )
+            ( { model
+                | fallingPiece =
+                    withinBoundsHoriz (shiftHoriz 1 model.fallingPiece)
+              }
+            , Cmd.none
+            )
 
         RotateCounterclockwise ->
-            ( { model | fallingPiece = withinBoundsHoriz (rotateCounterclockwise model.fallingPiece) }, Cmd.none )
+            ( { model
+                | fallingPiece =
+                    withinBoundsHoriz (rotateCounterclockwise model.fallingPiece)
+              }
+            , Cmd.none
+            )
 
         RotateClockwise ->
-            ( { model | fallingPiece = withinBoundsHoriz (rotateClockwise model.fallingPiece) }, Cmd.none )
+            ( { model
+                | fallingPiece =
+                    withinBoundsHoriz (rotateClockwise model.fallingPiece)
+              }
+            , Cmd.none
+            )
 
         DropPiece ->
             ( { model | fallingPiece = [] }
