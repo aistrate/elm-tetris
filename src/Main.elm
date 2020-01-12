@@ -75,6 +75,7 @@ type Shape
 
 type alias Model =
     { fallingPiece : List Block
+    , ghostPiece : List Block
     , bottomBlocks : List Block
     }
 
@@ -82,6 +83,7 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { fallingPiece = []
+      , ghostPiece = []
       , bottomBlocks = []
       }
     , Random.generate NewShape shapeGenerator
@@ -106,54 +108,62 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MoveLeft ->
-            ( { model
-                | fallingPiece =
-                    withinBoundsHoriz (shiftHoriz -1 model.fallingPiece)
-              }
+            ( updateFallingPiece
+                model
+                (withinBoundsHoriz (shiftHoriz -1 model.fallingPiece))
             , Cmd.none
             )
 
         MoveRight ->
-            ( { model
-                | fallingPiece =
-                    withinBoundsHoriz (shiftHoriz 1 model.fallingPiece)
-              }
+            ( updateFallingPiece
+                model
+                (withinBoundsHoriz (shiftHoriz 1 model.fallingPiece))
             , Cmd.none
             )
 
         RotateCounterclockwise ->
-            ( { model
-                | fallingPiece =
-                    withinBoundsHoriz (rotateCounterclockwise model.fallingPiece)
-              }
+            ( updateFallingPiece
+                model
+                (withinBoundsHoriz (rotateCounterclockwise model.fallingPiece))
             , Cmd.none
             )
 
         RotateClockwise ->
-            ( { model
-                | fallingPiece =
-                    withinBoundsHoriz (rotateClockwise model.fallingPiece)
-              }
+            ( updateFallingPiece
+                model
+                (withinBoundsHoriz (rotateClockwise model.fallingPiece))
             , Cmd.none
             )
 
         DropPiece ->
-            ( { model
-                | fallingPiece = []
-              }
+            ( { model | fallingPiece = [], ghostPiece = [] }
             , Random.generate NewShape shapeGenerator
             )
 
         NewShape shape ->
-            ( { model
-                | fallingPiece =
-                    shapeToBlocks shape |> centerHoriz |> shiftVert 2
-              }
+            ( updateFallingPiece
+                model
+                (shapeToBlocks shape |> centerHoriz |> shiftVert 2)
             , Cmd.none
             )
 
         OtherKey ->
-            ( model, Cmd.none )
+            ( model
+            , Cmd.none
+            )
+
+
+updateFallingPiece : Model -> List Block -> Model
+updateFallingPiece model fallingPiece =
+    { model
+        | fallingPiece = fallingPiece
+        , ghostPiece = ghostPiece fallingPiece model.bottomBlocks
+    }
+
+
+ghostPiece : List Block -> List Block -> List Block
+ghostPiece fallingPiece bottomBlocks =
+    List.map (\(Block col row _) -> Block col (row + 5) LightGray) fallingPiece
 
 
 shapeGenerator : Random.Generator Shape
@@ -422,6 +432,7 @@ viewGame model =
             )
         ]
         [ lazy viewBoard ()
+        , lazy viewBlocks model.ghostPiece
         , lazy viewBlocks model.fallingPiece
         , lazy viewBlocks model.bottomBlocks
         ]
