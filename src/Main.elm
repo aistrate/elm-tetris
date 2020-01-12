@@ -51,11 +51,12 @@ block =
 type Color
     = Red
     | Green
-    | LightBlue
     | DarkBlue
+    | LightBlue
     | Orange
     | Purple
-    | Gray
+    | DarkGray
+    | LightGray
 
 
 type Block
@@ -317,10 +318,10 @@ shapeToBlocks shape =
             ]
 
         OShape ->
-            [ Block 0 0 Gray
-            , Block 1 0 Gray
-            , Block 0 1 Gray
-            , Block 1 1 Gray
+            [ Block 0 0 DarkGray
+            , Block 1 0 DarkGray
+            , Block 0 1 DarkGray
+            , Block 1 1 DarkGray
             ]
 
         SShape ->
@@ -477,11 +478,11 @@ colorToHex color =
         Green ->
             "#36C54C"
 
-        LightBlue ->
-            "#2EA3F7"
-
         DarkBlue ->
             "#3968B0"
+
+        LightBlue ->
+            "#2EA3F7"
 
         Orange ->
             "#FA6600"
@@ -489,5 +490,8 @@ colorToHex color =
         Purple ->
             "#CA55C3"
 
-        Gray ->
+        DarkGray ->
             "#989898"
+
+        LightGray ->
+            "#DDD"
