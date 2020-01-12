@@ -182,9 +182,14 @@ ghostPiece fallingPiece bottomBlocks =
             rowsPerColumn colRange fallingPiece
                 |> List.map (List.maximum >> Maybe.withDefault 0)
 
+        firstRowBelowFallingPiece : Int
+        firstRowBelowFallingPiece =
+            (List.minimum fallingPieceMaxRows |> Maybe.withDefault -1) + 1
+
         bottomBlocksMinRows : List Int
         bottomBlocksMinRows =
             rowsPerColumn colRange bottomBlocks
+                |> List.map (List.filter (\row -> row >= firstRowBelowFallingPiece))
                 |> List.map (List.minimum >> Maybe.withDefault game.rows)
 
         rowDelta : Int
