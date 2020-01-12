@@ -44,18 +44,6 @@ block =
     }
 
 
-boardSize blockCount =
-    toFloat blockCount * block.size + 2 * (board.borderWidth + board.padding)
-
-
-boardWidth =
-    boardSize game.columns
-
-
-boardHeight =
-    boardSize game.rows
-
-
 
 -- MODEL
 
@@ -397,6 +385,21 @@ toKeyboardMsg key =
 -- VIEW
 
 
+boardWidth : Float
+boardWidth =
+    boardSize game.columns
+
+
+boardHeight : Float
+boardHeight =
+    boardSize game.rows
+
+
+boardSize : Int -> Float
+boardSize blockCount =
+    toFloat blockCount * block.size + 2 * (board.borderWidth + board.padding)
+
+
 view : Model -> Svg Msg
 view model =
     lazy viewGame model
@@ -431,7 +434,7 @@ viewBoard _ =
         , width (String.fromFloat (boardWidth - board.borderWidth))
         , height (String.fromFloat (boardHeight - board.borderWidth))
         , fill "transparent"
-        , stroke (.borderColor board)
+        , stroke board.borderColor
         , strokeWidth (String.fromFloat board.borderWidth)
         ]
         []
