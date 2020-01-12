@@ -136,7 +136,7 @@ update msg model =
             )
 
         DropPiece ->
-            ( { model | fallingPiece = [], ghostPiece = [] }
+            ( dropToBottom model
             , Random.generate NewShape shapeGenerator
             )
 
@@ -158,6 +158,25 @@ updateFallingPiece model fallingPiece =
     { model
         | fallingPiece = fallingPiece
         , ghostPiece = ghostPiece fallingPiece model.bottomBlocks
+    }
+
+
+dropToBottom : Model -> Model
+dropToBottom model =
+    let
+        ( fallingPieceMinRow, _ ) =
+            rowRange model.fallingPiece
+
+        ( ghostPieceMinRow, _ ) =
+            rowRange model.ghostPiece
+
+        droppedPiece =
+            shiftVert (ghostPieceMinRow - fallingPieceMinRow) model.fallingPiece
+    in
+    { model
+        | fallingPiece = []
+        , ghostPiece = []
+        , bottomBlocks = model.bottomBlocks ++ droppedPiece
     }
 
 
