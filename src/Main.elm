@@ -163,7 +163,36 @@ updateFallingPiece model fallingPiece =
 
 ghostPiece : List Block -> List Block -> List Block
 ghostPiece fallingPiece bottomBlocks =
-    List.map (\(Block col row _) -> Block col (row + 5) LightGray) fallingPiece
+    let
+        colRange : ( Int, Int )
+        colRange =
+            columnRange fallingPiece
+
+        rowsPerColumn : ( Int, Int ) -> List Block -> List (List Int)
+        rowsPerColumn ( minCol, maxCol ) blocks =
+            List.range minCol maxCol
+                |> List.map
+                    (\c ->
+                        List.filter (\(Block col _ _) -> col == c) blocks
+                            |> List.map (\(Block _ row _) -> row)
+                    )
+
+        fallingPieceMaxRows : List Int
+        fallingPieceMaxRows =
+            rowsPerColumn colRange fallingPiece
+                |> List.map (List.maximum >> Maybe.withDefault 0)
+
+        bottomBlocksMinRows : List Int
+        bottomBlocksMinRows =
+            rowsPerColumn colRange bottomBlocks
+                |> List.map (List.minimum >> Maybe.withDefault game.rows)
+
+        rowDelta : Int
+        rowDelta =
+            List.map2 (-) bottomBlocksMinRows fallingPieceMaxRows
+                |> (List.minimum >> Maybe.withDefault 0)
+    in
+    List.map (\(Block col row _) -> Block col (row + rowDelta - 1) LightGray) fallingPiece
 
 
 shapeGenerator : Random.Generator Shape
