@@ -6,7 +6,7 @@ import Json.Decode as Decode
 import Random
 import Svg exposing (Svg, g, rect, svg)
 import Svg.Attributes exposing (..)
-import Svg.Lazy exposing (lazy)
+import Svg.Lazy exposing (lazy, lazy2)
 
 
 main : Program () Model Msg
@@ -77,6 +77,7 @@ type alias Model =
     { fallingPiece : List Block
     , ghostPiece : List Block
     , bottomBlocks : List Block
+    , showGhostPiece : Bool
     }
 
 
@@ -85,6 +86,7 @@ init _ =
     ( { fallingPiece = []
       , ghostPiece = []
       , bottomBlocks = []
+      , showGhostPiece = False
       }
     , Random.generate NewShape shapeGenerator
     )
@@ -100,6 +102,7 @@ type Msg
     | RotateCounterclockwise
     | RotateClockwise
     | DropPiece
+    | ToggleGhostPiece
     | NewShape Shape
     | OtherKey
 
@@ -138,6 +141,11 @@ update msg model =
         DropPiece ->
             ( dropToBottom model
             , Random.generate NewShape shapeGenerator
+            )
+
+        ToggleGhostPiece ->
+            ( { model | showGhostPiece = not model.showGhostPiece }
+            , Cmd.none
             )
 
         NewShape shape ->
@@ -479,6 +487,9 @@ toKeyboardMsg key =
         " " ->
             DropPiece
 
+        "g" ->
+            ToggleGhostPiece
+
         _ ->
             OtherKey
 
@@ -523,7 +534,7 @@ viewGame model =
             )
         ]
         [ lazy viewBoard ()
-        , lazy viewBlocks model.ghostPiece
+        , lazy2 viewGhostPiece model.showGhostPiece model.ghostPiece
         , lazy viewBlocks model.fallingPiece
         , lazy viewBlocks model.bottomBlocks
         ]
@@ -569,6 +580,15 @@ viewBlock (Block col row color) =
 
     else
         rect [] []
+
+
+viewGhostPiece : Bool -> List Block -> Svg Msg
+viewGhostPiece showGhostPiece blocks =
+    if showGhostPiece then
+        viewBlocks blocks
+
+    else
+        g [] []
 
 
 colorToHex : Color -> String
