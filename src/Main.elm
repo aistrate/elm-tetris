@@ -161,25 +161,6 @@ updateFallingPiece model fallingPiece =
     }
 
 
-dropToBottom : Model -> Model
-dropToBottom model =
-    let
-        ( fallingPieceMinRow, _ ) =
-            rowRange model.fallingPiece
-
-        ( ghostPieceMinRow, _ ) =
-            rowRange model.ghostPiece
-
-        droppedPiece =
-            shiftVert (ghostPieceMinRow - fallingPieceMinRow) model.fallingPiece
-    in
-    { model
-        | fallingPiece = []
-        , ghostPiece = []
-        , bottomBlocks = model.bottomBlocks ++ droppedPiece
-    }
-
-
 ghostPiece : List Block -> List Block -> List Block
 ghostPiece fallingPiece bottomBlocks =
     let
@@ -217,6 +198,63 @@ ghostPiece fallingPiece bottomBlocks =
                 |> (List.minimum >> Maybe.withDefault 0)
     in
     List.map (\(Block col row _) -> Block col (row + rowDelta - 1) LightGray) fallingPiece
+
+
+dropToBottom : Model -> Model
+dropToBottom model =
+    let
+        ( fallingPieceMinRow, _ ) =
+            rowRange model.fallingPiece
+
+        ( ghostPieceMinRow, _ ) =
+            rowRange model.ghostPiece
+
+        droppedPiece =
+            shiftVert (ghostPieceMinRow - fallingPieceMinRow) model.fallingPiece
+
+        bottomBlocks =
+            removeFullRows (model.bottomBlocks ++ droppedPiece)
+    in
+    { model | fallingPiece = [], ghostPiece = [], bottomBlocks = bottomBlocks }
+
+
+removeFullRows : List Block -> List Block
+removeFullRows blocks =
+    let
+        ( minRow, maxRow ) =
+            rowRange blocks
+
+        rowCounts : List ( Int, Int )
+        rowCounts =
+            List.range minRow maxRow
+                |> List.map
+                    (\row ->
+                        List.filter (\(Block _ r _) -> r == row) blocks
+                            |> (\bs -> ( row, List.length bs ))
+                    )
+
+        fullRows : List Int
+        fullRows =
+            List.filter (\( _, count ) -> count == game.columns) rowCounts
+                |> List.map (\( row, _ ) -> row)
+    in
+    List.foldl removeRow blocks fullRows
+
+
+removeRow : Int -> List Block -> List Block
+removeRow row blocks =
+    let
+        filteredBlocks =
+            List.filter (\(Block _ r _) -> r /= row) blocks
+
+        shiftBlock (Block c r color) =
+            if r < row then
+                Block c (r + 1) color
+
+            else
+                Block c r color
+    in
+    List.map shiftBlock filteredBlocks
 
 
 shapeGenerator : Random.Generator Shape
