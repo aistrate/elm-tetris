@@ -99,6 +99,7 @@ init _ =
 type Msg
     = MoveLeft
     | MoveRight
+    | MoveDown
     | RotateCounterclockwise
     | RotateClockwise
     | DropPiece
@@ -121,6 +122,13 @@ update msg model =
             ( updateFallingPiece
                 model
                 (withinBoundsHoriz (shiftHoriz 1 model.fallingPiece))
+            , Cmd.none
+            )
+
+        MoveDown ->
+            ( updateFallingPiece
+                model
+                (shiftVert 1 model.fallingPiece)
             , Cmd.none
             )
 
@@ -478,11 +486,20 @@ toKeyboardMsg key =
         "arrowright" ->
             MoveRight
 
+        "arrowdown" ->
+            MoveDown
+
         "arrowup" ->
+            RotateClockwise
+
+        "x" ->
+            RotateClockwise
+
+        "control" ->
             RotateCounterclockwise
 
-        "arrowdown" ->
-            RotateClockwise
+        "z" ->
+            RotateCounterclockwise
 
         " " ->
             DropPiece
