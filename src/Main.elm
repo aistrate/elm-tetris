@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Browser.Events exposing (onKeyDown)
+import Dict exposing (Dict)
 import Json.Decode as Decode
 import Random
 import Svg exposing (Svg, g, rect, svg)
@@ -77,6 +78,7 @@ type alias Model =
     { fallingPiece : List Block
     , ghostPiece : List Block
     , bottomBlocks : List Block
+    , occupiedCells : Dict ( Int, Int ) ()
     , showGhostPiece : Bool
     }
 
@@ -86,6 +88,7 @@ init _ =
     ( { fallingPiece = []
       , ghostPiece = []
       , bottomBlocks = []
+      , occupiedCells = Dict.fromList []
       , showGhostPiece = False
       }
     , Random.generate NewShape shapeGenerator
@@ -114,21 +117,21 @@ update msg model =
         MoveLeft ->
             ( updateFallingPiece
                 model
-                (withinBoundsHoriz (shiftHoriz -1 model.fallingPiece))
+                (detectCollision (shiftHoriz -1 model.fallingPiece) model)
             , Cmd.none
             )
 
         MoveRight ->
             ( updateFallingPiece
                 model
-                (withinBoundsHoriz (shiftHoriz 1 model.fallingPiece))
+                (detectCollision (shiftHoriz 1 model.fallingPiece) model)
             , Cmd.none
             )
 
         MoveDown ->
             ( updateFallingPiece
                 model
-                (shiftVert 1 model.fallingPiece)
+                (detectCollision (shiftVert 1 model.fallingPiece) model)
             , Cmd.none
             )
 
@@ -230,8 +233,12 @@ dropToBottom model =
 
         bottomBlocks =
             removeFullRows (model.bottomBlocks ++ droppedPiece)
+
+        occupiedCells =
+            List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
+                |> Dict.fromList
     in
-    { model | fallingPiece = [], ghostPiece = [], bottomBlocks = bottomBlocks }
+    { model | fallingPiece = [], ghostPiece = [], bottomBlocks = bottomBlocks, occupiedCells = occupiedCells }
 
 
 removeFullRows : List Block -> List Block
@@ -292,6 +299,21 @@ withinBoundsHoriz blocks =
 
     else
         blocks
+
+
+detectCollision : List Block -> Model -> List Block
+detectCollision fallingPiece model =
+    let
+        collision : Block -> Bool
+        collision (Block col row _) =
+            not (0 <= col && col < game.columns && row < game.rows)
+                || Dict.member ( col, row ) model.occupiedCells
+    in
+    if not (List.any collision fallingPiece) then
+        fallingPiece
+
+    else
+        model.fallingPiece
 
 
 shiftHoriz : Int -> List Block -> List Block
