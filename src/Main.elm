@@ -51,12 +51,12 @@ block =
 type Color
     = Red
     | Green
-    | DarkBlue
-    | LightBlue
+    | Blue
+    | Cyan
     | Orange
     | Purple
-    | DarkGray
-    | LightGray
+    | Yellow
+    | Gray
 
 
 type Block
@@ -205,7 +205,7 @@ ghostPiece fallingPiece bottomBlocks =
             List.map2 (-) bottomBlocksMinRows fallingPieceMaxRows
                 |> (List.minimum >> Maybe.withDefault 0)
     in
-    List.map (\(Block col row _) -> Block col (row + rowDelta - 1) LightGray) fallingPiece
+    List.map (\(Block col row _) -> Block col (row + rowDelta - 1) Gray) fallingPiece
 
 
 dropToBottom : Model -> Model
@@ -406,38 +406,38 @@ shapeToBlocks : Shape -> List Block
 shapeToBlocks shape =
     case shape of
         IShape ->
-            [ Block 0 0 Red
-            , Block 1 0 Red
-            , Block 2 0 Red
-            , Block 3 0 Red
+            [ Block 0 0 Cyan
+            , Block 1 0 Cyan
+            , Block 2 0 Cyan
+            , Block 3 0 Cyan
             ]
 
         JShape ->
-            [ Block 0 0 LightBlue
-            , Block 0 1 LightBlue
-            , Block 1 1 LightBlue
-            , Block 2 1 LightBlue
+            [ Block 0 0 Blue
+            , Block 0 1 Blue
+            , Block 1 1 Blue
+            , Block 2 1 Blue
             ]
 
         LShape ->
-            [ Block 2 0 Green
-            , Block 0 1 Green
-            , Block 1 1 Green
-            , Block 2 1 Green
+            [ Block 2 0 Orange
+            , Block 0 1 Orange
+            , Block 1 1 Orange
+            , Block 2 1 Orange
             ]
 
         OShape ->
-            [ Block 0 0 DarkGray
-            , Block 1 0 DarkGray
-            , Block 0 1 DarkGray
-            , Block 1 1 DarkGray
+            [ Block 0 0 Yellow
+            , Block 1 0 Yellow
+            , Block 0 1 Yellow
+            , Block 1 1 Yellow
             ]
 
         SShape ->
-            [ Block 1 0 DarkBlue
-            , Block 2 0 DarkBlue
-            , Block 0 1 DarkBlue
-            , Block 1 1 DarkBlue
+            [ Block 1 0 Green
+            , Block 2 0 Green
+            , Block 0 1 Green
+            , Block 1 1 Green
             ]
 
         TShape ->
@@ -448,10 +448,10 @@ shapeToBlocks shape =
             ]
 
         ZShape ->
-            [ Block 0 0 Orange
-            , Block 1 0 Orange
-            , Block 1 1 Orange
-            , Block 2 1 Orange
+            [ Block 0 0 Red
+            , Block 1 0 Red
+            , Block 1 1 Red
+            , Block 2 1 Red
             ]
 
 
@@ -600,10 +600,10 @@ colorToHex color =
         Green ->
             "#36C54C"
 
-        DarkBlue ->
+        Blue ->
             "#3968B0"
 
-        LightBlue ->
+        Cyan ->
             "#2EA3F7"
 
         Orange ->
@@ -612,8 +612,8 @@ colorToHex color =
         Purple ->
             "#CA55C3"
 
-        DarkGray ->
-            "#989898"
+        Yellow ->
+            "#F2D00D"
 
-        LightGray ->
+        Gray ->
             "#DDD"
