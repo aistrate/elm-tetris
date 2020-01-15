@@ -176,7 +176,7 @@ update msg model =
         ShapeGenerated shape ->
             ( updateFallingPiece
                 model
-                (shapeToBlocks shape |> centerHoriz |> shiftVert 2)
+                (shapeToBlocks shape |> centerHoriz |> shiftVert 1)
             , Cmd.none
             )
 
@@ -452,10 +452,10 @@ shapeToBlocks : Shape -> List Block
 shapeToBlocks shape =
     case shape of
         IShape ->
-            [ Block 0 0 Cyan
-            , Block 1 0 Cyan
-            , Block 2 0 Cyan
-            , Block 3 0 Cyan
+            [ Block 0 1 Cyan
+            , Block 1 1 Cyan
+            , Block 2 1 Cyan
+            , Block 3 1 Cyan
             ]
 
         JShape ->
