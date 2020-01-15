@@ -267,7 +267,7 @@ removeFullRows blocks =
 removeRow : Int -> List Block -> List Block
 removeRow row blocks =
     let
-        filteredBlocks =
+        remainingBlocks =
             List.filter (\(Block _ r _) -> r /= row) blocks
 
         shiftBlock (Block c r color) =
@@ -277,7 +277,7 @@ removeRow row blocks =
             else
                 Block c r color
     in
-    List.map shiftBlock filteredBlocks
+    List.map shiftBlock remainingBlocks
 
 
 shapeGenerator : Random.Generator Shape
