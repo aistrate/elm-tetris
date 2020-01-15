@@ -4,11 +4,12 @@ import Browser
 import Browser.Events as Events
 import Dict exposing (Dict)
 import Json.Decode as Decode
+import Process
 import Random
 import Svg exposing (Svg, g, rect, svg)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (lazy, lazy2)
-import Time
+import Task
 
 
 main : Program () Model Msg
@@ -154,12 +155,18 @@ update msg model =
             )
 
         HardDrop ->
-            ( { model
-                | fallingPiece = dropToBottom model.fallingPiece model.ghostPiece
-                , duringLockDelay = True
-              }
-            , Cmd.none
-            )
+            if not model.duringLockDelay then
+                ( { model
+                    | fallingPiece = dropToBottom model.fallingPiece model.ghostPiece
+                    , duringLockDelay = True
+                  }
+                , Process.sleep 500 |> Task.perform (always LockToBottom)
+                )
+
+            else
+                ( model
+                , Cmd.none
+                )
 
         LockToBottom ->
             ( lockToBottom model
@@ -515,15 +522,7 @@ shapeToBlocks shape =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    let
-        lockDelay =
-            if model.duringLockDelay then
-                Time.every 500 (always LockToBottom)
-
-            else
-                Sub.none
-    in
-    Sub.batch [ Events.onKeyDown keyDecoder, lockDelay ]
+    Events.onKeyDown keyDecoder
 
 
 keyDecoder : Decode.Decoder Msg
