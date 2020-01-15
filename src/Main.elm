@@ -66,16 +66,6 @@ type Block
     = Block Int Int Color
 
 
-type Shape
-    = IShape
-    | JShape
-    | LShape
-    | OShape
-    | SShape
-    | TShape
-    | ZShape
-
-
 type alias Model =
     { fallingPiece : List Block
     , ghostPiece : List Block
@@ -103,12 +93,22 @@ init _ =
 -- UPDATE
 
 
+type Shape
+    = IShape
+    | JShape
+    | LShape
+    | OShape
+    | SShape
+    | TShape
+    | ZShape
+
+
 type Msg
     = MoveLeft
     | MoveRight
     | MoveDown
-    | RotateCounterclockwise
     | RotateClockwise
+    | RotateCounterclockwise
     | HardDrop
     | LockToBottom
     | ShapeGenerated Shape
@@ -140,17 +140,17 @@ update msg model =
             , Cmd.none
             )
 
-        RotateCounterclockwise ->
-            ( updateFallingPiece
-                model
-                (withinBoundsHoriz (rotateCounterclockwise model.fallingPiece))
-            , Cmd.none
-            )
-
         RotateClockwise ->
             ( updateFallingPiece
                 model
                 (withinBoundsHoriz (rotateClockwise model.fallingPiece))
+            , Cmd.none
+            )
+
+        RotateCounterclockwise ->
+            ( updateFallingPiece
+                model
+                (withinBoundsHoriz (rotateCounterclockwise model.fallingPiece))
             , Cmd.none
             )
 
