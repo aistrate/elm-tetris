@@ -518,12 +518,12 @@ subscriptions model =
     let
         lockDelay =
             if model.duringLockDelay then
-                [ Time.every 500 (\_ -> LockToBottom) ]
+                Time.every 500 (always LockToBottom)
 
             else
-                []
+                Sub.none
     in
-    Sub.batch (Events.onKeyDown keyDecoder :: lockDelay)
+    Sub.batch [ Events.onKeyDown keyDecoder, lockDelay ]
 
 
 keyDecoder : Decode.Decoder Msg
