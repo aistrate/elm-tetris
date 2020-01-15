@@ -195,47 +195,28 @@ updateFallingPiece : Model -> List Block -> Model
 updateFallingPiece model fallingPiece =
     { model
         | fallingPiece = fallingPiece
-        , ghostPiece = calculateGhostPiece fallingPiece model.bottomBlocks
+        , ghostPiece = calculateGhostPiece fallingPiece model.occupiedCells
     }
 
 
-calculateGhostPiece : List Block -> List Block -> List Block
-calculateGhostPiece fallingPiece bottomBlocks =
+calculateGhostPiece : List Block -> Dict ( Int, Int ) () -> List Block
+calculateGhostPiece fallingPiece occupiedCells =
     let
-        colRange : ( Int, Int )
-        colRange =
-            columnRange fallingPiece
+        ghostCandidate =
+            List.map (\(Block col row _) -> Block col row Gray) fallingPiece
 
-        rowsPerColumn : ( Int, Int ) -> List Block -> List (List Int)
-        rowsPerColumn ( minCol, maxCol ) blocks =
-            List.range minCol maxCol
-                |> List.map
-                    (\c ->
-                        List.filter (\(Block col _ _) -> col == c) blocks
-                            |> List.map (\(Block _ row _) -> row)
-                    )
+        moveAllWayDown blocks =
+            let
+                nextCandidate =
+                    shiftVert 1 blocks
+            in
+            if collision nextCandidate occupiedCells then
+                blocks
 
-        fallingPieceMaxRows : List Int
-        fallingPieceMaxRows =
-            rowsPerColumn colRange fallingPiece
-                |> List.map (List.maximum >> Maybe.withDefault 0)
-
-        firstRowBelowFallingPiece : Int
-        firstRowBelowFallingPiece =
-            (List.minimum fallingPieceMaxRows |> Maybe.withDefault -1) + 1
-
-        bottomBlocksMinRows : List Int
-        bottomBlocksMinRows =
-            rowsPerColumn colRange bottomBlocks
-                |> List.map (List.filter (\row -> row >= firstRowBelowFallingPiece))
-                |> List.map (List.minimum >> Maybe.withDefault game.rows)
-
-        rowDelta : Int
-        rowDelta =
-            List.map2 (-) bottomBlocksMinRows fallingPieceMaxRows
-                |> (List.minimum >> Maybe.withDefault 0)
+            else
+                moveAllWayDown nextCandidate
     in
-    List.map (\(Block col row _) -> Block col (row + rowDelta - 1) Gray) fallingPiece
+    moveAllWayDown ghostCandidate
 
 
 dropToBottom : List Block -> List Block -> List Block
@@ -334,17 +315,21 @@ withinBoundsHoriz blocks =
 
 detectCollision : List Block -> Model -> List Block
 detectCollision fallingPiece model =
-    let
-        collision : Block -> Bool
-        collision (Block col row _) =
-            not (0 <= col && col < game.columns && row < game.rows)
-                || Dict.member ( col, row ) model.occupiedCells
-    in
-    if not (List.any collision fallingPiece) then
+    if not (collision fallingPiece model.occupiedCells) then
         fallingPiece
 
     else
         model.fallingPiece
+
+
+collision : List Block -> Dict ( Int, Int ) () -> Bool
+collision blocks occupiedCells =
+    let
+        blockCollision (Block col row _) =
+            not (0 <= col && col < game.columns && row < game.rows)
+                || Dict.member ( col, row ) occupiedCells
+    in
+    List.any blockCollision blocks
 
 
 shiftHoriz : Int -> List Block -> List Block
