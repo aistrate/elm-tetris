@@ -32,7 +32,7 @@ game =
     }
 
 
-board =
+boardStyle =
     { marginTop = 12.0
     , borderWidth = 2.0
     , borderColor = "#D3BCA3"
@@ -40,7 +40,7 @@ board =
     }
 
 
-block =
+blockStyle =
     { size = 35.0
     , borderWidth = 0.5
     }
@@ -581,7 +581,7 @@ boardHeight =
 
 boardSize : Int -> Float
 boardSize blockCount =
-    toFloat blockCount * block.size + 2 * (board.borderWidth + board.padding)
+    toFloat blockCount * blockStyle.size + 2 * (boardStyle.borderWidth + boardStyle.padding)
 
 
 view : Model -> Svg Msg
@@ -593,15 +593,15 @@ viewGame : Model -> Svg Msg
 viewGame model =
     svg
         [ width "100%"
-        , height (String.fromFloat (board.marginTop + boardHeight))
+        , height (String.fromFloat (boardStyle.marginTop + boardHeight))
         , viewBox
-            (String.fromFloat -(board.borderWidth + board.padding)
+            (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding)
                 ++ " "
-                ++ String.fromFloat -(board.marginTop + board.borderWidth + board.padding)
+                ++ String.fromFloat -(boardStyle.marginTop + boardStyle.borderWidth + boardStyle.padding)
                 ++ " "
                 ++ String.fromFloat boardWidth
                 ++ " "
-                ++ String.fromFloat (board.marginTop + boardHeight)
+                ++ String.fromFloat (boardStyle.marginTop + boardHeight)
             )
         ]
         [ lazy viewBoard ()
@@ -614,13 +614,13 @@ viewGame model =
 viewBoard : () -> Svg Msg
 viewBoard _ =
     rect
-        [ x (String.fromFloat -(board.borderWidth / 2 + board.padding))
-        , y (String.fromFloat -(board.borderWidth / 2 + board.padding))
-        , width (String.fromFloat (boardWidth - board.borderWidth))
-        , height (String.fromFloat (boardHeight - board.borderWidth))
+        [ x (String.fromFloat -(boardStyle.borderWidth / 2 + boardStyle.padding))
+        , y (String.fromFloat -(boardStyle.borderWidth / 2 + boardStyle.padding))
+        , width (String.fromFloat (boardWidth - boardStyle.borderWidth))
+        , height (String.fromFloat (boardHeight - boardStyle.borderWidth))
         , fill "transparent"
-        , stroke board.borderColor
-        , strokeWidth (String.fromFloat board.borderWidth)
+        , stroke boardStyle.borderColor
+        , strokeWidth (String.fromFloat boardStyle.borderWidth)
         ]
         []
 
@@ -639,13 +639,13 @@ viewBlock : Block -> Svg Msg
 viewBlock (Block col row color) =
     if 0 <= col && col < game.columns && 0 <= row && row < game.rows then
         rect
-            [ x (String.fromFloat (toFloat col * block.size + block.borderWidth / 2))
-            , y (String.fromFloat (toFloat row * block.size + block.borderWidth / 2))
-            , width (String.fromFloat (block.size - block.borderWidth))
-            , height (String.fromFloat (block.size - block.borderWidth))
+            [ x (String.fromFloat (toFloat col * blockStyle.size + blockStyle.borderWidth / 2))
+            , y (String.fromFloat (toFloat row * blockStyle.size + blockStyle.borderWidth / 2))
+            , width (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
+            , height (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
             , fill (colorToHex color)
             , stroke "white"
-            , strokeWidth (String.fromFloat block.borderWidth)
+            , strokeWidth (String.fromFloat blockStyle.borderWidth)
             ]
             []
 
