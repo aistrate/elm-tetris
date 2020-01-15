@@ -1,13 +1,14 @@
 module Main exposing (..)
 
 import Browser
-import Browser.Events exposing (onKeyDown)
+import Browser.Events as Events
 import Dict exposing (Dict)
 import Json.Decode as Decode
 import Random
 import Svg exposing (Svg, g, rect, svg)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (lazy, lazy2)
+import Time
 
 
 main : Program () Model Msg
@@ -79,6 +80,7 @@ type alias Model =
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : Dict ( Int, Int ) ()
+    , duringLockDelay : Bool
     , showGhostPiece : Bool
     }
 
@@ -89,6 +91,7 @@ init _ =
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
+      , duringLockDelay = False
       , showGhostPiece = False
       }
     , Random.generate ShapeGenerated shapeGenerator
@@ -106,6 +109,7 @@ type Msg
     | RotateCounterclockwise
     | RotateClockwise
     | HardDrop
+    | LockToBottom
     | ShapeGenerated Shape
     | ToggleGhostPiece
     | OtherKey
@@ -150,7 +154,15 @@ update msg model =
             )
 
         HardDrop ->
-            ( dropToBottom model
+            ( { model
+                | fallingPiece = dropToBottom model.fallingPiece model.ghostPiece
+                , duringLockDelay = True
+              }
+            , Cmd.none
+            )
+
+        LockToBottom ->
+            ( lockToBottom model
             , Random.generate ShapeGenerated shapeGenerator
             )
 
@@ -176,12 +188,12 @@ updateFallingPiece : Model -> List Block -> Model
 updateFallingPiece model fallingPiece =
     { model
         | fallingPiece = fallingPiece
-        , ghostPiece = ghostPiece fallingPiece model.bottomBlocks
+        , ghostPiece = calculateGhostPiece fallingPiece model.bottomBlocks
     }
 
 
-ghostPiece : List Block -> List Block -> List Block
-ghostPiece fallingPiece bottomBlocks =
+calculateGhostPiece : List Block -> List Block -> List Block
+calculateGhostPiece fallingPiece bottomBlocks =
     let
         colRange : ( Int, Int )
         colRange =
@@ -219,17 +231,23 @@ ghostPiece fallingPiece bottomBlocks =
     List.map (\(Block col row _) -> Block col (row + rowDelta - 1) Gray) fallingPiece
 
 
-dropToBottom : Model -> Model
-dropToBottom model =
+dropToBottom : List Block -> List Block -> List Block
+dropToBottom fallingPiece ghostPiece =
     let
         ( fallingPieceMinRow, _ ) =
-            rowRange model.fallingPiece
+            rowRange fallingPiece
 
         ( ghostPieceMinRow, _ ) =
-            rowRange model.ghostPiece
+            rowRange ghostPiece
+    in
+    shiftVert (ghostPieceMinRow - fallingPieceMinRow) fallingPiece
 
+
+lockToBottom : Model -> Model
+lockToBottom model =
+    let
         droppedPiece =
-            shiftVert (ghostPieceMinRow - fallingPieceMinRow) model.fallingPiece
+            dropToBottom model.fallingPiece model.ghostPiece
 
         bottomBlocks =
             removeFullRows (model.bottomBlocks ++ droppedPiece)
@@ -238,7 +256,13 @@ dropToBottom model =
             List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
                 |> Dict.fromList
     in
-    { model | fallingPiece = [], ghostPiece = [], bottomBlocks = bottomBlocks, occupiedCells = occupiedCells }
+    { model
+        | fallingPiece = []
+        , ghostPiece = []
+        , bottomBlocks = bottomBlocks
+        , occupiedCells = occupiedCells
+        , duringLockDelay = False
+    }
 
 
 removeFullRows : List Block -> List Block
@@ -491,7 +515,15 @@ shapeToBlocks shape =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    onKeyDown keyDecoder
+    let
+        lockDelay =
+            if model.duringLockDelay then
+                [ Time.every 500 (\_ -> LockToBottom) ]
+
+            else
+                []
+    in
+    Sub.batch (Events.onKeyDown keyDecoder :: lockDelay)
 
 
 keyDecoder : Decode.Decoder Msg
