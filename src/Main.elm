@@ -91,7 +91,7 @@ init _ =
       , occupiedCells = Dict.fromList []
       , showGhostPiece = False
       }
-    , Random.generate NewShape shapeGenerator
+    , Random.generate ShapeGenerated shapeGenerator
     )
 
 
@@ -105,9 +105,9 @@ type Msg
     | MoveDown
     | RotateCounterclockwise
     | RotateClockwise
-    | DropPiece
+    | HardDrop
+    | ShapeGenerated Shape
     | ToggleGhostPiece
-    | NewShape Shape
     | OtherKey
 
 
@@ -149,20 +149,20 @@ update msg model =
             , Cmd.none
             )
 
-        DropPiece ->
+        HardDrop ->
             ( dropToBottom model
-            , Random.generate NewShape shapeGenerator
+            , Random.generate ShapeGenerated shapeGenerator
+            )
+
+        ShapeGenerated shape ->
+            ( updateFallingPiece
+                model
+                (shapeToBlocks shape |> centerHoriz |> shiftVert 2)
+            , Cmd.none
             )
 
         ToggleGhostPiece ->
             ( { model | showGhostPiece = not model.showGhostPiece }
-            , Cmd.none
-            )
-
-        NewShape shape ->
-            ( updateFallingPiece
-                model
-                (shapeToBlocks shape |> centerHoriz |> shiftVert 2)
             , Cmd.none
             )
 
@@ -524,7 +524,7 @@ toKeyboardMsg key =
             RotateCounterclockwise
 
         " " ->
-            DropPiece
+            HardDrop
 
         "g" ->
             ToggleGhostPiece
