@@ -66,9 +66,26 @@ type Block
     = Block Int Int Color
 
 
+type ShapeSize
+    = Size2By2
+    | Size3By2
+    | Size4By1
+
+
+type
+    -- see https://tetris.fandom.com/wiki/SRS
+    RotationState
+    = RotationState0 -- spawn state (horizontal, flat side down)
+    | RotationState1 -- 1 clockwise rotation from spawn state
+    | RotationState2 -- 2 successive rotations in either direction from spawn state
+    | RotationState3 -- 1 counterclockwise rotation from spawn state
+
+
 type alias Tetromino =
     { blocks : List Block
     , pivot : ( Float, Float )
+    , shapeSize : ShapeSize
+    , rotationState : RotationState
     }
 
 
@@ -349,11 +366,13 @@ shiftBy ( colDelta, rowDelta ) tetromino =
         ( colPivot, rowPivot ) =
             tetromino.pivot
     in
-    { blocks =
-        List.map
-            (\(Block col row color) -> Block (col + colDelta) (row + rowDelta) color)
-            tetromino.blocks
-    , pivot = ( colPivot + toFloat colDelta, rowPivot + toFloat rowDelta )
+    { tetromino
+        | blocks =
+            List.map
+                (\(Block col row color) -> Block (col + colDelta) (row + rowDelta) color)
+                tetromino.blocks
+        , pivot =
+            ( colPivot + toFloat colDelta, rowPivot + toFloat rowDelta )
     }
 
 
@@ -377,8 +396,9 @@ rotate direction tetromino =
                 (round (pivotRow + sign * (toFloat col - pivotCol)))
                 color
     in
-    { blocks = List.map rotateBlock tetromino.blocks
-    , pivot = tetromino.pivot
+    { tetromino
+        | blocks = List.map rotateBlock tetromino.blocks
+        , rotationState = nextRotationState tetromino.rotationState direction
     }
 
 
@@ -430,6 +450,8 @@ spawnTetromino shape =
                 , Block 3 1 Cyan
                 ]
             , pivot = ( 1.5, 1.5 )
+            , shapeSize = Size4By1
+            , rotationState = RotationState0
             }
 
         JShape ->
@@ -440,6 +462,8 @@ spawnTetromino shape =
                 , Block 2 1 Blue
                 ]
             , pivot = ( 1, 1 )
+            , shapeSize = Size3By2
+            , rotationState = RotationState0
             }
 
         LShape ->
@@ -450,6 +474,8 @@ spawnTetromino shape =
                 , Block 2 1 Orange
                 ]
             , pivot = ( 1, 1 )
+            , shapeSize = Size3By2
+            , rotationState = RotationState0
             }
 
         OShape ->
@@ -460,6 +486,8 @@ spawnTetromino shape =
                 , Block 1 1 Yellow
                 ]
             , pivot = ( 0.5, 0.5 )
+            , shapeSize = Size2By2
+            , rotationState = RotationState0
             }
 
         SShape ->
@@ -470,6 +498,8 @@ spawnTetromino shape =
                 , Block 1 1 Green
                 ]
             , pivot = ( 1, 1 )
+            , shapeSize = Size3By2
+            , rotationState = RotationState0
             }
 
         TShape ->
@@ -480,6 +510,8 @@ spawnTetromino shape =
                 , Block 2 1 Purple
                 ]
             , pivot = ( 1, 1 )
+            , shapeSize = Size3By2
+            , rotationState = RotationState0
             }
 
         ZShape ->
@@ -490,14 +522,46 @@ spawnTetromino shape =
                 , Block 2 1 Red
                 ]
             , pivot = ( 1, 1 )
+            , shapeSize = Size3By2
+            , rotationState = RotationState0
             }
 
 
 emptyTetromino : Tetromino
 emptyTetromino =
     { blocks = []
-    , pivot = ( 1, 1 )
+    , pivot = ( 0.5, 0.5 )
+    , shapeSize = Size2By2
+    , rotationState = RotationState0
     }
+
+
+nextRotationState : RotationState -> RotationDirection -> RotationState
+nextRotationState currentRotationState direction =
+    case ( currentRotationState, direction ) of
+        ( RotationState0, Clockwise ) ->
+            RotationState1
+
+        ( RotationState1, Clockwise ) ->
+            RotationState2
+
+        ( RotationState2, Clockwise ) ->
+            RotationState3
+
+        ( RotationState3, Clockwise ) ->
+            RotationState0
+
+        ( RotationState3, Counterclockwise ) ->
+            RotationState2
+
+        ( RotationState2, Counterclockwise ) ->
+            RotationState1
+
+        ( RotationState1, Counterclockwise ) ->
+            RotationState0
+
+        ( RotationState0, Counterclockwise ) ->
+            RotationState3
 
 
 
