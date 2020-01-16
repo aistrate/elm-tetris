@@ -66,8 +66,14 @@ type Block
     = Block Int Int Color
 
 
+type alias Tetromino =
+    { blocks : List Block
+    , pivot : ( Float, Float )
+    }
+
+
 type alias Model =
-    { fallingPiece : List Block
+    { fallingPiece : Tetromino
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : Dict ( Int, Int ) ()
@@ -78,7 +84,7 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { fallingPiece = []
+    ( { fallingPiece = emptyTetromino
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
@@ -122,21 +128,21 @@ update msg model =
         MoveLeft ->
             ( updateFallingPiece
                 model
-                (detectCollision (shiftHoriz -1 model.fallingPiece) model)
+                (detectCollision (shiftBy ( -1, 0 ) model.fallingPiece) model)
             , Cmd.none
             )
 
         MoveRight ->
             ( updateFallingPiece
                 model
-                (detectCollision (shiftHoriz 1 model.fallingPiece) model)
+                (detectCollision (shiftBy ( 1, 0 ) model.fallingPiece) model)
             , Cmd.none
             )
 
         MoveDown ->
             ( updateFallingPiece
                 model
-                (detectCollision (shiftVert 1 model.fallingPiece) model)
+                (detectCollision (shiftBy ( 0, 1 ) model.fallingPiece) model)
             , Cmd.none
             )
 
@@ -157,7 +163,7 @@ update msg model =
         HardDrop ->
             if not model.duringLockDelay then
                 ( { model
-                    | fallingPiece = dropToBottom model.fallingPiece model.ghostPiece
+                    | fallingPiece = dropToTarget model.fallingPiece model.ghostPiece
                     , duringLockDelay = True
                   }
                 , Process.sleep 500 |> Task.perform (always LockToBottom)
@@ -176,7 +182,7 @@ update msg model =
         ShapeGenerated shape ->
             ( updateFallingPiece
                 model
-                (shapeToBlocks shape |> centerHoriz |> shiftVert 1)
+                (spawnTetromino shape |> centerHoriz |> shiftBy ( 0, 1 ))
             , Cmd.none
             )
 
@@ -191,24 +197,24 @@ update msg model =
             )
 
 
-updateFallingPiece : Model -> List Block -> Model
+updateFallingPiece : Model -> Tetromino -> Model
 updateFallingPiece model fallingPiece =
     { model
         | fallingPiece = fallingPiece
-        , ghostPiece = calculateGhostPiece fallingPiece model.occupiedCells
+        , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
     }
 
 
 calculateGhostPiece : List Block -> Dict ( Int, Int ) () -> List Block
-calculateGhostPiece fallingPiece occupiedCells =
+calculateGhostPiece fallingPieceBlocks occupiedCells =
     let
         ghostCandidate =
-            List.map (\(Block col row _) -> Block col row Gray) fallingPiece
+            List.map (\(Block col row _) -> Block col row Gray) fallingPieceBlocks
 
         moveAllWayDown blocks =
             let
                 nextCandidate =
-                    shiftVert 1 blocks
+                    List.map (\(Block col row color) -> Block col (row + 1) color) blocks
             in
             if collision nextCandidate occupiedCells then
                 blocks
@@ -219,33 +225,33 @@ calculateGhostPiece fallingPiece occupiedCells =
     moveAllWayDown ghostCandidate
 
 
-dropToBottom : List Block -> List Block -> List Block
-dropToBottom fallingPiece ghostPiece =
+dropToTarget : Tetromino -> List Block -> Tetromino
+dropToTarget tetromino target =
     let
-        ( fallingPieceMinRow, _ ) =
-            rowRange fallingPiece
+        ( tetrominoMinRow, _ ) =
+            rowRange tetromino.blocks
 
-        ( ghostPieceMinRow, _ ) =
-            rowRange ghostPiece
+        ( targetMinRow, _ ) =
+            rowRange target
     in
-    shiftVert (ghostPieceMinRow - fallingPieceMinRow) fallingPiece
+    shiftBy ( 0, targetMinRow - tetrominoMinRow ) tetromino
 
 
 lockToBottom : Model -> Model
 lockToBottom model =
     let
         droppedPiece =
-            dropToBottom model.fallingPiece model.ghostPiece
+            dropToTarget model.fallingPiece model.ghostPiece
 
         bottomBlocks =
-            removeFullRows (model.bottomBlocks ++ droppedPiece)
+            removeFullRows (model.bottomBlocks ++ droppedPiece.blocks)
 
         occupiedCells =
             List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
                 |> Dict.fromList
     in
     { model
-        | fallingPiece = []
+        | fallingPiece = emptyTetromino
         , ghostPiece = []
         , bottomBlocks = bottomBlocks
         , occupiedCells = occupiedCells
@@ -297,25 +303,25 @@ shapeGenerator =
     Random.uniform IShape [ JShape, LShape, OShape, SShape, TShape, ZShape ]
 
 
-withinBoundsHoriz : List Block -> List Block
-withinBoundsHoriz blocks =
+withinBoundsHoriz : Tetromino -> Tetromino
+withinBoundsHoriz tetromino =
     let
         ( min, max ) =
-            columnRange blocks
+            columnRange tetromino.blocks
     in
     if min < 0 then
-        shiftHoriz -min blocks
+        shiftBy ( -min, 0 ) tetromino
 
     else if max > game.columns - 1 then
-        shiftHoriz (game.columns - 1 - max) blocks
+        shiftBy ( game.columns - 1 - max, 0 ) tetromino
 
     else
-        blocks
+        tetromino
 
 
-detectCollision : List Block -> Model -> List Block
+detectCollision : Tetromino -> Model -> Tetromino
 detectCollision fallingPiece model =
-    if not (collision fallingPiece model.occupiedCells) then
+    if not (collision fallingPiece.blocks model.occupiedCells) then
         fallingPiece
 
     else
@@ -332,40 +338,52 @@ collision blocks occupiedCells =
     List.any blockCollision blocks
 
 
-shiftHoriz : Int -> List Block -> List Block
-shiftHoriz delta blocks =
-    List.map (\(Block col row color) -> Block (col + delta) row color) blocks
+shiftBy : ( Int, Int ) -> Tetromino -> Tetromino
+shiftBy ( colDelta, rowDelta ) tetromino =
+    let
+        ( colPivot, rowPivot ) =
+            tetromino.pivot
+    in
+    { blocks =
+        List.map
+            (\(Block col row color) -> Block (col + colDelta) (row + rowDelta) color)
+            tetromino.blocks
+    , pivot = ( colPivot + toFloat colDelta, rowPivot + toFloat rowDelta )
+    }
 
 
-shiftVert : Int -> List Block -> List Block
-shiftVert delta blocks =
-    List.map (\(Block col row color) -> Block col (row + delta) color) blocks
+flipAxes : Tetromino -> Tetromino
+flipAxes tetromino =
+    let
+        ( colPivot, rowPivot ) =
+            tetromino.pivot
+    in
+    { blocks = List.map (\(Block col row color) -> Block row col color) tetromino.blocks
+    , pivot = ( rowPivot, colPivot )
+    }
 
 
-flipAxes : List Block -> List Block
-flipAxes blocks =
-    List.map (\(Block col row color) -> Block row col color) blocks
-
-
-rotateClockwise : List Block -> List Block
-rotateClockwise blocks =
-    flipAxes blocks
+rotateClockwise : Tetromino -> Tetromino
+rotateClockwise tetromino =
+    flipAxes tetromino
         |> rotateCounterclockwise
         |> flipAxes
 
 
-rotateCounterclockwise : List Block -> List Block
-rotateCounterclockwise blocks =
+rotateCounterclockwise : Tetromino -> Tetromino
+rotateCounterclockwise tetromino =
     let
         ( pivotCol, pivotRow ) =
-            pivot blocks
+            pivot tetromino.blocks
 
         rotateBlock (Block col row color) =
             Block (round (pivotCol + (toFloat row - pivotRow)))
                 (round (pivotRow - (toFloat col - pivotCol)))
                 color
     in
-    List.map rotateBlock blocks
+    { blocks = List.map rotateBlock tetromino.blocks
+    , pivot = tetromino.pivot
+    }
 
 
 pivot : List Block -> ( Float, Float )
@@ -411,16 +429,16 @@ relativePivot size =
             ( 0, 0 )
 
 
-centerHoriz : List Block -> List Block
-centerHoriz blocks =
+centerHoriz : Tetromino -> Tetromino
+centerHoriz tetromino =
     let
         ( min, max ) =
-            columnRange blocks
+            columnRange tetromino.blocks
 
         delta =
             -min + (game.columns - (max - min + 1)) // 2
     in
-    shiftHoriz delta blocks
+    shiftBy ( delta, 0 ) tetromino
 
 
 columnRange : List Block -> ( Int, Int )
@@ -448,57 +466,85 @@ range value blocks =
     ( min, max )
 
 
-shapeToBlocks : Shape -> List Block
-shapeToBlocks shape =
+spawnTetromino : Shape -> Tetromino
+spawnTetromino shape =
     case shape of
         IShape ->
-            [ Block 0 1 Cyan
-            , Block 1 1 Cyan
-            , Block 2 1 Cyan
-            , Block 3 1 Cyan
-            ]
+            { blocks =
+                [ Block 0 1 Cyan
+                , Block 1 1 Cyan
+                , Block 2 1 Cyan
+                , Block 3 1 Cyan
+                ]
+            , pivot = ( 1.5, 1.5 )
+            }
 
         JShape ->
-            [ Block 0 0 Blue
-            , Block 0 1 Blue
-            , Block 1 1 Blue
-            , Block 2 1 Blue
-            ]
+            { blocks =
+                [ Block 0 0 Blue
+                , Block 0 1 Blue
+                , Block 1 1 Blue
+                , Block 2 1 Blue
+                ]
+            , pivot = ( 1, 1 )
+            }
 
         LShape ->
-            [ Block 2 0 Orange
-            , Block 0 1 Orange
-            , Block 1 1 Orange
-            , Block 2 1 Orange
-            ]
+            { blocks =
+                [ Block 2 0 Orange
+                , Block 0 1 Orange
+                , Block 1 1 Orange
+                , Block 2 1 Orange
+                ]
+            , pivot = ( 1, 1 )
+            }
 
         OShape ->
-            [ Block 0 0 Yellow
-            , Block 1 0 Yellow
-            , Block 0 1 Yellow
-            , Block 1 1 Yellow
-            ]
+            { blocks =
+                [ Block 0 0 Yellow
+                , Block 1 0 Yellow
+                , Block 0 1 Yellow
+                , Block 1 1 Yellow
+                ]
+            , pivot = ( 0.5, 0.5 )
+            }
 
         SShape ->
-            [ Block 1 0 Green
-            , Block 2 0 Green
-            , Block 0 1 Green
-            , Block 1 1 Green
-            ]
+            { blocks =
+                [ Block 1 0 Green
+                , Block 2 0 Green
+                , Block 0 1 Green
+                , Block 1 1 Green
+                ]
+            , pivot = ( 1, 1 )
+            }
 
         TShape ->
-            [ Block 1 0 Purple
-            , Block 0 1 Purple
-            , Block 1 1 Purple
-            , Block 2 1 Purple
-            ]
+            { blocks =
+                [ Block 1 0 Purple
+                , Block 0 1 Purple
+                , Block 1 1 Purple
+                , Block 2 1 Purple
+                ]
+            , pivot = ( 1, 1 )
+            }
 
         ZShape ->
-            [ Block 0 0 Red
-            , Block 1 0 Red
-            , Block 1 1 Red
-            , Block 2 1 Red
-            ]
+            { blocks =
+                [ Block 0 0 Red
+                , Block 1 0 Red
+                , Block 1 1 Red
+                , Block 2 1 Red
+                ]
+            , pivot = ( 1, 1 )
+            }
+
+
+emptyTetromino : Tetromino
+emptyTetromino =
+    { blocks = []
+    , pivot = ( 1, 1 )
+    }
 
 
 
@@ -590,7 +636,7 @@ viewGame model =
         ]
         [ lazy viewBoard ()
         , lazy2 viewGhostPiece model.showGhostPiece model.ghostPiece
-        , lazy viewBlocks model.fallingPiece
+        , lazy viewBlocks model.fallingPiece.blocks
         , lazy viewBlocks model.bottomBlocks
         ]
 
