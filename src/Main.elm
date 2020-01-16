@@ -163,7 +163,7 @@ update msg model =
         HardDrop ->
             if not model.duringLockDelay then
                 ( { model
-                    | fallingPiece = dropToTarget model.fallingPiece model.ghostPiece
+                    | fallingPiece = shiftVertToTarget model.fallingPiece model.ghostPiece
                     , duringLockDelay = True
                   }
                 , Process.sleep 500 |> Task.perform (always LockToBottom)
@@ -225,8 +225,8 @@ calculateGhostPiece fallingPieceBlocks occupiedCells =
     moveAllWayDown ghostCandidate
 
 
-dropToTarget : Tetromino -> List Block -> Tetromino
-dropToTarget tetromino target =
+shiftVertToTarget : Tetromino -> List Block -> Tetromino
+shiftVertToTarget tetromino target =
     let
         ( tetrominoMinRow, _ ) =
             rowRange tetromino.blocks
@@ -241,7 +241,7 @@ lockToBottom : Model -> Model
 lockToBottom model =
     let
         droppedPiece =
-            dropToTarget model.fallingPiece model.ghostPiece
+            shiftVertToTarget model.fallingPiece model.ghostPiece
 
         bottomBlocks =
             removeFullRows (model.bottomBlocks ++ droppedPiece.blocks)
