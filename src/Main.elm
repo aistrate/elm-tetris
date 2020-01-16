@@ -109,6 +109,11 @@ type Shape
     | ZShape
 
 
+type RotationDirection
+    = Clockwise
+    | Counterclockwise
+
+
 type Msg
     = MoveLeft
     | MoveRight
@@ -149,14 +154,14 @@ update msg model =
         RotateClockwise ->
             ( updateFallingPiece
                 model
-                (withinBoundsHoriz (rotateClockwise model.fallingPiece))
+                (withinBoundsHoriz (rotate Clockwise model.fallingPiece))
             , Cmd.none
             )
 
         RotateCounterclockwise ->
             ( updateFallingPiece
                 model
-                (withinBoundsHoriz (rotateCounterclockwise model.fallingPiece))
+                (withinBoundsHoriz (rotate Counterclockwise model.fallingPiece))
             , Cmd.none
             )
 
@@ -352,81 +357,29 @@ shiftBy ( colDelta, rowDelta ) tetromino =
     }
 
 
-flipAxes : Tetromino -> Tetromino
-flipAxes tetromino =
-    let
-        ( colPivot, rowPivot ) =
-            tetromino.pivot
-    in
-    { blocks = List.map (\(Block col row color) -> Block row col color) tetromino.blocks
-    , pivot = ( rowPivot, colPivot )
-    }
-
-
-rotateClockwise : Tetromino -> Tetromino
-rotateClockwise tetromino =
-    flipAxes tetromino
-        |> rotateCounterclockwise
-        |> flipAxes
-
-
-rotateCounterclockwise : Tetromino -> Tetromino
-rotateCounterclockwise tetromino =
+rotate : RotationDirection -> Tetromino -> Tetromino
+rotate direction tetromino =
     let
         ( pivotCol, pivotRow ) =
-            pivot tetromino.blocks
+            tetromino.pivot
+
+        sign =
+            case direction of
+                Clockwise ->
+                    1
+
+                Counterclockwise ->
+                    -1
 
         rotateBlock (Block col row color) =
-            Block (round (pivotCol + (toFloat row - pivotRow)))
-                (round (pivotRow - (toFloat col - pivotCol)))
+            Block
+                (round (pivotCol - sign * (toFloat row - pivotRow)))
+                (round (pivotRow + sign * (toFloat col - pivotCol)))
                 color
     in
     { blocks = List.map rotateBlock tetromino.blocks
     , pivot = tetromino.pivot
     }
-
-
-pivot : List Block -> ( Float, Float )
-pivot blocks =
-    let
-        ( minCol, maxCol ) =
-            columnRange blocks
-
-        ( minRow, maxRow ) =
-            rowRange blocks
-
-        width =
-            maxCol - minCol + 1
-
-        height =
-            maxRow - minRow + 1
-
-        ( relCol, relRow ) =
-            relativePivot ( width, height )
-    in
-    ( toFloat minCol + relCol, toFloat minRow + relRow )
-
-
-relativePivot : ( Int, Int ) -> ( Float, Float )
-relativePivot size =
-    case size of
-        ( 4, 1 ) ->
-            ( 1.5, -0.5 )
-
-        ( 1, 4 ) ->
-            ( 0, 2 )
-
-        ( 3, 2 ) ->
-            ( 1, 0 )
-
-        ( 2, 3 ) ->
-            ( 0.5, 1.5 )
-
-        ( 2, 2 ) ->
-            ( 0.5, 0.5 )
-
-        _ ->
-            ( 0, 0 )
 
 
 centerHoriz : Tetromino -> Tetromino
