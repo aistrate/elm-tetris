@@ -148,37 +148,27 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MoveLeft ->
-            ( updateFallingPiece
-                model
-                (detectCollision (shiftBy ( -1, 0 ) model.fallingPiece) model)
+            ( applyTransform (shiftBy ( -1, 0 )) noAlternatives model
             , Cmd.none
             )
 
         MoveRight ->
-            ( updateFallingPiece
-                model
-                (detectCollision (shiftBy ( 1, 0 ) model.fallingPiece) model)
+            ( applyTransform (shiftBy ( 1, 0 )) noAlternatives model
             , Cmd.none
             )
 
         MoveDown ->
-            ( updateFallingPiece
-                model
-                (detectCollision (shiftBy ( 0, 1 ) model.fallingPiece) model)
+            ( applyTransform (shiftBy ( 0, 1 )) noAlternatives model
             , Cmd.none
             )
 
         RotateClockwise ->
-            ( updateFallingPiece
-                model
-                (withinBoundsHoriz (rotate Clockwise model.fallingPiece))
+            ( applyTransform (rotate Clockwise) wallKickAlternatives model
             , Cmd.none
             )
 
         RotateCounterclockwise ->
-            ( updateFallingPiece
-                model
-                (withinBoundsHoriz (rotate Counterclockwise model.fallingPiece))
+            ( applyTransform (rotate Counterclockwise) wallKickAlternatives model
             , Cmd.none
             )
 
@@ -202,9 +192,10 @@ update msg model =
             )
 
         ShapeGenerated shape ->
-            ( updateFallingPiece
+            ( applyTransform
+                (always (spawnTetromino shape) >> centerHoriz >> shiftBy ( 0, 1 ))
+                noAlternatives
                 model
-                (spawnTetromino shape |> centerHoriz |> shiftBy ( 0, 1 ))
             , Cmd.none
             )
 
@@ -219,12 +210,45 @@ update msg model =
             )
 
 
-updateFallingPiece : Model -> Tetromino -> Model
-updateFallingPiece model fallingPiece =
+applyTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> Model
+applyTransform transform alternativeTranslations model =
+    let
+        transformedFallingPiece =
+            transform model.fallingPiece
+
+        firstViableAlternative translations =
+            case translations of
+                firstTranslation :: remainingTranslations ->
+                    let
+                        alternative =
+                            shiftBy firstTranslation transformedFallingPiece
+                    in
+                    if not (collision alternative.blocks model.occupiedCells) then
+                        alternative
+
+                    else
+                        firstViableAlternative remainingTranslations
+
+                [] ->
+                    model.fallingPiece
+
+        viableFallingPiece =
+            firstViableAlternative (alternativeTranslations model.fallingPiece)
+    in
     { model
-        | fallingPiece = fallingPiece
-        , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
+        | fallingPiece = viableFallingPiece
+        , ghostPiece = calculateGhostPiece viableFallingPiece.blocks model.occupiedCells
     }
+
+
+noAlternatives : Tetromino -> List ( Int, Int )
+noAlternatives _ =
+    [ ( 0, 0 ) ]
+
+
+wallKickAlternatives : Tetromino -> List ( Int, Int )
+wallKickAlternatives _ =
+    [ ( 0, 0 ), ( -1, 0 ), ( 1, 0 ), ( 0, -1 ), ( -2, 0 ), ( 2, 0 ), ( 0, -2 ) ]
 
 
 calculateGhostPiece : List Block -> Dict ( Int, Int ) () -> List Block
@@ -244,7 +268,11 @@ calculateGhostPiece fallingPieceBlocks occupiedCells =
             else
                 moveAllWayDown nextCandidate
     in
-    moveAllWayDown ghostCandidate
+    if List.length ghostCandidate > 0 then
+        moveAllWayDown ghostCandidate
+
+    else
+        []
 
 
 shiftVertToTarget : Tetromino -> List Block -> Tetromino
@@ -323,31 +351,6 @@ removeRow row blocks =
 shapeGenerator : Random.Generator Shape
 shapeGenerator =
     Random.uniform IShape [ JShape, LShape, OShape, SShape, TShape, ZShape ]
-
-
-withinBoundsHoriz : Tetromino -> Tetromino
-withinBoundsHoriz tetromino =
-    let
-        ( min, max ) =
-            columnRange tetromino.blocks
-    in
-    if min < 0 then
-        shiftBy ( -min, 0 ) tetromino
-
-    else if max > game.columns - 1 then
-        shiftBy ( game.columns - 1 - max, 0 ) tetromino
-
-    else
-        tetromino
-
-
-detectCollision : Tetromino -> Model -> Tetromino
-detectCollision fallingPiece model =
-    if not (collision fallingPiece.blocks model.occupiedCells) then
-        fallingPiece
-
-    else
-        model.fallingPiece
 
 
 collision : List Block -> Dict ( Int, Int ) () -> Bool
