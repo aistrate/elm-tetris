@@ -1,12 +1,13 @@
 module Main exposing (..)
 
+import Array exposing (fromList)
 import Browser
 import Browser.Events as Events
 import Dict exposing (Dict)
 import Json.Decode as Decode
 import Process
 import Random
-import Svg exposing (Svg, g, rect, svg)
+import Svg exposing (Svg, circle, g, rect, svg)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (lazy, lazy2)
 import Task
@@ -91,6 +92,7 @@ type alias Tetromino =
 
 type alias Model =
     { fallingPiece : Tetromino
+    , wallKickAlternatives : List (List Block)
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : Dict ( Int, Int ) ()
@@ -102,6 +104,7 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { fallingPiece = emptyTetromino
+      , wallKickAlternatives = []
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
@@ -176,6 +179,7 @@ update msg model =
             if not model.duringLockDelay then
                 ( { model
                     | fallingPiece = shiftVertToTarget model.fallingPiece model.ghostPiece
+                    , wallKickAlternatives = []
                     , duringLockDelay = True
                   }
                 , Process.sleep 500 |> Task.perform (always LockToBottom)
@@ -216,9 +220,18 @@ updateForTransform transform alternativeTranslations model =
                 (transform model.fallingPiece)
                 model.occupiedCells
                 |> Maybe.withDefault model.fallingPiece
+
+        transformed =
+            transform model.fallingPiece
+
+        wallKickAlts =
+            List.map
+                (\translation -> (shiftBy translation transformed).blocks)
+                (alternativeTranslations model.fallingPiece)
     in
     { model
         | fallingPiece = viableFallingPiece
+        , wallKickAlternatives = wallKickAlts
         , ghostPiece = calculateGhostPiece viableFallingPiece.blocks model.occupiedCells
     }
 
@@ -363,6 +376,7 @@ lockToBottom model =
     in
     { model
         | fallingPiece = emptyTetromino
+        , wallKickAlternatives = []
         , ghostPiece = []
         , bottomBlocks = bottomBlocks
         , occupiedCells = occupiedCells
@@ -719,6 +733,7 @@ viewGame model =
         , lazy2 viewGhostPiece model.showGhostPiece model.ghostPiece
         , lazy viewBlocks model.fallingPiece.blocks
         , lazy viewBlocks model.bottomBlocks
+        , lazy viewWallKickAlternatives model.wallKickAlternatives
         ]
 
 
@@ -771,6 +786,43 @@ viewGhostPiece showGhostPiece blocks =
 
     else
         g [] []
+
+
+viewWallKickAlternatives : List (List Block) -> Svg Msg
+viewWallKickAlternatives alternatives =
+    g
+        []
+        (List.indexedMap
+            viewWallKickAlternative
+            alternatives
+        )
+
+
+viewWallKickAlternative : Int -> List Block -> Svg Msg
+viewWallKickAlternative altIndex blocks =
+    g
+        []
+        (List.map
+            (viewWallKickBlock altIndex)
+            blocks
+        )
+
+
+viewWallKickBlock : Int -> Block -> Svg Msg
+viewWallKickBlock altIndex (Block col row _) =
+    circle
+        [ cx (String.fromFloat ((toFloat col + 0.5) * blockStyle.size))
+        , cy (String.fromFloat ((toFloat row + 0.5) * blockStyle.size))
+        , r (String.fromFloat (blockStyle.size / 2 - 3 * toFloat altIndex))
+        , fill (Array.get altIndex shadesOfGray |> Maybe.withDefault "white")
+        , stroke "black"
+        , strokeWidth "0.5"
+        ]
+        []
+
+
+shadesOfGray =
+    Array.fromList [ "#DDD", "yellow", "lime", "cyan", "deeppink" ]
 
 
 colorToHex : Color -> String
