@@ -187,9 +187,7 @@ update msg model =
                 )
 
         LockToBottom ->
-            ( lockToBottom model
-            , Random.generate ShapeGenerated shapeGenerator
-            )
+            updateForLockToBottom model
 
         ShapeGenerated shape ->
             ( updateForTransform (always (spawnTetromino shape) >> centerHoriz) noAlternatives model
@@ -339,35 +337,51 @@ calculateGhostPiece fallingPieceBlocks occupiedCells =
 shiftVertToTarget : Tetromino -> List Block -> Tetromino
 shiftVertToTarget tetromino target =
     let
-        ( tetrominoMinRow, _ ) =
-            rowRange tetromino.blocks
-
-        ( targetMinRow, _ ) =
-            rowRange target
+        rowDelta =
+            vertDistance tetromino.blocks target
     in
-    shiftBy ( 0, targetMinRow - tetrominoMinRow ) tetromino
+    shiftBy ( 0, rowDelta ) tetromino
 
 
-lockToBottom : Model -> Model
-lockToBottom model =
+vertDistance : List Block -> List Block -> Int
+vertDistance source dest =
     let
-        droppedPiece =
-            shiftVertToTarget model.fallingPiece model.ghostPiece
+        ( sourceMinRow, _ ) =
+            rowRange source
 
-        bottomBlocks =
-            removeFullRows (model.bottomBlocks ++ droppedPiece.blocks)
-
-        occupiedCells =
-            List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
-                |> Dict.fromList
+        ( destMinRow, _ ) =
+            rowRange dest
     in
-    { model
-        | fallingPiece = emptyTetromino
-        , ghostPiece = []
-        , bottomBlocks = bottomBlocks
-        , occupiedCells = occupiedCells
-        , lockDelayStarted = False
-    }
+    destMinRow - sourceMinRow
+
+
+updateForLockToBottom : Model -> ( Model, Cmd Msg )
+updateForLockToBottom model =
+    if vertDistance model.fallingPiece.blocks model.ghostPiece == 0 then
+        let
+            bottomBlocks =
+                removeFullRows (model.bottomBlocks ++ model.fallingPiece.blocks)
+
+            occupiedCells =
+                List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
+                    |> Dict.fromList
+        in
+        ( { model
+            | fallingPiece = emptyTetromino
+            , ghostPiece = []
+            , bottomBlocks = bottomBlocks
+            , occupiedCells = occupiedCells
+            , lockDelayStarted = False
+          }
+        , Random.generate ShapeGenerated shapeGenerator
+        )
+
+    else
+        ( { model
+            | lockDelayStarted = False
+          }
+        , Cmd.none
+        )
 
 
 removeFullRows : List Block -> List Block
