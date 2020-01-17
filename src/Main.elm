@@ -192,10 +192,7 @@ update msg model =
             )
 
         ShapeGenerated shape ->
-            ( applyTransform
-                (always (spawnTetromino shape) >> centerHoriz >> shiftBy ( 0, 1 ))
-                noAlternatives
-                model
+            ( applyTransform (always (spawnTetromino shape) >> centerHoriz) noAlternatives model
             , Cmd.none
             )
 
@@ -213,32 +210,35 @@ update msg model =
 applyTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> Model
 applyTransform transform alternativeTranslations model =
     let
-        transformedFallingPiece =
-            transform model.fallingPiece
-
-        firstViableAlternative translations =
-            case translations of
-                firstTranslation :: remainingTranslations ->
-                    let
-                        alternative =
-                            shiftBy firstTranslation transformedFallingPiece
-                    in
-                    if not (collision alternative.blocks model.occupiedCells) then
-                        alternative
-
-                    else
-                        firstViableAlternative remainingTranslations
-
-                [] ->
-                    model.fallingPiece
-
         viableFallingPiece =
-            firstViableAlternative (alternativeTranslations model.fallingPiece)
+            firstViableAlternative
+                (alternativeTranslations model.fallingPiece)
+                (transform model.fallingPiece)
+                model.occupiedCells
+                |> Maybe.withDefault model.fallingPiece
     in
     { model
         | fallingPiece = viableFallingPiece
         , ghostPiece = calculateGhostPiece viableFallingPiece.blocks model.occupiedCells
     }
+
+
+firstViableAlternative : List ( Int, Int ) -> Tetromino -> Dict ( Int, Int ) () -> Maybe Tetromino
+firstViableAlternative translations tetromino occupiedCells =
+    case translations of
+        firstTranslation :: remainingTranslations ->
+            let
+                alternative =
+                    shiftBy firstTranslation tetromino
+            in
+            if not (collision alternative.blocks occupiedCells) then
+                Just alternative
+
+            else
+                firstViableAlternative remainingTranslations tetromino occupiedCells
+
+        [] ->
+            Nothing
 
 
 noAlternatives : Tetromino -> List ( Int, Int )
