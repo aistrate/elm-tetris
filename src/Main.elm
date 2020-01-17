@@ -148,27 +148,27 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MoveLeft ->
-            ( applyTransform (shiftBy ( -1, 0 )) noAlternatives model
+            ( updateForTransform (shiftBy ( -1, 0 )) noAlternatives model
             , Cmd.none
             )
 
         MoveRight ->
-            ( applyTransform (shiftBy ( 1, 0 )) noAlternatives model
+            ( updateForTransform (shiftBy ( 1, 0 )) noAlternatives model
             , Cmd.none
             )
 
         MoveDown ->
-            ( applyTransform (shiftBy ( 0, 1 )) noAlternatives model
+            ( updateForTransform (shiftBy ( 0, 1 )) noAlternatives model
             , Cmd.none
             )
 
         RotateClockwise ->
-            ( applyTransform (rotate Clockwise) (wallKickAlternatives Clockwise) model
+            ( updateForTransform (rotate Clockwise) (wallKickAlternatives Clockwise) model
             , Cmd.none
             )
 
         RotateCounterclockwise ->
-            ( applyTransform (rotate Counterclockwise) (wallKickAlternatives Counterclockwise) model
+            ( updateForTransform (rotate Counterclockwise) (wallKickAlternatives Counterclockwise) model
             , Cmd.none
             )
 
@@ -192,7 +192,7 @@ update msg model =
             )
 
         ShapeGenerated shape ->
-            ( applyTransform (always (spawnTetromino shape) >> centerHoriz) noAlternatives model
+            ( updateForTransform (always (spawnTetromino shape) >> centerHoriz) noAlternatives model
             , Cmd.none
             )
 
@@ -207,8 +207,8 @@ update msg model =
             )
 
 
-applyTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> Model
-applyTransform transform alternativeTranslations model =
+updateForTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> Model
+updateForTransform transform alternativeTranslations model =
     let
         viableFallingPiece =
             firstViableAlternative
