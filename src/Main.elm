@@ -163,12 +163,12 @@ update msg model =
             )
 
         RotateClockwise ->
-            ( applyTransform (rotate Clockwise) wallKickAlternatives model
+            ( applyTransform (rotate Clockwise) (wallKickAlternatives Clockwise) model
             , Cmd.none
             )
 
         RotateCounterclockwise ->
-            ( applyTransform (rotate Counterclockwise) wallKickAlternatives model
+            ( applyTransform (rotate Counterclockwise) (wallKickAlternatives Counterclockwise) model
             , Cmd.none
             )
 
@@ -246,9 +246,70 @@ noAlternatives _ =
     [ ( 0, 0 ) ]
 
 
-wallKickAlternatives : Tetromino -> List ( Int, Int )
-wallKickAlternatives _ =
-    [ ( 0, 0 ), ( -1, 0 ), ( 1, 0 ), ( 0, -1 ), ( -2, 0 ), ( 2, 0 ), ( 0, -2 ) ]
+
+-- See https://tetris.fandom.com/wiki/SRS for details on tetromino Wall Kicks after rotation
+
+
+wallKickAlternatives : RotationDirection -> Tetromino -> List ( Int, Int )
+wallKickAlternatives direction tetromino =
+    let
+        alternatives =
+            case ( tetromino.shapeSize, tetromino.rotationState, direction ) of
+                -- Size3By2 (JShape, LShape, SShape, TShape, ZShape)
+                ( Size3By2, RotationState0, Clockwise ) ->
+                    [ ( 0, 0 ), ( -1, 0 ), ( -1, 1 ), ( 0, -2 ), ( -1, -2 ) ]
+
+                ( Size3By2, RotationState1, Counterclockwise ) ->
+                    [ ( 0, 0 ), ( 1, 0 ), ( 1, -1 ), ( 0, 2 ), ( 1, 2 ) ]
+
+                ( Size3By2, RotationState1, Clockwise ) ->
+                    [ ( 0, 0 ), ( 1, 0 ), ( 1, -1 ), ( 0, 2 ), ( 1, 2 ) ]
+
+                ( Size3By2, RotationState2, Counterclockwise ) ->
+                    [ ( 0, 0 ), ( -1, 0 ), ( -1, 1 ), ( 0, -2 ), ( -1, -2 ) ]
+
+                ( Size3By2, RotationState2, Clockwise ) ->
+                    [ ( 0, 0 ), ( 1, 0 ), ( 1, 1 ), ( 0, -2 ), ( 1, -2 ) ]
+
+                ( Size3By2, RotationState3, Counterclockwise ) ->
+                    [ ( 0, 0 ), ( -1, 0 ), ( -1, -1 ), ( 0, 2 ), ( -1, 2 ) ]
+
+                ( Size3By2, RotationState3, Clockwise ) ->
+                    [ ( 0, 0 ), ( -1, 0 ), ( -1, -1 ), ( 0, 2 ), ( -1, 2 ) ]
+
+                ( Size3By2, RotationState0, Counterclockwise ) ->
+                    [ ( 0, 0 ), ( 1, 0 ), ( 1, 1 ), ( 0, -2 ), ( 1, -2 ) ]
+
+                -- Size4By1 (IShape)
+                ( Size4By1, RotationState0, Clockwise ) ->
+                    [ ( 0, 0 ), ( -2, 0 ), ( 1, 0 ), ( -2, -1 ), ( 1, 2 ) ]
+
+                ( Size4By1, RotationState1, Counterclockwise ) ->
+                    [ ( 0, 0 ), ( 2, 0 ), ( -1, 0 ), ( 2, 1 ), ( -1, -2 ) ]
+
+                ( Size4By1, RotationState1, Clockwise ) ->
+                    [ ( 0, 0 ), ( -1, 0 ), ( 2, 0 ), ( -1, 2 ), ( 2, -1 ) ]
+
+                ( Size4By1, RotationState2, Counterclockwise ) ->
+                    [ ( 0, 0 ), ( 1, 0 ), ( -2, 0 ), ( 1, -2 ), ( -2, 1 ) ]
+
+                ( Size4By1, RotationState2, Clockwise ) ->
+                    [ ( 0, 0 ), ( 2, 0 ), ( -1, 0 ), ( 2, 1 ), ( -1, -2 ) ]
+
+                ( Size4By1, RotationState3, Counterclockwise ) ->
+                    [ ( 0, 0 ), ( -2, 0 ), ( 1, 0 ), ( -2, -1 ), ( 1, 2 ) ]
+
+                ( Size4By1, RotationState3, Clockwise ) ->
+                    [ ( 0, 0 ), ( 1, 0 ), ( -2, 0 ), ( 1, -2 ), ( -2, 1 ) ]
+
+                ( Size4By1, RotationState0, Counterclockwise ) ->
+                    [ ( 0, 0 ), ( -1, 0 ), ( 2, 0 ), ( -1, 2 ), ( 2, -1 ) ]
+
+                -- Size2By2 (OShape)
+                ( Size2By2, _, _ ) ->
+                    [ ( 0, 0 ) ]
+    in
+    List.map (\( col, row ) -> ( col, -row )) alternatives
 
 
 calculateGhostPiece : List Block -> Dict ( Int, Int ) () -> List Block
