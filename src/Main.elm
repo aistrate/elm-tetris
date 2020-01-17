@@ -94,7 +94,7 @@ type alias Model =
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : Dict ( Int, Int ) ()
-    , duringLockDelay : Bool
+    , lockDelayStarted : Bool
     , showGhostPiece : Bool
     }
 
@@ -105,7 +105,7 @@ init _ =
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
-      , duringLockDelay = False
+      , lockDelayStarted = False
       , showGhostPiece = False
       }
     , Random.generate ShapeGenerated shapeGenerator
@@ -173,10 +173,10 @@ update msg model =
             )
 
         HardDrop ->
-            if not model.duringLockDelay then
+            if not model.lockDelayStarted then
                 ( { model
                     | fallingPiece = shiftVertToTarget model.fallingPiece model.ghostPiece
-                    , duringLockDelay = True
+                    , lockDelayStarted = True
                   }
                 , Process.sleep 500 |> Task.perform (always LockToBottom)
                 )
@@ -366,7 +366,7 @@ lockToBottom model =
         , ghostPiece = []
         , bottomBlocks = bottomBlocks
         , occupiedCells = occupiedCells
-        , duringLockDelay = False
+        , lockDelayStarted = False
     }
 
 
