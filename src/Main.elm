@@ -778,30 +778,28 @@ viewVerticalStripes =
 
 viewBlocks : List Block -> Svg Msg
 viewBlocks blocks =
+    let
+        viewBlock (Block col row color) =
+            rect
+                [ x (String.fromFloat (toFloat col * blockStyle.size + blockStyle.borderWidth / 2))
+                , y (String.fromFloat (toFloat row * blockStyle.size + blockStyle.borderWidth / 2))
+                , width (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
+                , height (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
+                , fill (colorToHex color)
+                , stroke "white"
+                , strokeWidth (String.fromFloat blockStyle.borderWidth)
+                ]
+                []
+    in
     g
         []
-        (List.map
-            viewBlock
+        (List.filter
+            (\(Block col row color) ->
+                0 <= col && col < game.columns && 0 <= row && row < game.rows
+            )
             blocks
+            |> List.map viewBlock
         )
-
-
-viewBlock : Block -> Svg Msg
-viewBlock (Block col row color) =
-    if 0 <= col && col < game.columns && 0 <= row && row < game.rows then
-        rect
-            [ x (String.fromFloat (toFloat col * blockStyle.size + blockStyle.borderWidth / 2))
-            , y (String.fromFloat (toFloat row * blockStyle.size + blockStyle.borderWidth / 2))
-            , width (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
-            , height (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
-            , fill (colorToHex color)
-            , stroke "white"
-            , strokeWidth (String.fromFloat blockStyle.borderWidth)
-            ]
-            []
-
-    else
-        rect [] []
 
 
 viewGhostPiece : Bool -> List Block -> Svg Msg
