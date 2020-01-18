@@ -95,11 +95,17 @@ type alias CellOccupancy =
     Dict ( Int, Int ) ()
 
 
+type GameMode
+    = Playing
+    | RestartDialog
+
+
 type alias Model =
     { fallingPiece : Tetromino
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
+    , gameMode : GameMode
     , lockDelayStarted : Bool
     , showGhostPiece : Bool
     , showVerticalStripes : Bool
@@ -112,6 +118,7 @@ init _ =
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
+      , gameMode = Playing
       , lockDelayStarted = False
       , showGhostPiece = False
       , showVerticalStripes = False
@@ -148,6 +155,9 @@ type Msg
     | HardDrop
     | LockToBottom
     | ShapeGenerated Shape
+    | ShowRestartDialog
+    | AnswerYes
+    | AnswerNo
     | ToggleGhostPiece
     | ToggleVerticalStripes
     | OtherKey
@@ -155,6 +165,16 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    case model.gameMode of
+        Playing ->
+            updatePlayingMode msg model
+
+        RestartDialog ->
+            updateRestartDialogMode msg model
+
+
+updatePlayingMode : Msg -> Model -> ( Model, Cmd Msg )
+updatePlayingMode msg model =
     case msg of
         MoveLeft ->
             ( updateForTransform (shiftBy ( -1, 0 )) noAlternatives model
@@ -203,6 +223,11 @@ update msg model =
             , Cmd.none
             )
 
+        ShowRestartDialog ->
+            ( { model | gameMode = RestartDialog }
+            , Cmd.none
+            )
+
         ToggleGhostPiece ->
             ( { model | showGhostPiece = not model.showGhostPiece }
             , Cmd.none
@@ -213,7 +238,33 @@ update msg model =
             , Cmd.none
             )
 
-        OtherKey ->
+        _ ->
+            ( model
+            , Cmd.none
+            )
+
+
+updateRestartDialogMode : Msg -> Model -> ( Model, Cmd Msg )
+updateRestartDialogMode msg model =
+    case msg of
+        AnswerYes ->
+            let
+                ( initModel, initCmd ) =
+                    init ()
+            in
+            ( { initModel
+                | showGhostPiece = model.showGhostPiece
+                , showVerticalStripes = model.showVerticalStripes
+              }
+            , initCmd
+            )
+
+        AnswerNo ->
+            ( { model | gameMode = Playing }
+            , Cmd.none
+            )
+
+        _ ->
             ( model
             , Cmd.none
             )
@@ -700,6 +751,15 @@ toKeyboardMsg key =
         " " ->
             HardDrop
 
+        "r" ->
+            ShowRestartDialog
+
+        "y" ->
+            AnswerYes
+
+        "n" ->
+            AnswerNo
+
         "g" ->
             ToggleGhostPiece
 
@@ -754,6 +814,7 @@ viewGame model =
         , lazy2 viewGhostPiece model.showGhostPiece model.ghostPiece
         , lazy viewBlocks model.fallingPiece.blocks
         , lazy viewBlocks model.bottomBlocks
+        , lazy viewDialog model.gameMode
         ]
 
 
@@ -833,6 +894,27 @@ viewGhostPiece visible blocks =
         g [] []
 
 
+viewDialog : GameMode -> Svg Msg
+viewDialog gameMode =
+    g
+        []
+        (if gameMode == Playing then
+            []
+
+         else
+            [ rect
+                [ x (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding))
+                , y (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding))
+                , width (String.fromFloat boardWidth)
+                , height (String.fromFloat boardHeight)
+                , fill "#EEE"
+                , opacity "0.5"
+                ]
+                []
+            ]
+        )
+
+
 colorToHex : Color -> String
 colorToHex color =
     case color of
@@ -858,4 +940,4 @@ colorToHex color =
             "#F2D00D"
 
         Gray ->
-            "#CCC"
+            "#DDD"
