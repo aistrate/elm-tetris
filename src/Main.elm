@@ -73,12 +73,12 @@ type ShapeSize
 
 
 type
-    -- see https://tetris.fandom.com/wiki/SRS
+    -- See https://tetris.wiki/Super_Rotation_System
     RotationState
-    = RotationState0 -- spawn state (horizontal, flat side down)
-    | RotationState1 -- 1 clockwise rotation from spawn state
-    | RotationState2 -- 2 successive rotations in either direction from spawn state
-    | RotationState3 -- 1 counterclockwise rotation from spawn state
+    = RotationState0 -- spawn state ("upper" horizontal, flat side down)
+    | RotationStateR -- state resulting from a clockwise rotation ("right") from spawn
+    | RotationState2 -- state resulting from 2 successive rotations in either direction from spawn
+    | RotationStateL -- state resulting from a counter-clockwise ("left") rotation from spawn
 
 
 type alias Tetromino =
@@ -245,7 +245,7 @@ noAlternatives _ =
 
 
 
--- See https://tetris.fandom.com/wiki/SRS for details on tetromino Wall Kicks after rotation
+-- See https://tetris.wiki/Super_Rotation_System for details on tetromino Wall Kicks after rotation
 
 
 wallKickAlternatives : RotationDirection -> Tetromino -> List ( Int, Int )
@@ -253,14 +253,15 @@ wallKickAlternatives direction tetromino =
     let
         alternatives =
             case ( tetromino.shapeSize, tetromino.rotationState, direction ) of
+                --
                 -- Size3By2 (JShape, LShape, SShape, TShape, ZShape)
                 ( Size3By2, RotationState0, Clockwise ) ->
                     [ ( 0, 0 ), ( -1, 0 ), ( -1, 1 ), ( 0, -2 ), ( -1, -2 ) ]
 
-                ( Size3By2, RotationState1, Counterclockwise ) ->
+                ( Size3By2, RotationStateR, Counterclockwise ) ->
                     [ ( 0, 0 ), ( 1, 0 ), ( 1, -1 ), ( 0, 2 ), ( 1, 2 ) ]
 
-                ( Size3By2, RotationState1, Clockwise ) ->
+                ( Size3By2, RotationStateR, Clockwise ) ->
                     [ ( 0, 0 ), ( 1, 0 ), ( 1, -1 ), ( 0, 2 ), ( 1, 2 ) ]
 
                 ( Size3By2, RotationState2, Counterclockwise ) ->
@@ -269,23 +270,24 @@ wallKickAlternatives direction tetromino =
                 ( Size3By2, RotationState2, Clockwise ) ->
                     [ ( 0, 0 ), ( 1, 0 ), ( 1, 1 ), ( 0, -2 ), ( 1, -2 ) ]
 
-                ( Size3By2, RotationState3, Counterclockwise ) ->
+                ( Size3By2, RotationStateL, Counterclockwise ) ->
                     [ ( 0, 0 ), ( -1, 0 ), ( -1, -1 ), ( 0, 2 ), ( -1, 2 ) ]
 
-                ( Size3By2, RotationState3, Clockwise ) ->
+                ( Size3By2, RotationStateL, Clockwise ) ->
                     [ ( 0, 0 ), ( -1, 0 ), ( -1, -1 ), ( 0, 2 ), ( -1, 2 ) ]
 
                 ( Size3By2, RotationState0, Counterclockwise ) ->
                     [ ( 0, 0 ), ( 1, 0 ), ( 1, 1 ), ( 0, -2 ), ( 1, -2 ) ]
 
+                --
                 -- Size4By1 (IShape)
                 ( Size4By1, RotationState0, Clockwise ) ->
                     [ ( 0, 0 ), ( -2, 0 ), ( 1, 0 ), ( -2, -1 ), ( 1, 2 ) ]
 
-                ( Size4By1, RotationState1, Counterclockwise ) ->
+                ( Size4By1, RotationStateR, Counterclockwise ) ->
                     [ ( 0, 0 ), ( 2, 0 ), ( -1, 0 ), ( 2, 1 ), ( -1, -2 ) ]
 
-                ( Size4By1, RotationState1, Clockwise ) ->
+                ( Size4By1, RotationStateR, Clockwise ) ->
                     [ ( 0, 0 ), ( -1, 0 ), ( 2, 0 ), ( -1, 2 ), ( 2, -1 ) ]
 
                 ( Size4By1, RotationState2, Counterclockwise ) ->
@@ -294,15 +296,16 @@ wallKickAlternatives direction tetromino =
                 ( Size4By1, RotationState2, Clockwise ) ->
                     [ ( 0, 0 ), ( 2, 0 ), ( -1, 0 ), ( 2, 1 ), ( -1, -2 ) ]
 
-                ( Size4By1, RotationState3, Counterclockwise ) ->
+                ( Size4By1, RotationStateL, Counterclockwise ) ->
                     [ ( 0, 0 ), ( -2, 0 ), ( 1, 0 ), ( -2, -1 ), ( 1, 2 ) ]
 
-                ( Size4By1, RotationState3, Clockwise ) ->
+                ( Size4By1, RotationStateL, Clockwise ) ->
                     [ ( 0, 0 ), ( 1, 0 ), ( -2, 0 ), ( 1, -2 ), ( -2, 1 ) ]
 
                 ( Size4By1, RotationState0, Counterclockwise ) ->
                     [ ( 0, 0 ), ( -1, 0 ), ( 2, 0 ), ( -1, 2 ), ( 2, -1 ) ]
 
+                --
                 -- Size2By2 (OShape)
                 ( Size2By2, _, _ ) ->
                     [ ( 0, 0 ) ]
@@ -618,28 +621,28 @@ nextRotationState : RotationState -> RotationDirection -> RotationState
 nextRotationState currentRotationState direction =
     case ( currentRotationState, direction ) of
         ( RotationState0, Clockwise ) ->
-            RotationState1
+            RotationStateR
 
-        ( RotationState1, Clockwise ) ->
+        ( RotationStateR, Clockwise ) ->
             RotationState2
 
         ( RotationState2, Clockwise ) ->
-            RotationState3
+            RotationStateL
 
-        ( RotationState3, Clockwise ) ->
-            RotationState0
-
-        ( RotationState3, Counterclockwise ) ->
-            RotationState2
-
-        ( RotationState2, Counterclockwise ) ->
-            RotationState1
-
-        ( RotationState1, Counterclockwise ) ->
+        ( RotationStateL, Clockwise ) ->
             RotationState0
 
         ( RotationState0, Counterclockwise ) ->
-            RotationState3
+            RotationStateL
+
+        ( RotationStateL, Counterclockwise ) ->
+            RotationState2
+
+        ( RotationState2, Counterclockwise ) ->
+            RotationStateR
+
+        ( RotationStateR, Counterclockwise ) ->
+            RotationState0
 
 
 
