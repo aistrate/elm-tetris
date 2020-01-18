@@ -36,7 +36,6 @@ game =
 boardStyle =
     { marginTop = 12.0
     , borderWidth = 2.0
-    , borderColor = "#D3BCA3"
     , padding = 1.5
     }
 
@@ -732,25 +731,49 @@ viewGame model =
                 ++ String.fromFloat (boardStyle.marginTop + boardHeight)
             )
         ]
-        [ lazy viewBoard ()
+        [ viewBoard
+        , viewVerticalStripes
         , lazy2 viewGhostPiece model.showGhostPiece model.ghostPiece
         , lazy viewBlocks model.fallingPiece.blocks
         , lazy viewBlocks model.bottomBlocks
         ]
 
 
-viewBoard : () -> Svg Msg
-viewBoard _ =
+viewBoard : Svg Msg
+viewBoard =
     rect
         [ x (String.fromFloat -(boardStyle.borderWidth / 2 + boardStyle.padding))
         , y (String.fromFloat -(boardStyle.borderWidth / 2 + boardStyle.padding))
         , width (String.fromFloat (boardWidth - boardStyle.borderWidth))
         , height (String.fromFloat (boardHeight - boardStyle.borderWidth))
         , fill "transparent"
-        , stroke boardStyle.borderColor
+        , stroke "#D3BCA3"
         , strokeWidth (String.fromFloat boardStyle.borderWidth)
         ]
         []
+
+
+viewVerticalStripes : Svg Msg
+viewVerticalStripes =
+    let
+        viewVerticalStripe col =
+            rect
+                [ x (String.fromFloat (toFloat col * blockStyle.size + blockStyle.borderWidth / 2))
+                , y "0"
+                , width (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
+                , height (String.fromFloat (toFloat game.rows * blockStyle.size - blockStyle.borderWidth))
+                , fill "#F4EFE9"
+                , stroke "white"
+                , strokeWidth (String.fromFloat blockStyle.borderWidth)
+                ]
+                []
+    in
+    g
+        []
+        (List.range 0 (game.columns - 1)
+            |> List.filter (\col -> modBy 2 col == 1)
+            |> List.map viewVerticalStripe
+        )
 
 
 viewBlocks : List Block -> Svg Msg
@@ -815,4 +838,4 @@ colorToHex color =
             "#F2D00D"
 
         Gray ->
-            "#DDD"
+            "#CCC"
