@@ -91,11 +91,15 @@ type alias Tetromino =
     }
 
 
+type alias CellOccupancy =
+    Dict ( Int, Int ) ()
+
+
 type alias Model =
     { fallingPiece : Tetromino
     , ghostPiece : List Block
     , bottomBlocks : List Block
-    , occupiedCells : Dict ( Int, Int ) ()
+    , occupiedCells : CellOccupancy
     , lockDelayStarted : Bool
     , showGhostPiece : Bool
     , showVerticalStripes : Bool
@@ -231,7 +235,7 @@ updateForTransform transform alternativeTranslations model =
     }
 
 
-firstViableAlternative : List ( Int, Int ) -> Tetromino -> Dict ( Int, Int ) () -> Maybe Tetromino
+firstViableAlternative : List ( Int, Int ) -> Tetromino -> CellOccupancy -> Maybe Tetromino
 firstViableAlternative translations tetromino occupiedCells =
     case translations of
         firstTranslation :: remainingTranslations ->
@@ -323,7 +327,7 @@ wallKickAlternatives direction tetromino =
     List.map (\( col, row ) -> ( col, -row )) alternatives
 
 
-calculateGhostPiece : List Block -> Dict ( Int, Int ) () -> List Block
+calculateGhostPiece : List Block -> CellOccupancy -> List Block
 calculateGhostPiece fallingPieceBlocks occupiedCells =
     let
         ghostCandidate =
@@ -441,7 +445,7 @@ shapeGenerator =
     Random.uniform IShape [ JShape, LShape, OShape, SShape, TShape, ZShape ]
 
 
-collision : List Block -> Dict ( Int, Int ) () -> Bool
+collision : List Block -> CellOccupancy -> Bool
 collision blocks occupiedCells =
     let
         blockCollision (Block col row _) =
