@@ -178,7 +178,7 @@ update msg model =
                     | fallingPiece = shiftVertToTarget model.fallingPiece model.ghostPiece
                     , lockDelayStarted = True
                   }
-                , Process.sleep 500 |> Task.perform (always LockToBottom)
+                , Process.sleep 100 |> Task.perform (always LockToBottom)
                 )
 
             else
