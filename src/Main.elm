@@ -95,6 +95,7 @@ type alias Model =
     , occupiedCells : Dict ( Int, Int ) ()
     , lockDelayStarted : Bool
     , showGhostPiece : Bool
+    , showVerticalStripes : Bool
     }
 
 
@@ -106,6 +107,7 @@ init _ =
       , occupiedCells = Dict.fromList []
       , lockDelayStarted = False
       , showGhostPiece = False
+      , showVerticalStripes = False
       }
     , Random.generate ShapeGenerated shapeGenerator
     )
@@ -140,6 +142,7 @@ type Msg
     | LockToBottom
     | ShapeGenerated Shape
     | ToggleGhostPiece
+    | ToggleVerticalStripes
     | OtherKey
 
 
@@ -195,6 +198,11 @@ update msg model =
 
         ToggleGhostPiece ->
             ( { model | showGhostPiece = not model.showGhostPiece }
+            , Cmd.none
+            )
+
+        ToggleVerticalStripes ->
+            ( { model | showVerticalStripes = not model.showVerticalStripes }
             , Cmd.none
             )
 
@@ -688,6 +696,9 @@ toKeyboardMsg key =
         "g" ->
             ToggleGhostPiece
 
+        "v" ->
+            ToggleVerticalStripes
+
         _ ->
             OtherKey
 
@@ -732,7 +743,7 @@ viewGame model =
             )
         ]
         [ viewBoard
-        , viewVerticalStripes
+        , lazy viewVerticalStripes model.showVerticalStripes
         , lazy2 viewGhostPiece model.showGhostPiece model.ghostPiece
         , lazy viewBlocks model.fallingPiece.blocks
         , lazy viewBlocks model.bottomBlocks
@@ -753,8 +764,8 @@ viewBoard =
         []
 
 
-viewVerticalStripes : Svg Msg
-viewVerticalStripes =
+viewVerticalStripes : Bool -> Svg Msg
+viewVerticalStripes visible =
     let
         viewVerticalStripe col =
             rect
@@ -770,9 +781,13 @@ viewVerticalStripes =
     in
     g
         []
-        (List.range 0 (game.columns - 1)
-            |> List.filter (\col -> modBy 2 col == 1)
-            |> List.map viewVerticalStripe
+        (if visible then
+            List.range 0 (game.columns - 1)
+                |> List.filter (\col -> modBy 2 col == 1)
+                |> List.map viewVerticalStripe
+
+         else
+            []
         )
 
 
@@ -803,8 +818,8 @@ viewBlocks blocks =
 
 
 viewGhostPiece : Bool -> List Block -> Svg Msg
-viewGhostPiece showGhostPiece blocks =
-    if showGhostPiece then
+viewGhostPiece visible blocks =
+    if visible then
         viewBlocks blocks
 
     else
