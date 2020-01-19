@@ -95,9 +95,9 @@ type alias CellOccupancy =
     Dict ( Int, Int ) ()
 
 
-type GameMode
-    = Playing
-    | RestartDialog
+type Screen
+    = PlayScreen
+    | RestartScreen
 
 
 type alias Model =
@@ -105,7 +105,7 @@ type alias Model =
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
-    , gameMode : GameMode
+    , screen : Screen
     , lockDelayStarted : Bool
     , showGhostPiece : Bool
     , showVerticalStripes : Bool
@@ -118,7 +118,7 @@ init _ =
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
-      , gameMode = Playing
+      , screen = PlayScreen
       , lockDelayStarted = False
       , showGhostPiece = False
       , showVerticalStripes = False
@@ -155,7 +155,7 @@ type Msg
     | HardDrop
     | LockToBottom
     | ShapeGenerated Shape
-    | ShowRestartDialog
+    | ShowRestartScreen
     | AnswerYes
     | AnswerNo
     | ToggleGhostPiece
@@ -165,16 +165,16 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case model.gameMode of
-        Playing ->
-            updatePlayingMode msg model
+    case model.screen of
+        PlayScreen ->
+            updatePlayScreen msg model
 
-        RestartDialog ->
-            updateRestartDialogMode msg model
+        RestartScreen ->
+            updateRestartScreen msg model
 
 
-updatePlayingMode : Msg -> Model -> ( Model, Cmd Msg )
-updatePlayingMode msg model =
+updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
+updatePlayScreen msg model =
     case msg of
         MoveLeft ->
             ( updateForTransform (shiftBy ( -1, 0 )) noAlternatives model
@@ -223,8 +223,8 @@ updatePlayingMode msg model =
             , Cmd.none
             )
 
-        ShowRestartDialog ->
-            ( { model | gameMode = RestartDialog }
+        ShowRestartScreen ->
+            ( { model | screen = RestartScreen }
             , Cmd.none
             )
 
@@ -244,8 +244,8 @@ updatePlayingMode msg model =
             )
 
 
-updateRestartDialogMode : Msg -> Model -> ( Model, Cmd Msg )
-updateRestartDialogMode msg model =
+updateRestartScreen : Msg -> Model -> ( Model, Cmd Msg )
+updateRestartScreen msg model =
     case msg of
         AnswerYes ->
             let
@@ -260,7 +260,7 @@ updateRestartDialogMode msg model =
             )
 
         AnswerNo ->
-            ( { model | gameMode = Playing }
+            ( { model | screen = PlayScreen }
             , Cmd.none
             )
 
@@ -752,7 +752,7 @@ toKeyboardMsg key =
             HardDrop
 
         "r" ->
-            ShowRestartDialog
+            ShowRestartScreen
 
         "y" ->
             AnswerYes
@@ -814,7 +814,7 @@ viewGame model =
         , lazy2 viewGhostPiece model.showGhostPiece model.ghostPiece
         , lazy viewBlocks model.fallingPiece.blocks
         , lazy viewBlocks model.bottomBlocks
-        , lazy viewDialog model.gameMode
+        , lazy viewDialog model.screen
         ]
 
 
@@ -894,11 +894,11 @@ viewGhostPiece visible blocks =
         g [] []
 
 
-viewDialog : GameMode -> Svg Msg
-viewDialog gameMode =
+viewDialog : Screen -> Svg Msg
+viewDialog screen =
     g
         []
-        (if gameMode == Playing then
+        (if screen == PlayScreen then
             []
 
          else
