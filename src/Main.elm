@@ -1016,18 +1016,23 @@ viewDialogIfAny screen =
             viewHelpDialog
 
 
+type DialogTextLine
+    = LargeText String
+    | Shortcut String String
+    | EmptyLine
+
+
 viewRestartDialog : Bool -> Svg Msg
 viewRestartDialog gameOver =
     viewDialog
-        True
         (if gameOver then
-            [ "Game Over"
-            , " "
-            , "Restart? (Y/N)"
+            [ LargeText "Game Over"
+            , EmptyLine
+            , LargeText "Restart? (Y/N)"
             ]
 
          else
-            [ "Restart? (Y/N)"
+            [ LargeText "Restart? (Y/N)"
             ]
         )
 
@@ -1035,38 +1040,36 @@ viewRestartDialog gameOver =
 viewPauseDialog : Svg Msg
 viewPauseDialog =
     viewDialog
-        True
-        [ "Paused"
-        , " "
-        , "Press P to continue"
+        [ LargeText "Paused"
+        , EmptyLine
+        , LargeText "Press P to continue"
         ]
 
 
 viewHelpDialog : Svg Msg
 viewHelpDialog =
     viewDialog
-        False
-        [ "Arrow Left - Move left"
-        , "Arrow Right - Move right"
-        , "Arrow Down - Move down"
-        , " "
-        , "Arrow Up or X - Rotate clockwise"
-        , "Ctrl or Z - Rotate counterclockwise"
-        , " "
-        , "Space - Drop"
-        , " "
-        , "P - Pause"
-        , "R - Restart"
-        , " "
-        , "G - Ghost piece"
-        , "V - Vertical stripes"
-        , " "
-        , "Press ESC to exit Help"
+        [ Shortcut "Arrow Left" "Move left"
+        , Shortcut "Arrow Right" "Move right"
+        , Shortcut "Arrow Down" "Move down"
+        , EmptyLine
+        , Shortcut "Arrow Up or X" "Rotate clockwise"
+        , Shortcut "Ctrl or Z" "Rotate counterclockwise"
+        , EmptyLine
+        , Shortcut "Space" "Drop"
+        , EmptyLine
+        , Shortcut "P" "Pause"
+        , Shortcut "R" "Restart"
+        , EmptyLine
+        , Shortcut "G" "Ghost piece"
+        , Shortcut "V" "Vertical stripes"
+        , EmptyLine
+        , LargeText "Press Esc to exit"
         ]
 
 
-viewDialog : Bool -> List String -> Svg Msg
-viewDialog largeFont textLines =
+viewDialog : List DialogTextLine -> Svg Msg
+viewDialog textLines =
     let
         vertCenteredFirstRow =
             (game.rows - List.length textLines) // 2
@@ -1076,20 +1079,6 @@ viewDialog largeFont textLines =
 
         nextLineDy =
             blockStyle.size
-
-        textFontSize =
-            if largeFont then
-                blockStyle.size * 0.8
-
-            else
-                blockStyle.size * 0.5
-
-        textFontWeight =
-            if largeFont then
-                "bold"
-
-            else
-                "normal"
     in
     g
         []
@@ -1099,32 +1088,69 @@ viewDialog largeFont textLines =
             , width "100%"
             , height "100%"
             , fill "white"
-            , opacity "0.7"
+            , opacity "0.8"
             ]
             []
         , text_
             [ fontFamily "sans-serif"
-            , fontSize (String.fromFloat textFontSize)
-            , fontWeight textFontWeight
             , fill "#222"
             ]
             (List.indexedMap
                 (\idx textLine ->
-                    tspan
-                        [ x "50%"
-                        , if idx == 0 then
-                            y (String.fromFloat firstLineY)
+                    let
+                        yCoord =
+                            if idx == 0 then
+                                y (String.fromFloat firstLineY)
 
-                          else
-                            dy (String.fromFloat nextLineDy)
-                        , textAnchor "middle"
-                        ]
-                        [ text textLine
-                        ]
+                            else
+                                dy (String.fromFloat nextLineDy)
+                    in
+                    viewDialogTextLine yCoord textLine
                 )
                 textLines
             )
         ]
+
+
+viewDialogTextLine : Attribute Msg -> DialogTextLine -> Svg Msg
+viewDialogTextLine yCoord textLine =
+    case textLine of
+        LargeText largeText ->
+            tspan
+                [ x "50%"
+                , yCoord
+                , fontSize (String.fromFloat (blockStyle.size * 0.65))
+                , fontWeight "bold"
+                , textAnchor "middle"
+                ]
+                [ text largeText
+                ]
+
+        Shortcut key description ->
+            tspan
+                [ yCoord
+                , fontSize (String.fromFloat (blockStyle.size * 0.5))
+                ]
+                [ tspan
+                    [ x (String.fromFloat (blockStyle.size * 0.25))
+                    ]
+                    [ text key
+                    ]
+                , tspan
+                    [ x (String.fromFloat (blockStyle.size * 4.25))
+                    ]
+                    [ text description
+                    ]
+                ]
+
+        EmptyLine ->
+            tspan
+                [ x "0"
+                , yCoord
+                , fontSize "10"
+                ]
+                [ text " "
+                ]
 
 
 colorToHex : Color -> String
