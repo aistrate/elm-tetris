@@ -98,6 +98,7 @@ type alias CellOccupancy =
 type Screen
     = PlayScreen
     | RestartDialog
+    | PauseDialog
 
 
 type alias Model =
@@ -156,6 +157,7 @@ type Msg
     | LockToBottom
     | ShapeGenerated Shape
     | ShowRestartDialog
+    | TogglePauseDialog
     | AnswerYes
     | AnswerNo
     | ExitDialog
@@ -172,6 +174,9 @@ update msg model =
 
         RestartDialog ->
             updateRestartDialog msg model
+
+        PauseDialog ->
+            updatePauseDialog msg model
 
 
 updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
@@ -229,6 +234,11 @@ updatePlayScreen msg model =
             , Cmd.none
             )
 
+        TogglePauseDialog ->
+            ( { model | screen = PauseDialog }
+            , Cmd.none
+            )
+
         ToggleGhostPiece ->
             ( { model | showGhostPiece = not model.showGhostPiece }
             , Cmd.none
@@ -261,6 +271,25 @@ updateRestartDialog msg model =
             )
 
         AnswerNo ->
+            ( { model | screen = PlayScreen }
+            , Cmd.none
+            )
+
+        ExitDialog ->
+            ( { model | screen = PlayScreen }
+            , Cmd.none
+            )
+
+        _ ->
+            ( model
+            , Cmd.none
+            )
+
+
+updatePauseDialog : Msg -> Model -> ( Model, Cmd Msg )
+updatePauseDialog msg model =
+    case msg of
+        TogglePauseDialog ->
             ( { model | screen = PlayScreen }
             , Cmd.none
             )
@@ -760,6 +789,9 @@ toKeyboardMsg key =
         "r" ->
             ShowRestartDialog
 
+        "p" ->
+            TogglePauseDialog
+
         "y" ->
             AnswerYes
 
@@ -829,7 +861,7 @@ viewGame model =
         , lazy2 viewGhostPiece model.showGhostPiece model.ghostPiece
         , lazy viewBlocks model.fallingPiece.blocks
         , lazy viewBlocks model.bottomBlocks
-        , lazy viewDialog model.screen
+        , lazy viewDialogIfAny model.screen
         ]
 
 
@@ -909,39 +941,80 @@ viewGhostPiece visible blocks =
         g [] []
 
 
-viewDialog : Screen -> Svg Msg
-viewDialog screen =
+viewDialogIfAny : Screen -> Svg Msg
+viewDialogIfAny screen =
+    case screen of
+        PlayScreen ->
+            g [] []
+
+        RestartDialog ->
+            viewRestartDialog
+
+        PauseDialog ->
+            viewPauseDialog
+
+
+viewRestartDialog : Svg Msg
+viewRestartDialog =
+    viewDialog
+        [ "Restart? (Y/N)"
+        ]
+
+
+viewPauseDialog : Svg Msg
+viewPauseDialog =
+    viewDialog
+        [ "Paused"
+        , "Press P to continue"
+        ]
+
+
+viewDialog : List String -> Svg Msg
+viewDialog textLines =
+    let
+        vertCenteredRow =
+            (game.rows - (2 * List.length textLines - 1)) // 2
+
+        firstLineY =
+            (toFloat vertCenteredRow + 0.8) * blockStyle.size
+
+        nextLineDy =
+            2 * blockStyle.size
+    in
     g
         []
-        (if screen == PlayScreen then
-            []
-
-         else
-            [ rect
-                [ x (String.fromFloat viewBoxOrigin.x)
-                , y (String.fromFloat viewBoxOrigin.y)
-                , width "100%"
-                , height "100%"
-                , fill "white"
-                , opacity "0.7"
-                ]
-                []
-            , text_
-                [ fontFamily "sans-serif"
-                , fontSize (String.fromFloat blockStyle.size)
-                , fontWeight "bold"
-                , fill "#222"
-                ]
-                [ tspan
-                    [ x "50%"
-                    , y "9.85em"
-                    , textAnchor "middle"
-                    ]
-                    [ text "Restart? (Y/N)"
-                    ]
-                ]
+        [ rect
+            [ x (String.fromFloat viewBoxOrigin.x)
+            , y (String.fromFloat viewBoxOrigin.y)
+            , width "100%"
+            , height "100%"
+            , fill "white"
+            , opacity "0.7"
             ]
-        )
+            []
+        , text_
+            [ fontFamily "sans-serif"
+            , fontSize (String.fromFloat (blockStyle.size * 0.8))
+            , fontWeight "bold"
+            , fill "#222"
+            ]
+            (List.indexedMap
+                (\idx textLine ->
+                    tspan
+                        [ x "50%"
+                        , if idx == 0 then
+                            y (String.fromFloat firstLineY)
+
+                          else
+                            dy (String.fromFloat nextLineDy)
+                        , textAnchor "middle"
+                        ]
+                        [ text textLine
+                        ]
+                )
+                textLines
+            )
+        ]
 
 
 colorToHex : Color -> String
