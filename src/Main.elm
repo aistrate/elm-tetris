@@ -97,7 +97,7 @@ type alias CellOccupancy =
 
 type Screen
     = PlayScreen
-    | RestartDialog
+    | RestartDialog Bool
     | PauseDialog
 
 
@@ -106,7 +106,6 @@ type alias Model =
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
-    , gameOver : Bool
     , screen : Screen
     , lockDelayStarted : Bool
     , showGhostPiece : Bool
@@ -120,7 +119,6 @@ init _ =
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
-      , gameOver = False
       , screen = PlayScreen
       , lockDelayStarted = False
       , showGhostPiece = False
@@ -174,8 +172,8 @@ update msg model =
         PlayScreen ->
             updatePlayScreen msg model
 
-        RestartDialog ->
-            updateRestartDialog msg model
+        RestartDialog gameOver ->
+            updateRestartDialog gameOver msg model
 
         PauseDialog ->
             updatePauseDialog msg model
@@ -232,7 +230,7 @@ updatePlayScreen msg model =
             )
 
         ShowRestartDialog ->
-            ( { model | screen = RestartDialog }
+            ( { model | screen = RestartDialog False }
             , Cmd.none
             )
 
@@ -257,8 +255,8 @@ updatePlayScreen msg model =
             )
 
 
-updateRestartDialog : Msg -> Model -> ( Model, Cmd Msg )
-updateRestartDialog msg model =
+updateRestartDialog : Bool -> Msg -> Model -> ( Model, Cmd Msg )
+updateRestartDialog gameOver msg model =
     if msg == AnswerYes then
         let
             ( initModel, initCmd ) =
@@ -271,7 +269,7 @@ updateRestartDialog msg model =
         , initCmd
         )
 
-    else if (msg == AnswerNo || msg == ExitDialog) && not model.gameOver then
+    else if (msg == AnswerNo || msg == ExitDialog) && not gameOver then
         ( { model | screen = PlayScreen }
         , Cmd.none
         )
@@ -320,13 +318,12 @@ updateForShapeGenerated shape model =
     { model
         | fallingPiece = fallingPiece
         , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
-        , gameOver = gameOver
         , screen =
             if not gameOver then
                 PlayScreen
 
             else
-                RestartDialog
+                RestartDialog True
     }
 
 
@@ -886,7 +883,7 @@ viewGame model =
         , lazy2 viewGhostPiece model.showGhostPiece model.ghostPiece
         , lazy viewBlocks model.fallingPiece.blocks
         , lazy viewBlocks model.bottomBlocks
-        , lazy2 viewDialogIfAny model.screen model.gameOver
+        , lazy viewDialogIfAny model.screen
         ]
 
 
@@ -966,13 +963,13 @@ viewGhostPiece visible blocks =
         g [] []
 
 
-viewDialogIfAny : Screen -> Bool -> Svg Msg
-viewDialogIfAny screen gameOver =
+viewDialogIfAny : Screen -> Svg Msg
+viewDialogIfAny screen =
     case screen of
         PlayScreen ->
             g [] []
 
-        RestartDialog ->
+        RestartDialog gameOver ->
             viewRestartDialog gameOver
 
         PauseDialog ->
@@ -982,13 +979,14 @@ viewDialogIfAny screen gameOver =
 viewRestartDialog : Bool -> Svg Msg
 viewRestartDialog gameOver =
     viewDialog
-        ((if gameOver then
-            [ "Game Over" ]
+        (if gameOver then
+            [ "Game Over"
+            , "Restart? (Y/N)"
+            ]
 
-          else
-            []
-         )
-            ++ [ "Restart? (Y/N)" ]
+         else
+            [ "Restart? (Y/N)"
+            ]
         )
 
 
