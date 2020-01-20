@@ -106,6 +106,7 @@ type alias Model =
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
+    , gameOver : Bool
     , screen : Screen
     , lockDelayStarted : Bool
     , showGhostPiece : Bool
@@ -119,6 +120,7 @@ init _ =
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
+      , gameOver = False
       , screen = PlayScreen
       , lockDelayStarted = False
       , showGhostPiece = False
@@ -225,7 +227,7 @@ updatePlayScreen msg model =
             updateForLockToBottom model
 
         ShapeGenerated shape ->
-            ( updateForTransform (always (spawnTetromino shape) >> centerHoriz) noAlternatives model
+            ( updateForShapeGenerated shape model
             , Cmd.none
             )
 
@@ -257,33 +259,27 @@ updatePlayScreen msg model =
 
 updateRestartDialog : Msg -> Model -> ( Model, Cmd Msg )
 updateRestartDialog msg model =
-    case msg of
-        AnswerYes ->
-            let
-                ( initModel, initCmd ) =
-                    init ()
-            in
-            ( { initModel
-                | showGhostPiece = model.showGhostPiece
-                , showVerticalStripes = model.showVerticalStripes
-              }
-            , initCmd
-            )
+    if msg == AnswerYes then
+        let
+            ( initModel, initCmd ) =
+                init ()
+        in
+        ( { initModel
+            | showGhostPiece = model.showGhostPiece
+            , showVerticalStripes = model.showVerticalStripes
+          }
+        , initCmd
+        )
 
-        AnswerNo ->
-            ( { model | screen = PlayScreen }
-            , Cmd.none
-            )
+    else if (msg == AnswerNo || msg == ExitDialog) && not model.gameOver then
+        ( { model | screen = PlayScreen }
+        , Cmd.none
+        )
 
-        ExitDialog ->
-            ( { model | screen = PlayScreen }
-            , Cmd.none
-            )
-
-        _ ->
-            ( model
-            , Cmd.none
-            )
+    else
+        ( model
+        , Cmd.none
+        )
 
 
 updatePauseDialog : Msg -> Model -> ( Model, Cmd Msg )
@@ -303,6 +299,35 @@ updatePauseDialog msg model =
             ( model
             , Cmd.none
             )
+
+
+updateForShapeGenerated : Shape -> Model -> Model
+updateForShapeGenerated shape model =
+    let
+        candidateFallingPiece =
+            spawnTetromino shape |> centerHoriz
+
+        gameOver =
+            collision candidateFallingPiece.blocks model.occupiedCells
+
+        fallingPiece =
+            if not gameOver then
+                candidateFallingPiece
+
+            else
+                emptyTetromino
+    in
+    { model
+        | fallingPiece = fallingPiece
+        , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
+        , gameOver = gameOver
+        , screen =
+            if not gameOver then
+                PlayScreen
+
+            else
+                RestartDialog
+    }
 
 
 updateForTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> Model
@@ -861,7 +886,7 @@ viewGame model =
         , lazy2 viewGhostPiece model.showGhostPiece model.ghostPiece
         , lazy viewBlocks model.fallingPiece.blocks
         , lazy viewBlocks model.bottomBlocks
-        , lazy viewDialogIfAny model.screen
+        , lazy2 viewDialogIfAny model.screen model.gameOver
         ]
 
 
@@ -941,24 +966,30 @@ viewGhostPiece visible blocks =
         g [] []
 
 
-viewDialogIfAny : Screen -> Svg Msg
-viewDialogIfAny screen =
+viewDialogIfAny : Screen -> Bool -> Svg Msg
+viewDialogIfAny screen gameOver =
     case screen of
         PlayScreen ->
             g [] []
 
         RestartDialog ->
-            viewRestartDialog
+            viewRestartDialog gameOver
 
         PauseDialog ->
             viewPauseDialog
 
 
-viewRestartDialog : Svg Msg
-viewRestartDialog =
+viewRestartDialog : Bool -> Svg Msg
+viewRestartDialog gameOver =
     viewDialog
-        [ "Restart? (Y/N)"
-        ]
+        ((if gameOver then
+            [ "Game Over" ]
+
+          else
+            []
+         )
+            ++ [ "Restart? (Y/N)" ]
+        )
 
 
 viewPauseDialog : Svg Msg
