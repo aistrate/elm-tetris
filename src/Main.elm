@@ -158,6 +158,7 @@ type Msg
     | ShowRestartDialog
     | AnswerYes
     | AnswerNo
+    | ExitDialog
     | ToggleGhostPiece
     | ToggleVerticalStripes
     | OtherKey
@@ -260,6 +261,11 @@ updateRestartDialog msg model =
             )
 
         AnswerNo ->
+            ( { model | screen = PlayScreen }
+            , Cmd.none
+            )
+
+        ExitDialog ->
             ( { model | screen = PlayScreen }
             , Cmd.none
             )
@@ -759,6 +765,9 @@ toKeyboardMsg key =
 
         "n" ->
             AnswerNo
+
+        "escape" ->
+            ExitDialog
 
         "g" ->
             ToggleGhostPiece
