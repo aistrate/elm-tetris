@@ -9,7 +9,7 @@ import Dict exposing (Dict)
 import Json.Decode as Decode
 import Process
 import Random
-import Svg exposing (Svg, g, rect, svg)
+import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (lazy, lazy2)
 import Task
@@ -774,6 +774,12 @@ toKeyboardMsg key =
 -- VIEW
 
 
+viewBoxOrigin =
+    { x = -(boardStyle.borderWidth + boardStyle.padding)
+    , y = -(boardStyle.marginTop + boardStyle.borderWidth + boardStyle.padding)
+    }
+
+
 boardWidth : Float
 boardWidth =
     boardSize game.columns
@@ -800,9 +806,9 @@ viewGame model =
         [ width "100%"
         , height (String.fromFloat (boardStyle.marginTop + boardHeight))
         , viewBox
-            (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding)
+            (String.fromFloat viewBoxOrigin.x
                 ++ " "
-                ++ String.fromFloat -(boardStyle.marginTop + boardStyle.borderWidth + boardStyle.padding)
+                ++ String.fromFloat viewBoxOrigin.y
                 ++ " "
                 ++ String.fromFloat boardWidth
                 ++ " "
@@ -903,14 +909,28 @@ viewDialog screen =
 
          else
             [ rect
-                [ x (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding))
-                , y (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding))
-                , width (String.fromFloat boardWidth)
-                , height (String.fromFloat boardHeight)
-                , fill "#EEE"
-                , opacity "0.5"
+                [ x (String.fromFloat viewBoxOrigin.x)
+                , y (String.fromFloat viewBoxOrigin.y)
+                , width "100%"
+                , height "100%"
+                , fill "white"
+                , opacity "0.7"
                 ]
                 []
+            , text_
+                [ fontFamily "sans-serif"
+                , fontSize (String.fromFloat blockStyle.size)
+                , fontWeight "bold"
+                , fill "#222"
+                ]
+                [ tspan
+                    [ x "50%"
+                    , y "9.85em"
+                    , textAnchor "middle"
+                    ]
+                    [ text "Restart? (Y/N)"
+                    ]
+                ]
             ]
         )
 
