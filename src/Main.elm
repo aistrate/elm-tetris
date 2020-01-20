@@ -97,7 +97,7 @@ type alias CellOccupancy =
 
 type Screen
     = PlayScreen
-    | RestartScreen
+    | RestartDialog
 
 
 type alias Model =
@@ -155,7 +155,7 @@ type Msg
     | HardDrop
     | LockToBottom
     | ShapeGenerated Shape
-    | ShowRestartScreen
+    | ShowRestartDialog
     | AnswerYes
     | AnswerNo
     | ToggleGhostPiece
@@ -169,8 +169,8 @@ update msg model =
         PlayScreen ->
             updatePlayScreen msg model
 
-        RestartScreen ->
-            updateRestartScreen msg model
+        RestartDialog ->
+            updateRestartDialog msg model
 
 
 updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
@@ -223,8 +223,8 @@ updatePlayScreen msg model =
             , Cmd.none
             )
 
-        ShowRestartScreen ->
-            ( { model | screen = RestartScreen }
+        ShowRestartDialog ->
+            ( { model | screen = RestartDialog }
             , Cmd.none
             )
 
@@ -244,8 +244,8 @@ updatePlayScreen msg model =
             )
 
 
-updateRestartScreen : Msg -> Model -> ( Model, Cmd Msg )
-updateRestartScreen msg model =
+updateRestartDialog : Msg -> Model -> ( Model, Cmd Msg )
+updateRestartDialog msg model =
     case msg of
         AnswerYes ->
             let
@@ -752,7 +752,7 @@ toKeyboardMsg key =
             HardDrop
 
         "r" ->
-            ShowRestartScreen
+            ShowRestartDialog
 
         "y" ->
             AnswerYes
