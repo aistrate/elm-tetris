@@ -99,6 +99,7 @@ type Screen
     = PlayScreen
     | RestartDialog Bool
     | PauseDialog
+    | HelpDialog Screen
 
 
 type alias Model =
@@ -158,6 +159,7 @@ type Msg
     | ShapeGenerated Shape
     | ShowRestartDialog
     | TogglePauseDialog
+    | ShowHelpDialog
     | AnswerYes
     | AnswerNo
     | ExitDialog
@@ -177,6 +179,9 @@ update msg model =
 
         PauseDialog ->
             updatePauseDialog msg model
+
+        HelpDialog prevScreen ->
+            updateHelpDialog prevScreen msg model
 
 
 updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
@@ -239,6 +244,11 @@ updatePlayScreen msg model =
             , Cmd.none
             )
 
+        ShowHelpDialog ->
+            ( { model | screen = HelpDialog PlayScreen }
+            , Cmd.none
+            )
+
         ToggleGhostPiece ->
             ( { model | showGhostPiece = not model.showGhostPiece }
             , Cmd.none
@@ -274,6 +284,11 @@ updateRestartDialog gameOver msg model =
         , Cmd.none
         )
 
+    else if msg == ShowHelpDialog then
+        ( { model | screen = HelpDialog (RestartDialog gameOver) }
+        , Cmd.none
+        )
+
     else
         ( model
         , Cmd.none
@@ -290,6 +305,25 @@ updatePauseDialog msg model =
 
         ExitDialog ->
             ( { model | screen = PlayScreen }
+            , Cmd.none
+            )
+
+        ShowHelpDialog ->
+            ( { model | screen = HelpDialog PauseDialog }
+            , Cmd.none
+            )
+
+        _ ->
+            ( model
+            , Cmd.none
+            )
+
+
+updateHelpDialog : Screen -> Msg -> Model -> ( Model, Cmd Msg )
+updateHelpDialog prevScreen msg model =
+    case msg of
+        ExitDialog ->
+            ( { model | screen = prevScreen }
             , Cmd.none
             )
 
@@ -814,6 +848,9 @@ toKeyboardMsg key =
         "p" ->
             TogglePauseDialog
 
+        "h" ->
+            ShowHelpDialog
+
         "y" ->
             AnswerYes
 
@@ -975,12 +1012,17 @@ viewDialogIfAny screen =
         PauseDialog ->
             viewPauseDialog
 
+        HelpDialog _ ->
+            viewHelpDialog
+
 
 viewRestartDialog : Bool -> Svg Msg
 viewRestartDialog gameOver =
     viewDialog
+        True
         (if gameOver then
             [ "Game Over"
+            , " "
             , "Restart? (Y/N)"
             ]
 
@@ -993,22 +1035,61 @@ viewRestartDialog gameOver =
 viewPauseDialog : Svg Msg
 viewPauseDialog =
     viewDialog
+        True
         [ "Paused"
+        , " "
         , "Press P to continue"
         ]
 
 
-viewDialog : List String -> Svg Msg
-viewDialog textLines =
+viewHelpDialog : Svg Msg
+viewHelpDialog =
+    viewDialog
+        False
+        [ "Arrow Left - Move left"
+        , "Arrow Right - Move right"
+        , "Arrow Down - Move down"
+        , " "
+        , "Arrow Up or X - Rotate clockwise"
+        , "Ctrl or Z - Rotate counterclockwise"
+        , " "
+        , "Space - Drop"
+        , " "
+        , "P - Pause"
+        , "R - Restart"
+        , " "
+        , "G - Ghost piece"
+        , "V - Vertical stripes"
+        , " "
+        , "Press ESC to exit Help"
+        ]
+
+
+viewDialog : Bool -> List String -> Svg Msg
+viewDialog largeFont textLines =
     let
-        vertCenteredRow =
-            (game.rows - (2 * List.length textLines - 1)) // 2
+        vertCenteredFirstRow =
+            (game.rows - List.length textLines) // 2
 
         firstLineY =
-            (toFloat vertCenteredRow + 0.8) * blockStyle.size
+            (toFloat vertCenteredFirstRow + 0.8) * blockStyle.size
 
         nextLineDy =
-            2 * blockStyle.size
+            blockStyle.size
+
+        textFontSize =
+            if largeFont then
+                blockStyle.size * 0.8
+
+            else
+                blockStyle.size * 0.5
+
+        textFontWeight =
+            if largeFont then
+                "bold"
+
+            else
+                "normal"
     in
     g
         []
@@ -1023,8 +1104,8 @@ viewDialog textLines =
             []
         , text_
             [ fontFamily "sans-serif"
-            , fontSize (String.fromFloat (blockStyle.size * 0.8))
-            , fontWeight "bold"
+            , fontSize (String.fromFloat textFontSize)
+            , fontWeight textFontWeight
             , fill "#222"
             ]
             (List.indexedMap
