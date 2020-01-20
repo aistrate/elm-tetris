@@ -159,7 +159,7 @@ type Msg
     | ShapeGenerated Shape
     | ShowRestartDialog
     | TogglePauseDialog
-    | ShowHelpDialog
+    | ToggleHelpDialog
     | AnswerYes
     | AnswerNo
     | ExitDialog
@@ -244,7 +244,7 @@ updatePlayScreen msg model =
             , Cmd.none
             )
 
-        ShowHelpDialog ->
+        ToggleHelpDialog ->
             ( { model | screen = HelpDialog PlayScreen }
             , Cmd.none
             )
@@ -284,7 +284,7 @@ updateRestartDialog gameOver msg model =
         , Cmd.none
         )
 
-    else if msg == ShowHelpDialog then
+    else if msg == ToggleHelpDialog then
         ( { model | screen = HelpDialog (RestartDialog gameOver) }
         , Cmd.none
         )
@@ -308,7 +308,7 @@ updatePauseDialog msg model =
             , Cmd.none
             )
 
-        ShowHelpDialog ->
+        ToggleHelpDialog ->
             ( { model | screen = HelpDialog PauseDialog }
             , Cmd.none
             )
@@ -322,6 +322,11 @@ updatePauseDialog msg model =
 updateHelpDialog : Screen -> Msg -> Model -> ( Model, Cmd Msg )
 updateHelpDialog prevScreen msg model =
     case msg of
+        ToggleHelpDialog ->
+            ( { model | screen = prevScreen }
+            , Cmd.none
+            )
+
         ExitDialog ->
             ( { model | screen = prevScreen }
             , Cmd.none
@@ -849,7 +854,7 @@ toKeyboardMsg key =
             TogglePauseDialog
 
         "h" ->
-            ShowHelpDialog
+            ToggleHelpDialog
 
         "y" ->
             AnswerYes
@@ -1064,7 +1069,7 @@ viewHelpDialog =
         , Shortcut "G" "Ghost piece"
         , Shortcut "V" "Vertical stripes"
         , EmptyLine
-        , LargeText "Press Esc to exit"
+        , LargeText "Press Esc or H to exit"
         ]
 
 
