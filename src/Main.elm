@@ -40,6 +40,7 @@ boardStyle =
     { marginTop = 12.0
     , borderWidth = 2.0
     , padding = 1.5
+    , footerHeight = 100.0
     }
 
 
@@ -891,12 +892,6 @@ toKeyboardMsg key =
 -- VIEW
 
 
-viewBoxOrigin =
-    { x = -(boardStyle.borderWidth + boardStyle.padding)
-    , y = -(boardStyle.marginTop + boardStyle.borderWidth + boardStyle.padding)
-    }
-
-
 boardWidth : Float
 boardWidth =
     boardSize game.columns
@@ -921,20 +916,21 @@ viewGame : Model -> Svg Msg
 viewGame model =
     svg
         [ width "100%"
-        , height (String.fromFloat (boardStyle.marginTop + boardHeight))
+        , height (String.fromFloat (boardStyle.marginTop + boardHeight + boardStyle.footerHeight))
         , viewBox
-            (String.fromFloat viewBoxOrigin.x
+            (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding)
                 ++ " "
-                ++ String.fromFloat viewBoxOrigin.y
+                ++ String.fromFloat -(boardStyle.marginTop + boardStyle.borderWidth + boardStyle.padding)
                 ++ " "
                 ++ String.fromFloat boardWidth
                 ++ " "
-                ++ String.fromFloat (boardStyle.marginTop + boardHeight)
+                ++ String.fromFloat (boardStyle.marginTop + boardHeight + boardStyle.footerHeight)
             )
         , fontFamily "sans-serif"
         , fill "#222"
         ]
-        [ viewBoard
+        [ viewFooter
+        , viewBoard
         , lazy viewVerticalStripes model.settings.showVerticalStripes
         , lazy viewBlocks model.bottomBlocks
         , lazy2 viewGhostPiece model.settings.showGhostPiece model.ghostPiece
@@ -1193,13 +1189,47 @@ viewDialogTextLine yCoord textLine =
 viewDialogOverlay : Svg Msg
 viewDialogOverlay =
     rect
-        [ x (String.fromFloat viewBoxOrigin.x)
-        , y (String.fromFloat viewBoxOrigin.y)
-        , width "100%"
-        , height "100%"
+        [ x (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding))
+        , y (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding))
+        , width (String.fromFloat boardWidth)
+        , height (String.fromFloat boardHeight)
         , fill "white"
         , opacity "0.7"
         ]
         []
 
 
+viewFooter : Svg Msg
+viewFooter =
+    let
+        footerY =
+            boardHeight - (boardStyle.borderWidth + boardStyle.padding)
+    in
+    g
+        []
+        [ text_
+            []
+            [ tspan
+                [ y (String.fromFloat (footerY + boardStyle.footerHeight - 4))
+                , fontSize "15"
+                ]
+                [ tspan
+                    [ x "0"
+                    ]
+                    [ text "Press H for Help"
+                    ]
+                , a
+                    [ xlinkHref "https://github.com/aistrate/elm-tetris"
+                    , target "_blank"
+                    , Svg.Attributes.style "fill: #0366D6; text-decoration: underline;"
+                    ]
+                    [ tspan
+                        [ x (String.fromFloat (blockStyle.size * toFloat game.columns))
+                        , textAnchor "end"
+                        ]
+                        [ text "Code"
+                        ]
+                    ]
+                ]
+            ]
+        ]
