@@ -102,6 +102,12 @@ type Screen
     | HelpDialog Screen
 
 
+type alias Settings =
+    { showGhostPiece : Bool
+    , showVerticalStripes : Bool
+    }
+
+
 type alias Model =
     { fallingPiece : Tetromino
     , ghostPiece : List Block
@@ -109,8 +115,7 @@ type alias Model =
     , occupiedCells : CellOccupancy
     , screen : Screen
     , lockDelayStarted : Bool
-    , showGhostPiece : Bool
-    , showVerticalStripes : Bool
+    , settings : Settings
     }
 
 
@@ -122,8 +127,10 @@ init _ =
       , occupiedCells = Dict.fromList []
       , screen = PlayScreen
       , lockDelayStarted = False
-      , showGhostPiece = False
-      , showVerticalStripes = False
+      , settings =
+            { showGhostPiece = False
+            , showVerticalStripes = False
+            }
       }
     , Random.generate ShapeGenerated shapeGenerator
     )
@@ -250,12 +257,20 @@ updatePlayScreen msg model =
             )
 
         ToggleGhostPiece ->
-            ( { model | showGhostPiece = not model.showGhostPiece }
+            let
+                settings =
+                    model.settings
+            in
+            ( { model | settings = { settings | showGhostPiece = not settings.showGhostPiece } }
             , Cmd.none
             )
 
         ToggleVerticalStripes ->
-            ( { model | showVerticalStripes = not model.showVerticalStripes }
+            let
+                settings =
+                    model.settings
+            in
+            ( { model | settings = { settings | showVerticalStripes = not settings.showVerticalStripes } }
             , Cmd.none
             )
 
@@ -272,10 +287,7 @@ updateRestartDialog gameOver msg model =
             ( initModel, initCmd ) =
                 init ()
         in
-        ( { initModel
-            | showGhostPiece = model.showGhostPiece
-            , showVerticalStripes = model.showVerticalStripes
-          }
+        ( { initModel | settings = model.settings }
         , initCmd
         )
 
@@ -921,8 +933,8 @@ viewGame model =
             )
         ]
         [ viewBoard
-        , lazy viewVerticalStripes model.showVerticalStripes
-        , lazy2 viewGhostPiece model.showGhostPiece model.ghostPiece
+        , lazy viewVerticalStripes model.settings.showVerticalStripes
+        , lazy2 viewGhostPiece model.settings.showGhostPiece model.ghostPiece
         , lazy viewBlocks model.fallingPiece.blocks
         , lazy viewBlocks model.bottomBlocks
         , lazy viewDialogIfAny model.screen
