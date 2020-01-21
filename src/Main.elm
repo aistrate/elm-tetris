@@ -931,12 +931,14 @@ viewGame model =
                 ++ " "
                 ++ String.fromFloat (boardStyle.marginTop + boardHeight)
             )
+        , fontFamily "sans-serif"
+        , fill "#222"
         ]
         [ viewBoard
         , lazy viewVerticalStripes model.settings.showVerticalStripes
+        , lazy viewBlocks model.bottomBlocks
         , lazy2 viewGhostPiece model.settings.showGhostPiece model.ghostPiece
         , lazy viewBlocks model.fallingPiece.blocks
-        , lazy viewBlocks model.bottomBlocks
         , lazy viewDialogIfAny model.screen
         ]
 
@@ -953,33 +955,6 @@ viewBoard =
         , strokeWidth (String.fromFloat boardStyle.borderWidth)
         ]
         []
-
-
-viewVerticalStripes : Bool -> Svg Msg
-viewVerticalStripes visible =
-    let
-        viewVerticalStripe col =
-            rect
-                [ x (String.fromFloat (toFloat col * blockStyle.size + blockStyle.borderWidth / 2))
-                , y "0"
-                , width (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
-                , height (String.fromFloat (toFloat game.rows * blockStyle.size - blockStyle.borderWidth))
-                , fill "#F4EFE9"
-                , stroke "white"
-                , strokeWidth (String.fromFloat blockStyle.borderWidth)
-                ]
-                []
-    in
-    g
-        []
-        (if visible then
-            List.range 0 (game.columns - 1)
-                |> List.filter (\col -> modBy 2 col == 1)
-                |> List.map viewVerticalStripe
-
-         else
-            []
-        )
 
 
 viewBlocks : List Block -> Svg Msg
@@ -1015,6 +990,61 @@ viewGhostPiece visible blocks =
 
     else
         g [] []
+
+
+viewVerticalStripes : Bool -> Svg Msg
+viewVerticalStripes visible =
+    let
+        viewVerticalStripe col =
+            rect
+                [ x (String.fromFloat (toFloat col * blockStyle.size + blockStyle.borderWidth / 2))
+                , y "0"
+                , width (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
+                , height (String.fromFloat (toFloat game.rows * blockStyle.size - blockStyle.borderWidth))
+                , fill "#F4EFE9"
+                , stroke "white"
+                , strokeWidth (String.fromFloat blockStyle.borderWidth)
+                ]
+                []
+    in
+    g
+        []
+        (if visible then
+            List.range 0 (game.columns - 1)
+                |> List.filter (\col -> modBy 2 col == 1)
+                |> List.map viewVerticalStripe
+
+         else
+            []
+        )
+
+
+colorToHex : Color -> String
+colorToHex color =
+    case color of
+        Red ->
+            "#FD0000"
+
+        Green ->
+            "#36C54C"
+
+        Blue ->
+            "#3968B0"
+
+        Cyan ->
+            "#2EA3F7"
+
+        Orange ->
+            "#FA6600"
+
+        Purple ->
+            "#CA55C3"
+
+        Yellow ->
+            "#F2D00D"
+
+        Gray ->
+            "#DDD"
 
 
 viewDialogIfAny : Screen -> Svg Msg
@@ -1092,35 +1122,25 @@ viewDialog textLines =
             (game.rows - List.length textLines) // 2
 
         firstLineY =
-            (toFloat vertCenteredFirstRow + 0.8) * blockStyle.size
+            String.fromFloat ((toFloat vertCenteredFirstRow + 0.8) * blockStyle.size)
 
         nextLineDy =
-            blockStyle.size
+            String.fromFloat blockStyle.size
     in
     g
         []
-        [ rect
-            [ x (String.fromFloat viewBoxOrigin.x)
-            , y (String.fromFloat viewBoxOrigin.y)
-            , width "100%"
-            , height "100%"
-            , fill "white"
-            , opacity "0.7"
-            ]
-            []
+        [ viewDialogOverlay
         , text_
-            [ fontFamily "sans-serif"
-            , fill "#222"
-            ]
+            []
             (List.indexedMap
                 (\idx textLine ->
                     let
                         yCoord =
                             if idx == 0 then
-                                y (String.fromFloat firstLineY)
+                                y firstLineY
 
                             else
-                                dy (String.fromFloat nextLineDy)
+                                dy nextLineDy
                     in
                     viewDialogTextLine yCoord textLine
                 )
@@ -1170,29 +1190,16 @@ viewDialogTextLine yCoord textLine =
                 ]
 
 
-colorToHex : Color -> String
-colorToHex color =
-    case color of
-        Red ->
-            "#FD0000"
+viewDialogOverlay : Svg Msg
+viewDialogOverlay =
+    rect
+        [ x (String.fromFloat viewBoxOrigin.x)
+        , y (String.fromFloat viewBoxOrigin.y)
+        , width "100%"
+        , height "100%"
+        , fill "white"
+        , opacity "0.7"
+        ]
+        []
 
-        Green ->
-            "#36C54C"
 
-        Blue ->
-            "#3968B0"
-
-        Cyan ->
-            "#2EA3F7"
-
-        Orange ->
-            "#FA6600"
-
-        Purple ->
-            "#CA55C3"
-
-        Yellow ->
-            "#F2D00D"
-
-        Gray ->
-            "#DDD"
