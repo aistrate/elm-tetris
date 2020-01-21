@@ -839,13 +839,29 @@ toKeyboardMsg key =
         "arrowleft" ->
             MoveLeft
 
+        -- IE
+        "left" ->
+            MoveLeft
+
         "arrowright" ->
+            MoveRight
+
+        -- IE
+        "right" ->
             MoveRight
 
         "arrowdown" ->
             MoveDown
 
+        -- IE
+        "down" ->
+            MoveDown
+
         "arrowup" ->
+            RotateClockwise
+
+        -- IE
+        "up" ->
             RotateClockwise
 
         "x" ->
@@ -858,6 +874,10 @@ toKeyboardMsg key =
             RotateCounterclockwise
 
         " " ->
+            HardDrop
+
+        -- IE
+        "spacebar" ->
             HardDrop
 
         "r" ->
@@ -876,6 +896,10 @@ toKeyboardMsg key =
             AnswerNo
 
         "escape" ->
+            ExitDialog
+
+        -- IE
+        "esc" ->
             ExitDialog
 
         "g" ->
