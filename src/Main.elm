@@ -4,7 +4,7 @@
 module Main exposing (..)
 
 import Browser
-import Browser.Events as Events
+import Browser.Events
 import Dict exposing (Dict)
 import Json.Decode as Decode
 import Process
@@ -158,14 +158,15 @@ type RotationDirection
 
 
 type Msg
-    = MoveLeft
+    = ShapeGenerated Shape
+    | AnimationFrame Float
+    | MoveLeft
     | MoveRight
     | MoveDown
     | RotateClockwise
     | RotateCounterclockwise
     | HardDrop
     | LockToBottom
-    | ShapeGenerated Shape
     | ShowRestartDialog
     | TogglePauseDialog
     | ToggleHelpDialog
@@ -199,6 +200,14 @@ update msg model =
 updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
 updatePlayScreen msg model =
     case msg of
+        ShapeGenerated shape ->
+            ( updateForShapeGenerated shape model
+            , Cmd.none
+            )
+
+        AnimationFrame timeDelta ->
+            updateForAnimationFrame timeDelta model
+
         MoveLeft ->
             ( updateForTransform (shiftBy ( -1, 0 )) noAlternatives model
             , Cmd.none
@@ -240,11 +249,6 @@ updatePlayScreen msg model =
 
         LockToBottom ->
             updateForLockToBottom model
-
-        ShapeGenerated shape ->
-            ( updateForShapeGenerated shape model
-            , Cmd.none
-            )
 
         ShowRestartDialog ->
             ( { model | screen = RestartDialog }
@@ -405,6 +409,13 @@ updateForShapeGenerated shape model =
         , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
         , screen = screen
     }
+
+
+updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
+updateForAnimationFrame timeDelta model =
+    ( model
+    , Cmd.none
+    )
 
 
 updateForTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> Model
@@ -853,7 +864,14 @@ nextRotationState currentRotationState direction =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Events.onKeyDown keyDecoder
+    Sub.batch
+        [ if model.screen == PlayScreen then
+            Browser.Events.onAnimationFrameDelta AnimationFrame
+
+          else
+            Sub.none
+        , Browser.Events.onKeyDown keyDecoder
+        ]
 
 
 keyDecoder : Decode.Decoder Msg
