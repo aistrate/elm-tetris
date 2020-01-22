@@ -162,7 +162,7 @@ type Msg
     | MoveDown
     | RotateClockwise
     | RotateCounterclockwise
-    | LockToBottom
+    | DropAndLock
     | ShowRestartDialog
     | TogglePauseDialog
     | ToggleHelpDialog
@@ -229,8 +229,8 @@ updatePlayScreen msg model =
             , Cmd.none
             )
 
-        LockToBottom ->
-            updateForLockToBottom model
+        DropAndLock ->
+            updateForDropAndLock model
 
         ShowRestartDialog ->
             ( { model | screen = RestartDialog }
@@ -553,8 +553,8 @@ vertDistance source dest =
     destMinRow - sourceMinRow
 
 
-updateForLockToBottom : Model -> ( Model, Cmd Msg )
-updateForLockToBottom model =
+updateForDropAndLock : Model -> ( Model, Cmd Msg )
+updateForDropAndLock model =
     if List.length model.fallingPiece.blocks > 0 then
         let
             fallingPiece =
@@ -902,11 +902,11 @@ toKeyboardMsg key =
             RotateCounterclockwise
 
         " " ->
-            LockToBottom
+            DropAndLock
 
         -- IE
         "spacebar" ->
-            LockToBottom
+            DropAndLock
 
         "r" ->
             ShowRestartDialog
