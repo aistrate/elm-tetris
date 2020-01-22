@@ -7,7 +7,6 @@ import Browser
 import Browser.Events
 import Dict exposing (Dict)
 import Json.Decode as Decode
-import Process
 import Random
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
@@ -116,7 +115,6 @@ type alias Model =
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
     , screen : Screen
-    , lockDelayStarted : Bool
     , settings : Settings
     }
 
@@ -128,7 +126,6 @@ init _ =
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
       , screen = PlayScreen
-      , lockDelayStarted = False
       , settings =
             { showGhostPiece = False
             , showVerticalStripes = False
@@ -165,7 +162,6 @@ type Msg
     | MoveDown
     | RotateClockwise
     | RotateCounterclockwise
-    | HardDrop
     | LockToBottom
     | ShowRestartDialog
     | TogglePauseDialog
@@ -232,20 +228,6 @@ updatePlayScreen msg model =
             ( updateForTransform (rotate Counterclockwise) (wallKickAlternatives Counterclockwise) model
             , Cmd.none
             )
-
-        HardDrop ->
-            if not model.lockDelayStarted then
-                ( { model
-                    | fallingPiece = shiftVertToTarget model.fallingPiece model.ghostPiece
-                    , lockDelayStarted = True
-                  }
-                , Process.sleep 100 |> Task.perform (always LockToBottom)
-                )
-
-            else
-                ( model
-                , Cmd.none
-                )
 
         LockToBottom ->
             updateForLockToBottom model
@@ -573,10 +555,13 @@ vertDistance source dest =
 
 updateForLockToBottom : Model -> ( Model, Cmd Msg )
 updateForLockToBottom model =
-    if vertDistance model.fallingPiece.blocks model.ghostPiece == 0 then
+    if List.length model.fallingPiece.blocks > 0 then
         let
+            fallingPiece =
+                shiftVertToTarget model.fallingPiece model.ghostPiece
+
             bottomBlocks =
-                removeFullRows (model.bottomBlocks ++ model.fallingPiece.blocks)
+                removeFullRows (model.bottomBlocks ++ fallingPiece.blocks)
 
             occupiedCells =
                 List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
@@ -587,15 +572,12 @@ updateForLockToBottom model =
             , ghostPiece = []
             , bottomBlocks = bottomBlocks
             , occupiedCells = occupiedCells
-            , lockDelayStarted = False
           }
         , Random.generate ShapeGenerated shapeGenerator
         )
 
     else
-        ( { model
-            | lockDelayStarted = False
-          }
+        ( model
         , Cmd.none
         )
 
@@ -920,11 +902,11 @@ toKeyboardMsg key =
             RotateCounterclockwise
 
         " " ->
-            HardDrop
+            LockToBottom
 
         -- IE
         "spacebar" ->
-            HardDrop
+            LockToBottom
 
         "r" ->
             ShowRestartDialog
