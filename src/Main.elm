@@ -98,7 +98,8 @@ type alias CellOccupancy =
 
 type Screen
     = PlayScreen
-    | RestartDialog Bool
+    | GameOverDialog
+    | RestartDialog
     | PauseDialog
     | HelpDialog Screen
 
@@ -182,8 +183,11 @@ update msg model =
         PlayScreen ->
             updatePlayScreen msg model
 
-        RestartDialog gameOver ->
-            updateRestartDialog gameOver msg model
+        GameOverDialog ->
+            updateGameOverDialog msg model
+
+        RestartDialog ->
+            updateRestartDialog msg model
 
         PauseDialog ->
             updatePauseDialog msg model
@@ -243,7 +247,7 @@ updatePlayScreen msg model =
             )
 
         ShowRestartDialog ->
-            ( { model | screen = RestartDialog False }
+            ( { model | screen = RestartDialog }
             , Cmd.none
             )
 
@@ -253,7 +257,7 @@ updatePlayScreen msg model =
             )
 
         ToggleHelpDialog ->
-            ( { model | screen = HelpDialog PlayScreen }
+            ( { model | screen = HelpDialog model.screen }
             , Cmd.none
             )
 
@@ -281,31 +285,60 @@ updatePlayScreen msg model =
             )
 
 
-updateRestartDialog : Bool -> Msg -> Model -> ( Model, Cmd Msg )
-updateRestartDialog gameOver msg model =
-    if msg == AnswerYes then
-        let
-            ( initModel, initCmd ) =
-                init ()
-        in
-        ( { initModel | settings = model.settings }
-        , initCmd
-        )
+updateGameOverDialog : Msg -> Model -> ( Model, Cmd Msg )
+updateGameOverDialog msg model =
+    case msg of
+        AnswerYes ->
+            let
+                ( initModel, initCmd ) =
+                    init ()
+            in
+            ( { initModel | settings = model.settings }
+            , initCmd
+            )
 
-    else if (msg == AnswerNo || msg == ExitDialog) && not gameOver then
-        ( { model | screen = PlayScreen }
-        , Cmd.none
-        )
+        ToggleHelpDialog ->
+            ( { model | screen = HelpDialog model.screen }
+            , Cmd.none
+            )
 
-    else if msg == ToggleHelpDialog then
-        ( { model | screen = HelpDialog (RestartDialog gameOver) }
-        , Cmd.none
-        )
+        _ ->
+            ( model
+            , Cmd.none
+            )
 
-    else
-        ( model
-        , Cmd.none
-        )
+
+updateRestartDialog : Msg -> Model -> ( Model, Cmd Msg )
+updateRestartDialog msg model =
+    case msg of
+        AnswerYes ->
+            let
+                ( initModel, initCmd ) =
+                    init ()
+            in
+            ( { initModel | settings = model.settings }
+            , initCmd
+            )
+
+        AnswerNo ->
+            ( { model | screen = PlayScreen }
+            , Cmd.none
+            )
+
+        ExitDialog ->
+            ( { model | screen = PlayScreen }
+            , Cmd.none
+            )
+
+        ToggleHelpDialog ->
+            ( { model | screen = HelpDialog model.screen }
+            , Cmd.none
+            )
+
+        _ ->
+            ( model
+            , Cmd.none
+            )
 
 
 updatePauseDialog : Msg -> Model -> ( Model, Cmd Msg )
@@ -322,7 +355,7 @@ updatePauseDialog msg model =
             )
 
         ToggleHelpDialog ->
-            ( { model | screen = HelpDialog PauseDialog }
+            ( { model | screen = HelpDialog model.screen }
             , Cmd.none
             )
 
@@ -360,22 +393,17 @@ updateForShapeGenerated shape model =
         gameOver =
             collision candidateFallingPiece.blocks model.occupiedCells
 
-        fallingPiece =
+        ( fallingPiece, screen ) =
             if not gameOver then
-                candidateFallingPiece
+                ( candidateFallingPiece, PlayScreen )
 
             else
-                emptyTetromino
+                ( emptyTetromino, GameOverDialog )
     in
     { model
         | fallingPiece = fallingPiece
         , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
-        , screen =
-            if not gameOver then
-                PlayScreen
-
-            else
-                RestartDialog True
+        , screen = screen
     }
 
 
@@ -1073,8 +1101,11 @@ viewDialogIfAny screen =
         PlayScreen ->
             g [] []
 
-        RestartDialog gameOver ->
-            viewRestartDialog gameOver
+        GameOverDialog ->
+            viewGameOverDialog
+
+        RestartDialog ->
+            viewRestartDialog
 
         PauseDialog ->
             viewPauseDialog
@@ -1089,19 +1120,20 @@ type DialogTextLine
     | EmptyLine
 
 
-viewRestartDialog : Bool -> Svg Msg
-viewRestartDialog gameOver =
+viewGameOverDialog : Svg Msg
+viewGameOverDialog =
     viewDialog
-        (if gameOver then
-            [ LargeText "Game Over"
-            , EmptyLine
-            , LargeText "Restart? (Y/N)"
-            ]
+        [ LargeText "Game Over"
+        , EmptyLine
+        , LargeText "Restart? (Y/N)"
+        ]
 
-         else
-            [ LargeText "Restart? (Y/N)"
-            ]
-        )
+
+viewRestartDialog : Svg Msg
+viewRestartDialog =
+    viewDialog
+        [ LargeText "Restart? (Y/N)"
+        ]
 
 
 viewPauseDialog : Svg Msg
