@@ -114,6 +114,7 @@ type alias Model =
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
+    , fallDelay : Float
     , screen : Screen
     , settings : Settings
     }
@@ -125,6 +126,7 @@ init _ =
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
+      , fallDelay = 0
       , screen = PlayScreen
       , settings =
             { showGhostPiece = False
@@ -362,7 +364,7 @@ updateForShapeGenerated : Shape -> Model -> ( Model, Cmd Msg )
 updateForShapeGenerated shape model =
     let
         candidateFallingPiece =
-            spawnTetromino shape |> centerHoriz
+            spawnTetromino shape |> centerHoriz |> shiftBy ( 0, -2 )
 
         gameOver =
             collision candidateFallingPiece.blocks model.occupiedCells
@@ -377,6 +379,7 @@ updateForShapeGenerated shape model =
     ( { model
         | fallingPiece = fallingPiece
         , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
+        , fallDelay = 0
         , screen = screen
       }
     , Cmd.none
@@ -385,9 +388,20 @@ updateForShapeGenerated shape model =
 
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
-    ( model
-    , Cmd.none
-    )
+    let
+        adjustedTimeDelta =
+            Basics.min 100 timeDelta
+    in
+    if model.fallDelay - adjustedTimeDelta <= 0 then
+        updateForTransform
+            (shiftBy ( 0, 1 ))
+            noAlternatives
+            { model | fallDelay = model.fallDelay - adjustedTimeDelta + 793 }
+
+    else
+        ( { model | fallDelay = model.fallDelay - adjustedTimeDelta }
+        , Cmd.none
+        )
 
 
 updateForTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> ( Model, Cmd Msg )
