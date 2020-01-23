@@ -936,6 +936,20 @@ toKeyboardMsg key =
 -- VIEW
 
 
+view : Model -> Svg Msg
+view model =
+    svg
+        rootSvgAttributes
+        [ viewFooter
+        , viewBoard
+        , lazy viewVerticalStripes model.settings.showVerticalStripes
+        , lazy viewBlocks model.bottomBlocks
+        , lazy2 viewGhostPiece model.settings.showGhostPiece model.ghostPiece
+        , lazy viewBlocks model.fallingPiece.blocks
+        , lazy viewDialogIfAny model.screen
+        ]
+
+
 boardWidth : Float
 boardWidth =
     boardSize game.columns
@@ -951,36 +965,22 @@ boardSize blockCount =
     toFloat blockCount * blockStyle.size + 2 * (boardStyle.borderWidth + boardStyle.padding)
 
 
-view : Model -> Svg Msg
-view model =
-    lazy viewGame model
-
-
-viewGame : Model -> Svg Msg
-viewGame model =
-    svg
-        [ width "100%"
-        , height (String.fromFloat (boardStyle.marginTop + boardHeight + boardStyle.footerHeight))
-        , viewBox
-            (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding)
-                ++ " "
-                ++ String.fromFloat -(boardStyle.marginTop + boardStyle.borderWidth + boardStyle.padding)
-                ++ " "
-                ++ String.fromFloat boardWidth
-                ++ " "
-                ++ String.fromFloat (boardStyle.marginTop + boardHeight + boardStyle.footerHeight)
-            )
-        , fontFamily "sans-serif"
-        , fill "#222"
-        ]
-        [ viewFooter
-        , viewBoard
-        , lazy viewVerticalStripes model.settings.showVerticalStripes
-        , lazy viewBlocks model.bottomBlocks
-        , lazy2 viewGhostPiece model.settings.showGhostPiece model.ghostPiece
-        , lazy viewBlocks model.fallingPiece.blocks
-        , lazy viewDialogIfAny model.screen
-        ]
+rootSvgAttributes : List (Attribute Msg)
+rootSvgAttributes =
+    [ width "100%"
+    , height (String.fromFloat (boardStyle.marginTop + boardHeight + boardStyle.footerHeight))
+    , viewBox
+        (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding)
+            ++ " "
+            ++ String.fromFloat -(boardStyle.marginTop + boardStyle.borderWidth + boardStyle.padding)
+            ++ " "
+            ++ String.fromFloat boardWidth
+            ++ " "
+            ++ String.fromFloat (boardStyle.marginTop + boardHeight + boardStyle.footerHeight)
+        )
+    , fontFamily "sans-serif"
+    , fill "#222"
+    ]
 
 
 viewBoard : Svg Msg
