@@ -197,37 +197,25 @@ updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
 updatePlayScreen msg model =
     case msg of
         ShapeGenerated shape ->
-            ( updateForShapeGenerated shape model
-            , Cmd.none
-            )
+            updateForShapeGenerated shape model
 
         AnimationFrame timeDelta ->
             updateForAnimationFrame timeDelta model
 
         MoveLeft ->
-            ( updateForTransform (shiftBy ( -1, 0 )) noAlternatives model
-            , Cmd.none
-            )
+            updateForTransform (shiftBy ( -1, 0 )) noAlternatives model
 
         MoveRight ->
-            ( updateForTransform (shiftBy ( 1, 0 )) noAlternatives model
-            , Cmd.none
-            )
+            updateForTransform (shiftBy ( 1, 0 )) noAlternatives model
 
         MoveDown ->
-            ( updateForTransform (shiftBy ( 0, 1 )) noAlternatives model
-            , Cmd.none
-            )
+            updateForTransform (shiftBy ( 0, 1 )) noAlternatives model
 
         RotateClockwise ->
-            ( updateForTransform (rotate Clockwise) (wallKickAlternatives Clockwise) model
-            , Cmd.none
-            )
+            updateForTransform (rotate Clockwise) (wallKickAlternatives Clockwise) model
 
         RotateCounterclockwise ->
-            ( updateForTransform (rotate Counterclockwise) (wallKickAlternatives Counterclockwise) model
-            , Cmd.none
-            )
+            updateForTransform (rotate Counterclockwise) (wallKickAlternatives Counterclockwise) model
 
         DropAndLock ->
             updateForDropAndLock model
@@ -370,7 +358,7 @@ updateHelpDialog prevScreen msg model =
             )
 
 
-updateForShapeGenerated : Shape -> Model -> Model
+updateForShapeGenerated : Shape -> Model -> ( Model, Cmd Msg )
 updateForShapeGenerated shape model =
     let
         candidateFallingPiece =
@@ -386,11 +374,13 @@ updateForShapeGenerated shape model =
             else
                 ( emptyTetromino, GameOverDialog )
     in
-    { model
+    ( { model
         | fallingPiece = fallingPiece
         , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
         , screen = screen
-    }
+      }
+    , Cmd.none
+    )
 
 
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
@@ -400,7 +390,7 @@ updateForAnimationFrame timeDelta model =
     )
 
 
-updateForTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> Model
+updateForTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> ( Model, Cmd Msg )
 updateForTransform transform alternativeTranslations model =
     let
         viableFallingPiece =
@@ -410,10 +400,12 @@ updateForTransform transform alternativeTranslations model =
                 model.occupiedCells
                 |> Maybe.withDefault model.fallingPiece
     in
-    { model
+    ( { model
         | fallingPiece = viableFallingPiece
         , ghostPiece = calculateGhostPiece viableFallingPiece.blocks model.occupiedCells
-    }
+      }
+    , Cmd.none
+    )
 
 
 firstViableAlternative : List ( Int, Int ) -> Tetromino -> CellOccupancy -> Maybe Tetromino
