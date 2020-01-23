@@ -114,6 +114,7 @@ type alias Model =
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
+    , timeDeltas : List Float
     , screen : Screen
     , settings : Settings
     }
@@ -125,6 +126,7 @@ init _ =
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
+      , timeDeltas = []
       , screen = PlayScreen
       , settings =
             { showGhostPiece = False
@@ -385,7 +387,42 @@ updateForShapeGenerated shape model =
 
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
-    ( model
+    let
+        maxLength =
+            60
+
+        timeDeltas =
+            timeDelta :: model.timeDeltas
+
+        totalDelta =
+            List.sum timeDeltas
+
+        fps =
+            toFloat (List.length timeDeltas) / totalDelta * 1000
+
+        frameLength =
+            totalDelta / toFloat (List.length timeDeltas)
+
+        roundTo3Dec x =
+            toFloat (round (1000 * x)) / 1000
+
+        t =
+            if List.length timeDeltas == maxLength then
+                Debug.log
+                    "(FPS, frameLength)"
+                    ( roundTo3Dec fps, roundTo3Dec frameLength )
+
+            else
+                ( 0, 0 )
+    in
+    ( { model
+        | timeDeltas =
+            if List.length timeDeltas == maxLength then
+                []
+
+            else
+                timeDeltas
+      }
     , Cmd.none
     )
 
