@@ -12,6 +12,7 @@ import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (lazy, lazy2)
 import Task
+import Time exposing (..)
 
 
 main : Program () Model Msg
@@ -114,6 +115,9 @@ type alias Model =
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
+    , initialTime : Float
+    , currentTime : Float
+    , cumulativeDelta : Float
     , screen : Screen
     , settings : Settings
     }
@@ -125,6 +129,9 @@ init _ =
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
+      , initialTime = 0
+      , currentTime = 0
+      , cumulativeDelta = 0
       , screen = PlayScreen
       , settings =
             { showGhostPiece = False
@@ -156,6 +163,7 @@ type RotationDirection
 
 type Msg
     = ShapeGenerated Shape
+    | AnimationFrameAbs Posix
     | AnimationFrame Float
     | MoveLeft
     | MoveRight
@@ -198,6 +206,9 @@ updatePlayScreen msg model =
     case msg of
         ShapeGenerated shape ->
             updateForShapeGenerated shape model
+
+        AnimationFrameAbs time ->
+            updateForAnimationFrameAbs time model
 
         AnimationFrame timeDelta ->
             updateForAnimationFrame timeDelta model
@@ -383,9 +394,49 @@ updateForShapeGenerated shape model =
     )
 
 
+updateForAnimationFrameAbs : Posix -> Model -> ( Model, Cmd Msg )
+updateForAnimationFrameAbs time model =
+    let
+        initialTime =
+            if model.initialTime == 0 then
+                Time.posixToMillis time |> toFloat
+
+            else
+                model.initialTime
+
+        currentTime =
+            Time.posixToMillis time |> toFloat
+
+        t =
+            Debug.log "Abs delta" (currentTime - initialTime)
+
+        u =
+            Debug.log "Diff" (currentTime - initialTime - model.cumulativeDelta)
+    in
+    ( { model
+        | initialTime = initialTime
+        , currentTime = currentTime
+      }
+    , Cmd.none
+    )
+
+
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
-    ( model
+    let
+        cumulativeDelta =
+            if model.initialTime == 0 then
+                0
+
+            else
+                model.cumulativeDelta + timeDelta
+
+        t =
+            Debug.log "Cumulative delta" cumulativeDelta
+    in
+    ( { model
+        | cumulativeDelta = cumulativeDelta
+      }
     , Cmd.none
     )
 
@@ -840,7 +891,10 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ if model.screen == PlayScreen then
-            Browser.Events.onAnimationFrameDelta AnimationFrame
+            Sub.batch
+                [ Browser.Events.onAnimationFrame AnimationFrameAbs
+                , Browser.Events.onAnimationFrameDelta AnimationFrame
+                ]
 
           else
             Sub.none
