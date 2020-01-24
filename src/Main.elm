@@ -390,13 +390,18 @@ updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
     if model.dropAnimationTimer - timeDelta <= 0 then
         ( { model | dropAnimationTimer = 793 }
-        , Task.perform (always MoveDown) (Task.succeed ())
+        , triggerMessage MoveDown
         )
 
     else
         ( { model | dropAnimationTimer = model.dropAnimationTimer - timeDelta }
         , Cmd.none
         )
+
+
+triggerMessage : Msg -> Cmd Msg
+triggerMessage msg =
+    Task.perform (always msg) (Task.succeed ())
 
 
 updateForTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> ( Model, Cmd Msg )
