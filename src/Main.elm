@@ -388,18 +388,14 @@ updateForShapeGenerated shape model =
 
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
-    let
-        adjustedTimeDelta =
-            Basics.min 100 timeDelta
-    in
-    if model.fallDelay - adjustedTimeDelta <= 0 then
+    if model.fallDelay - timeDelta <= 0 then
         updateForTransform
             (shiftBy ( 0, 1 ))
             noAlternatives
-            { model | fallDelay = model.fallDelay - adjustedTimeDelta + 793 }
+            { model | fallDelay = 793 }
 
     else
-        ( { model | fallDelay = model.fallDelay - adjustedTimeDelta }
+        ( { model | fallDelay = model.fallDelay - timeDelta }
         , Cmd.none
         )
 
