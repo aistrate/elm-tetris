@@ -399,7 +399,7 @@ updateForShapeGenerated shape model =
         candidateFallingPiece =
             spawnTetromino shape
                 |> centerHoriz
-                |> shiftBy ( 0, spawnRow model.settings.level )
+                |> shiftBy ( 0, spawningRow model.settings.level )
 
         gameOver =
             collision candidateFallingPiece.blocks model.occupiedCells
@@ -491,8 +491,8 @@ maxLevel =
     12
 
 
-spawnRow : Int -> Int
-spawnRow level =
+spawningRow : Int -> Int
+spawningRow level =
     if level == 0 then
         0
 
