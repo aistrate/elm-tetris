@@ -130,7 +130,7 @@ init _ =
       , dropAnimationTimer = Nothing
       , screen = PlayScreen
       , settings =
-            { level = 2
+            { level = 1
             , showGhostPiece = False
             , showVerticalStripes = False
             }
