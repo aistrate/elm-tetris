@@ -389,10 +389,9 @@ updateForShapeGenerated shape model =
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
     if model.dropAnimationTimer - timeDelta <= 0 then
-        updateForTransform
-            (shiftBy ( 0, 1 ))
-            noAlternatives
-            { model | dropAnimationTimer = 793 }
+        ( { model | dropAnimationTimer = 793 }
+        , Task.perform (always MoveDown) (Task.succeed ())
+        )
 
     else
         ( { model | dropAnimationTimer = model.dropAnimationTimer - timeDelta }
