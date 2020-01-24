@@ -278,8 +278,18 @@ updateForLevelChange level model =
     let
         settings =
             model.settings
+
+        dropAnimationTimer =
+            if settings.level == 0 && level == 1 && model.dropAnimationTimer == Nothing then
+                interval DropAnimation level
+
+            else
+                model.dropAnimationTimer
     in
-    ( { model | settings = { settings | level = clamp 0 maxLevel level } }
+    ( { model
+        | settings = { settings | level = clamp 0 maxLevel level }
+        , dropAnimationTimer = dropAnimationTimer
+      }
     , Cmd.none
     )
 
