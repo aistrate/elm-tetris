@@ -104,7 +104,8 @@ type Screen
 
 
 type alias Settings =
-    { showGhostPiece : Bool
+    { level : Int
+    , showGhostPiece : Bool
     , showVerticalStripes : Bool
     }
 
@@ -129,7 +130,8 @@ init _ =
       , dropAnimationTimer = 0
       , screen = PlayScreen
       , settings =
-            { showGhostPiece = False
+            { level = 2
+            , showGhostPiece = False
             , showVerticalStripes = False
             }
       }
@@ -171,6 +173,8 @@ type Msg
     | AnswerYes
     | AnswerNo
     | ExitDialog
+    | LevelUp
+    | LevelDown
     | ToggleGhostPiece
     | ToggleVerticalStripes
     | OtherKey
@@ -178,21 +182,29 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case model.screen of
-        PlayScreen ->
-            updatePlayScreen msg model
+    case msg of
+        LevelUp ->
+            updateForLevelChange (model.settings.level + 1) model
 
-        GameOverDialog ->
-            updateGameOverDialog msg model
+        LevelDown ->
+            updateForLevelChange (model.settings.level - 1) model
 
-        RestartDialog ->
-            updateRestartDialog msg model
+        _ ->
+            case model.screen of
+                PlayScreen ->
+                    updatePlayScreen msg model
 
-        PauseDialog ->
-            updatePauseDialog msg model
+                GameOverDialog ->
+                    updateGameOverDialog msg model
 
-        HelpDialog prevScreen ->
-            updateHelpDialog prevScreen msg model
+                RestartDialog ->
+                    updateRestartDialog msg model
+
+                PauseDialog ->
+                    updatePauseDialog msg model
+
+                HelpDialog prevScreen ->
+                    updateHelpDialog prevScreen msg model
 
 
 updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
@@ -259,6 +271,17 @@ updatePlayScreen msg model =
             ( model
             , Cmd.none
             )
+
+
+updateForLevelChange : Int -> Model -> ( Model, Cmd Msg )
+updateForLevelChange level model =
+    let
+        settings =
+            model.settings
+    in
+    ( { model | settings = { settings | level = clamp 0 maxLevel level } }
+    , Cmd.none
+    )
 
 
 updateGameOverDialog : Msg -> Model -> ( Model, Cmd Msg )
@@ -397,6 +420,11 @@ updateForAnimationFrame timeDelta model =
         ( { model | dropAnimationTimer = model.dropAnimationTimer - timeDelta }
         , Cmd.none
         )
+
+
+maxLevel : Int
+maxLevel =
+    12
 
 
 triggerMessage : Msg -> Cmd Msg
@@ -942,6 +970,12 @@ toKeyboardMsg key =
         "esc" ->
             ExitDialog
 
+        "+" ->
+            LevelUp
+
+        "-" ->
+            LevelDown
+
         "g" ->
             ToggleGhostPiece
 
@@ -960,7 +994,7 @@ view : Model -> Svg Msg
 view model =
     svg
         rootSvgAttributes
-        [ viewFooter
+        [ lazy viewFooter model.settings.level
         , viewBoard
         , lazy viewVerticalStripes model.settings.showVerticalStripes
         , lazy viewBlocks model.bottomBlocks
@@ -1172,6 +1206,9 @@ viewHelpDialog =
         , Shortcut "P" "Pause"
         , Shortcut "R" "Restart"
         , EmptyLine
+        , Shortcut "+" ("Level up (0 - " ++ String.fromInt maxLevel ++ ")")
+        , Shortcut "-" "Level down"
+        , EmptyLine
         , Shortcut "G" "Ghost piece"
         , Shortcut "V" "Vertical stripes"
         , EmptyLine
@@ -1267,17 +1304,34 @@ viewDialogOverlay =
         []
 
 
-viewFooter : Svg Msg
-viewFooter =
+viewFooter : Int -> Svg Msg
+viewFooter level =
     let
         footerY =
             boardHeight - (boardStyle.borderWidth + boardStyle.padding)
+
+        levelText =
+            "Level "
+                ++ String.fromInt level
+                ++ (if level == 0 then
+                        " (no gravity)"
+
+                    else
+                        ""
+                   )
     in
     g
         []
         [ text_
             []
             [ tspan
+                [ x "0"
+                , y (String.fromFloat (footerY + blockStyle.size))
+                , fontSize (String.fromFloat (blockStyle.size * 0.65))
+                ]
+                [ text levelText
+                ]
+            , tspan
                 [ y (String.fromFloat (footerY + boardStyle.footerHeight - 4))
                 , fontSize "15"
                 ]
