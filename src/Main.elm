@@ -12,6 +12,7 @@ import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (lazy, lazy2)
 import Task
+import Time
 
 
 main : Program () Model Msg
@@ -389,8 +390,16 @@ updateForShapeGenerated shape model =
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
     if model.dropAnimationTimer - timeDelta <= 0 then
-        ( { model | dropAnimationTimer = 793 }
-        , Task.perform (always MoveDown) (Task.succeed ())
+        ( { model | dropAnimationTimer = 10 }
+        , Task.perform
+            (\time ->
+                let
+                    t =
+                        Debug.log "time" time
+                in
+                MoveDown
+            )
+            Time.now
         )
 
     else
