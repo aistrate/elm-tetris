@@ -114,7 +114,7 @@ type alias Model =
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
-    , fallDelay : Float
+    , dropAnimationTimer : Float
     , screen : Screen
     , settings : Settings
     }
@@ -126,7 +126,7 @@ init _ =
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
-      , fallDelay = 0
+      , dropAnimationTimer = 0
       , screen = PlayScreen
       , settings =
             { showGhostPiece = False
@@ -379,7 +379,7 @@ updateForShapeGenerated shape model =
     ( { model
         | fallingPiece = fallingPiece
         , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
-        , fallDelay = 0
+        , dropAnimationTimer = 0
         , screen = screen
       }
     , Cmd.none
@@ -388,14 +388,14 @@ updateForShapeGenerated shape model =
 
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
-    if model.fallDelay - timeDelta <= 0 then
+    if model.dropAnimationTimer - timeDelta <= 0 then
         updateForTransform
             (shiftBy ( 0, 1 ))
             noAlternatives
-            { model | fallDelay = 793 }
+            { model | dropAnimationTimer = 793 }
 
     else
-        ( { model | fallDelay = model.fallDelay - timeDelta }
+        ( { model | dropAnimationTimer = model.dropAnimationTimer - timeDelta }
         , Cmd.none
         )
 
