@@ -453,27 +453,39 @@ interval intervalType level =
 
 
 -- See https://tetris.fandom.com/wiki/Tetris_Worlds, under the heading Gravity.
--- Formula: round (1000 * pow (0.8 - ((toFloat level - 1) * 0.007)) (level - 1)),
--- where (pow x n) is x to the nth power
 
 
 dropAnimationIntervals : Dict Int (Maybe Float)
 dropAnimationIntervals =
     Dict.fromList
-        [ ( 0, Nothing )
-        , ( 1, Just 1000 )
-        , ( 2, Just 793 )
-        , ( 3, Just 618 )
-        , ( 4, Just 473 )
-        , ( 5, Just 355 )
-        , ( 6, Just 262 )
-        , ( 7, Just 190 )
-        , ( 8, Just 135 )
-        , ( 9, Just 94 )
-        , ( 10, Just 64 )
-        , ( 11, Just 43 )
-        , ( 12, Just 28 )
-        ]
+        (List.concat
+            [ [ ( 0, Nothing )
+              ]
+            , List.range 1 12
+                |> List.map
+                    (\level ->
+                        ( level
+                        , Just <|
+                            toFloat <|
+                                round <|
+                                    1000
+                                        * pow (0.8 - ((toFloat level - 1) * 0.007)) (level - 1)
+                        )
+                    )
+            ]
+        )
+
+
+pow : Float -> Int -> Float
+pow x n =
+    if n < 0 then
+        1 / pow x -n
+
+    else if n == 0 then
+        1
+
+    else
+        x * pow x (n - 1)
 
 
 maxLevel : Int
