@@ -402,20 +402,26 @@ updateForAnimationFrame timeDelta model =
 
 updateForTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> ( Model, Cmd Msg )
 updateForTransform transform alternativeTranslations model =
-    let
-        viableFallingPiece =
-            firstViableAlternative
-                (alternativeTranslations model.fallingPiece)
-                (transform model.fallingPiece)
-                model.occupiedCells
-                |> Maybe.withDefault model.fallingPiece
-    in
-    ( { model
-        | fallingPiece = viableFallingPiece
-        , ghostPiece = calculateGhostPiece viableFallingPiece.blocks model.occupiedCells
-      }
-    , Cmd.none
-    )
+    if List.length model.fallingPiece.blocks > 0 then
+        let
+            viableFallingPiece =
+                firstViableAlternative
+                    (alternativeTranslations model.fallingPiece)
+                    (transform model.fallingPiece)
+                    model.occupiedCells
+                    |> Maybe.withDefault model.fallingPiece
+        in
+        ( { model
+            | fallingPiece = viableFallingPiece
+            , ghostPiece = calculateGhostPiece viableFallingPiece.blocks model.occupiedCells
+          }
+        , Cmd.none
+        )
+
+    else
+        ( model
+        , Cmd.none
+        )
 
 
 firstViableAlternative : List ( Int, Int ) -> Tetromino -> CellOccupancy -> Maybe Tetromino
