@@ -849,12 +849,12 @@ nextRotationState currentRotationState direction =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ if model.screen == PlayScreen then
+        [ Browser.Events.onKeyDown keyDecoder
+        , if model.screen == PlayScreen then
             Browser.Events.onAnimationFrameDelta AnimationFrame
 
           else
             Sub.none
-        , Browser.Events.onKeyDown keyDecoder
         ]
 
 
