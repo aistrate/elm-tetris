@@ -115,7 +115,7 @@ type alias Model =
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
-    , dropAnimationTimer : Float
+    , dropAnimationTimer : Maybe Float
     , screen : Screen
     , settings : Settings
     }
@@ -127,7 +127,7 @@ init _ =
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
-      , dropAnimationTimer = 0
+      , dropAnimationTimer = Nothing
       , screen = PlayScreen
       , settings =
             { level = 2
@@ -387,7 +387,9 @@ updateForShapeGenerated : Shape -> Model -> ( Model, Cmd Msg )
 updateForShapeGenerated shape model =
     let
         candidateFallingPiece =
-            spawnTetromino shape |> centerHoriz |> shiftBy ( 0, -2 )
+            spawnTetromino shape
+                |> centerHoriz
+                |> shiftBy ( 0, spawnRow model.settings.level )
 
         gameOver =
             collision candidateFallingPiece.blocks model.occupiedCells
@@ -402,7 +404,7 @@ updateForShapeGenerated shape model =
     ( { model
         | fallingPiece = fallingPiece
         , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
-        , dropAnimationTimer = 0
+        , dropAnimationTimer = interval DropAnimationAfterSpawn model.settings.level
         , screen = screen
       }
     , Cmd.none
@@ -411,20 +413,81 @@ updateForShapeGenerated shape model =
 
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
-    if model.dropAnimationTimer - timeDelta <= 0 then
-        ( { model | dropAnimationTimer = 793 }
-        , triggerMessage MoveDown
-        )
+    case model.dropAnimationTimer of
+        Just dropAnimationTimer ->
+            if dropAnimationTimer - timeDelta <= 0 then
+                ( { model | dropAnimationTimer = interval DropAnimation model.settings.level }
+                , triggerMessage MoveDown
+                )
 
-    else
-        ( { model | dropAnimationTimer = model.dropAnimationTimer - timeDelta }
-        , Cmd.none
-        )
+            else
+                ( { model | dropAnimationTimer = Just (dropAnimationTimer - timeDelta) }
+                , Cmd.none
+                )
+
+        Nothing ->
+            ( model
+            , Cmd.none
+            )
+
+
+type IntervalType
+    = DropAnimationAfterSpawn
+    | DropAnimation
+
+
+interval : IntervalType -> Int -> Maybe Float
+interval intervalType level =
+    case intervalType of
+        DropAnimationAfterSpawn ->
+            if level == 0 then
+                Nothing
+
+            else
+                Just 0
+
+        DropAnimation ->
+            Dict.get level dropAnimationIntervals
+                |> Maybe.withDefault Nothing
+
+
+
+-- See https://tetris.fandom.com/wiki/Tetris_Worlds, under the heading Gravity.
+-- Formula: round (1000 * pow (0.8 - ((toFloat level - 1) * 0.007)) (level - 1)),
+-- where (pow x n) is x to the nth power
+
+
+dropAnimationIntervals : Dict Int (Maybe Float)
+dropAnimationIntervals =
+    Dict.fromList
+        [ ( 0, Nothing )
+        , ( 1, Just 1000 )
+        , ( 2, Just 793 )
+        , ( 3, Just 618 )
+        , ( 4, Just 473 )
+        , ( 5, Just 355 )
+        , ( 6, Just 262 )
+        , ( 7, Just 190 )
+        , ( 8, Just 135 )
+        , ( 9, Just 94 )
+        , ( 10, Just 64 )
+        , ( 11, Just 43 )
+        , ( 12, Just 28 )
+        ]
 
 
 maxLevel : Int
 maxLevel =
     12
+
+
+spawnRow : Int -> Int
+spawnRow level =
+    if level == 0 then
+        0
+
+    else
+        -2
 
 
 triggerMessage : Msg -> Cmd Msg
