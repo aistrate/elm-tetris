@@ -116,6 +116,7 @@ type alias Model =
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
     , dropAnimationTimer : Maybe Float
+    , fullRowsDelayTimer : Maybe Float
     , screen : Screen
     , settings : Settings
     }
@@ -128,6 +129,7 @@ init _ =
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
       , dropAnimationTimer = Nothing
+      , fullRowsDelayTimer = Nothing
       , screen = PlayScreen
       , settings =
             { level = 1
@@ -135,7 +137,7 @@ init _ =
             , showVerticalStripes = False
             }
       }
-    , Random.generate Spawn shapeGenerator
+    , generateShape
     )
 
 
@@ -167,6 +169,7 @@ type Msg
     | RotateClockwise
     | RotateCounterclockwise
     | DropAndLock
+    | RemoveFullRows
     | ShowRestartDialog
     | TogglePauseDialog
     | ToggleHelpDialog
@@ -233,6 +236,9 @@ updatePlayScreen msg model =
 
         DropAndLock ->
             updateForDropAndLock model
+
+        RemoveFullRows ->
+            updateForRemoveFullRows model
 
         ShowRestartDialog ->
             ( { model | screen = RestartDialog }
@@ -430,6 +436,7 @@ updateForSpawn shape model =
         | fallingPiece = fallingPiece
         , ghostPiece = ghostPiece
         , dropAnimationTimer = interval DropAnimationOnSpawning model.settings.level
+        , fullRowsDelayTimer = Nothing
         , screen = screen
       }
     , Cmd.none
@@ -438,27 +445,41 @@ updateForSpawn shape model =
 
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
-    case model.dropAnimationTimer of
-        Just dropAnimationTimer ->
-            if dropAnimationTimer - timeDelta <= 0 then
-                ( { model | dropAnimationTimer = interval DropAnimation model.settings.level }
-                , triggerMessage MoveDown
+    case model.fullRowsDelayTimer of
+        Just fullRowsDelayTimer ->
+            if fullRowsDelayTimer - timeDelta <= 0 then
+                ( { model | fullRowsDelayTimer = Nothing }
+                , triggerMessage RemoveFullRows
                 )
 
             else
-                ( { model | dropAnimationTimer = Just (dropAnimationTimer - timeDelta) }
+                ( { model | fullRowsDelayTimer = Just (fullRowsDelayTimer - timeDelta) }
                 , Cmd.none
                 )
 
         Nothing ->
-            ( model
-            , Cmd.none
-            )
+            case model.dropAnimationTimer of
+                Just dropAnimationTimer ->
+                    if dropAnimationTimer - timeDelta <= 0 then
+                        ( { model | dropAnimationTimer = interval DropAnimation model.settings.level }
+                        , triggerMessage MoveDown
+                        )
+
+                    else
+                        ( { model | dropAnimationTimer = Just (dropAnimationTimer - timeDelta) }
+                        , Cmd.none
+                        )
+
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    )
 
 
 type IntervalType
     = DropAnimationOnSpawning
     | DropAnimation
+    | FullRowsDelay
 
 
 interval : IntervalType -> Int -> Maybe Float
@@ -474,6 +495,9 @@ interval intervalType level =
         DropAnimation ->
             Dict.get level dropAnimationIntervals
                 |> Maybe.withDefault Nothing
+
+        FullRowsDelay ->
+            Just 200
 
 
 
@@ -692,11 +716,25 @@ updateForDropAndLock model =
                     shiftVertToTarget fallingPiece model.ghostPiece
 
                 bottomBlocks =
-                    removeFullRows (model.bottomBlocks ++ droppedPiece.blocks)
+                    model.bottomBlocks ++ droppedPiece.blocks
 
                 occupiedCells =
                     List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
                         |> Dict.fromList
+
+                hasFullRows =
+                    not (List.isEmpty (fullRows bottomBlocks))
+
+                ( fullRowsDelayTimer, command ) =
+                    if hasFullRows then
+                        ( interval FullRowsDelay model.settings.level
+                        , Cmd.none
+                        )
+
+                    else
+                        ( Nothing
+                        , generateShape
+                        )
             in
             ( { model
                 | fallingPiece = Nothing
@@ -704,8 +742,9 @@ updateForDropAndLock model =
                 , bottomBlocks = bottomBlocks
                 , occupiedCells = occupiedCells
                 , dropAnimationTimer = Nothing
+                , fullRowsDelayTimer = fullRowsDelayTimer
               }
-            , Random.generate Spawn shapeGenerator
+            , command
             )
 
         Nothing ->
@@ -714,8 +753,28 @@ updateForDropAndLock model =
             )
 
 
-removeFullRows : List Block -> List Block
-removeFullRows blocks =
+updateForRemoveFullRows : Model -> ( Model, Cmd Msg )
+updateForRemoveFullRows model =
+    let
+        bottomBlocks =
+            removeFullRows model.bottomBlocks
+
+        occupiedCells =
+            List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
+                |> Dict.fromList
+    in
+    ( { model
+        | fallingPiece = Nothing
+        , ghostPiece = []
+        , bottomBlocks = bottomBlocks
+        , occupiedCells = occupiedCells
+      }
+    , generateShape
+    )
+
+
+fullRows : List Block -> List Int
+fullRows blocks =
     let
         ( minRow, maxRow ) =
             rowRange blocks
@@ -728,13 +787,14 @@ removeFullRows blocks =
                         List.filter (\(Block _ r _) -> r == row) blocks
                             |> (\bs -> ( row, List.length bs ))
                     )
-
-        fullRows : List Int
-        fullRows =
-            List.filter (\( _, count ) -> count == game.columns) rowCounts
-                |> List.map (\( row, _ ) -> row)
     in
-    List.foldl removeRow blocks fullRows
+    List.filter (\( _, count ) -> count == game.columns) rowCounts
+        |> List.map (\( row, _ ) -> row)
+
+
+removeFullRows : List Block -> List Block
+removeFullRows blocks =
+    List.foldl removeRow blocks (fullRows blocks)
 
 
 removeRow : Int -> List Block -> List Block
@@ -751,6 +811,11 @@ removeRow row blocks =
                 Block c r color
     in
     List.map shiftBlock remainingBlocks
+
+
+generateShape : Cmd Msg
+generateShape =
+    Random.generate Spawn shapeGenerator
 
 
 shapeGenerator : Random.Generator Shape
