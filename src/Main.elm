@@ -280,7 +280,15 @@ updateForLevelChange level model =
             model.settings
 
         dropAnimationTimer =
-            if settings.level == 0 && level == 1 && model.dropAnimationTimer == Nothing then
+            if
+                settings.level
+                    == 0
+                    && level
+                    == 1
+                    && model.dropAnimationTimer
+                    == Nothing
+                    && not (isEmpty model.fallingPiece)
+            then
                 interval DropAnimation level
 
             else
