@@ -135,7 +135,7 @@ init _ =
             , showVerticalStripes = False
             }
       }
-    , Random.generate ShapeGenerated shapeGenerator
+    , Random.generate Spawn shapeGenerator
     )
 
 
@@ -159,7 +159,7 @@ type RotationDirection
 
 
 type Msg
-    = ShapeGenerated Shape
+    = Spawn Shape
     | AnimationFrame Float
     | MoveLeft
     | MoveRight
@@ -210,8 +210,8 @@ update msg model =
 updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
 updatePlayScreen msg model =
     case msg of
-        ShapeGenerated shape ->
-            updateForShapeGenerated shape model
+        Spawn shape ->
+            updateForSpawn shape model
 
         AnimationFrame timeDelta ->
             updateForAnimationFrame timeDelta model
@@ -402,8 +402,8 @@ updateHelpDialog prevScreen msg model =
             )
 
 
-updateForShapeGenerated : Shape -> Model -> ( Model, Cmd Msg )
-updateForShapeGenerated shape model =
+updateForSpawn : Shape -> Model -> ( Model, Cmd Msg )
+updateForSpawn shape model =
     let
         spawnedFallingPiece =
             spawnTetromino shape
@@ -705,7 +705,7 @@ updateForDropAndLock model =
                 , occupiedCells = occupiedCells
                 , dropAnimationTimer = Nothing
               }
-            , Random.generate ShapeGenerated shapeGenerator
+            , Random.generate Spawn shapeGenerator
             )
 
         Nothing ->
