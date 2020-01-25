@@ -507,7 +507,7 @@ triggerMessage msg =
 
 updateForTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> ( Model, Cmd Msg )
 updateForTransform transform alternativeTranslations model =
-    if List.length model.fallingPiece.blocks > 0 then
+    if not (isEmpty model.fallingPiece) then
         let
             viableFallingPiece =
                 firstViableAlternative
@@ -623,22 +623,22 @@ wallKickAlternatives direction tetromino =
 
 calculateGhostPiece : List Block -> CellOccupancy -> List Block
 calculateGhostPiece fallingPieceBlocks occupiedCells =
-    let
-        ghostCandidate =
-            List.map (\(Block col row _) -> Block col row Gray) fallingPieceBlocks
+    if not (List.isEmpty fallingPieceBlocks) then
+        let
+            ghostCandidate =
+                List.map (\(Block col row _) -> Block col row Gray) fallingPieceBlocks
 
-        moveAllWayDown blocks =
-            let
-                nextCandidate =
-                    List.map (\(Block col row color) -> Block col (row + 1) color) blocks
-            in
-            if collision nextCandidate occupiedCells then
-                blocks
+            moveAllWayDown blocks =
+                let
+                    nextCandidate =
+                        List.map (\(Block col row color) -> Block col (row + 1) color) blocks
+                in
+                if collision nextCandidate occupiedCells then
+                    blocks
 
-            else
-                moveAllWayDown nextCandidate
-    in
-    if List.length ghostCandidate > 0 then
+                else
+                    moveAllWayDown nextCandidate
+        in
         moveAllWayDown ghostCandidate
 
     else
@@ -668,7 +668,7 @@ vertDistance source dest =
 
 updateForDropAndLock : Model -> ( Model, Cmd Msg )
 updateForDropAndLock model =
-    if List.length model.fallingPiece.blocks > 0 then
+    if not (isEmpty model.fallingPiece) then
         let
             fallingPiece =
                 shiftVertToTarget model.fallingPiece model.ghostPiece
@@ -923,6 +923,11 @@ emptyTetromino =
     , shapeSize = Size2By2
     , rotationState = RotationState0
     }
+
+
+isEmpty : Tetromino -> Bool
+isEmpty tetromino =
+    List.isEmpty tetromino.blocks
 
 
 nextRotationState : RotationState -> RotationDirection -> RotationState
