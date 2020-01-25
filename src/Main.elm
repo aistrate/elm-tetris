@@ -111,7 +111,7 @@ type alias Settings =
 
 
 type alias Model =
-    { fallingPiece : Tetromino
+    { fallingPiece : Maybe Tetromino
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
@@ -123,7 +123,7 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { fallingPiece = emptyTetromino
+    ( { fallingPiece = Nothing
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
@@ -287,7 +287,8 @@ updateForLevelChange level model =
                     == 1
                     && model.dropAnimationTimer
                     == Nothing
-                    && not (isEmpty model.fallingPiece)
+                    && model.fallingPiece
+                    /= Nothing
             then
                 interval DropAnimation level
 
@@ -404,24 +405,30 @@ updateHelpDialog prevScreen msg model =
 updateForShapeGenerated : Shape -> Model -> ( Model, Cmd Msg )
 updateForShapeGenerated shape model =
     let
-        candidateFallingPiece =
+        spawnedFallingPiece =
             spawnTetromino shape
                 |> centerHoriz
                 |> shiftBy ( 0, spawningRow model.settings.level )
 
         gameOver =
-            collision candidateFallingPiece.blocks model.occupiedCells
+            collision spawnedFallingPiece.blocks model.occupiedCells
 
-        ( fallingPiece, screen ) =
+        ( fallingPiece, ghostPiece, screen ) =
             if not gameOver then
-                ( candidateFallingPiece, PlayScreen )
+                ( Just spawnedFallingPiece
+                , calculateGhostPiece spawnedFallingPiece.blocks model.occupiedCells
+                , PlayScreen
+                )
 
             else
-                ( emptyTetromino, GameOverDialog )
+                ( Nothing
+                , []
+                , GameOverDialog
+                )
     in
     ( { model
         | fallingPiece = fallingPiece
-        , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
+        , ghostPiece = ghostPiece
         , dropAnimationTimer = interval DropAnimationOnSpawning model.settings.level
         , screen = screen
       }
@@ -515,26 +522,27 @@ triggerMessage msg =
 
 updateForTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> ( Model, Cmd Msg )
 updateForTransform transform alternativeTranslations model =
-    if not (isEmpty model.fallingPiece) then
-        let
-            viableFallingPiece =
-                firstViableAlternative
-                    (alternativeTranslations model.fallingPiece)
-                    (transform model.fallingPiece)
-                    model.occupiedCells
-                    |> Maybe.withDefault model.fallingPiece
-        in
-        ( { model
-            | fallingPiece = viableFallingPiece
-            , ghostPiece = calculateGhostPiece viableFallingPiece.blocks model.occupiedCells
-          }
-        , Cmd.none
-        )
+    case model.fallingPiece of
+        Just fallingPiece ->
+            let
+                viableFallingPiece =
+                    firstViableAlternative
+                        (alternativeTranslations fallingPiece)
+                        (transform fallingPiece)
+                        model.occupiedCells
+                        |> Maybe.withDefault fallingPiece
+            in
+            ( { model
+                | fallingPiece = Just viableFallingPiece
+                , ghostPiece = calculateGhostPiece viableFallingPiece.blocks model.occupiedCells
+              }
+            , Cmd.none
+            )
 
-    else
-        ( model
-        , Cmd.none
-        )
+        Nothing ->
+            ( model
+            , Cmd.none
+            )
 
 
 firstViableAlternative : List ( Int, Int ) -> Tetromino -> CellOccupancy -> Maybe Tetromino
@@ -630,24 +638,25 @@ wallKickAlternatives direction tetromino =
 
 
 calculateGhostPiece : List Block -> CellOccupancy -> List Block
-calculateGhostPiece fallingPieceBlocks occupiedCells =
-    if not (List.isEmpty fallingPieceBlocks) then
+calculateGhostPiece blocks occupiedCells =
+    if not (List.isEmpty blocks) then
         let
-            ghostCandidate =
-                List.map (\(Block col row _) -> Block col row Gray) fallingPieceBlocks
+            initial =
+                List.map (\(Block col row _) -> Block col row Gray) blocks
 
-            moveAllWayDown blocks =
+            moveToBottomFrom : List Block -> List Block
+            moveToBottomFrom current =
                 let
-                    nextCandidate =
-                        List.map (\(Block col row color) -> Block col (row + 1) color) blocks
+                    next =
+                        List.map (\(Block col row color) -> Block col (row + 1) color) current
                 in
-                if collision nextCandidate occupiedCells then
-                    blocks
+                if collision next occupiedCells then
+                    current
 
                 else
-                    moveAllWayDown nextCandidate
+                    moveToBottomFrom next
         in
-        moveAllWayDown ghostCandidate
+        moveToBottomFrom initial
 
     else
         []
@@ -676,32 +685,33 @@ vertDistance source dest =
 
 updateForDropAndLock : Model -> ( Model, Cmd Msg )
 updateForDropAndLock model =
-    if not (isEmpty model.fallingPiece) then
-        let
-            fallingPiece =
-                shiftVertToTarget model.fallingPiece model.ghostPiece
+    case model.fallingPiece of
+        Just fallingPiece ->
+            let
+                droppedPiece =
+                    shiftVertToTarget fallingPiece model.ghostPiece
 
-            bottomBlocks =
-                removeFullRows (model.bottomBlocks ++ fallingPiece.blocks)
+                bottomBlocks =
+                    removeFullRows (model.bottomBlocks ++ droppedPiece.blocks)
 
-            occupiedCells =
-                List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
-                    |> Dict.fromList
-        in
-        ( { model
-            | fallingPiece = emptyTetromino
-            , ghostPiece = []
-            , bottomBlocks = bottomBlocks
-            , occupiedCells = occupiedCells
-            , dropAnimationTimer = Nothing
-          }
-        , Random.generate ShapeGenerated shapeGenerator
-        )
+                occupiedCells =
+                    List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
+                        |> Dict.fromList
+            in
+            ( { model
+                | fallingPiece = Nothing
+                , ghostPiece = []
+                , bottomBlocks = bottomBlocks
+                , occupiedCells = occupiedCells
+                , dropAnimationTimer = Nothing
+              }
+            , Random.generate ShapeGenerated shapeGenerator
+            )
 
-    else
-        ( model
-        , Cmd.none
-        )
+        Nothing ->
+            ( model
+            , Cmd.none
+            )
 
 
 removeFullRows : List Block -> List Block
@@ -925,20 +935,6 @@ spawnTetromino shape =
             }
 
 
-emptyTetromino : Tetromino
-emptyTetromino =
-    { blocks = []
-    , pivot = ( 0.5, 0.5 )
-    , shapeSize = Size2By2
-    , rotationState = RotationState0
-    }
-
-
-isEmpty : Tetromino -> Bool
-isEmpty tetromino =
-    List.isEmpty tetromino.blocks
-
-
 nextRotationState : RotationState -> RotationDirection -> RotationState
 nextRotationState currentRotationState direction =
     case ( currentRotationState, direction ) of
@@ -1086,7 +1082,7 @@ view model =
         , lazy viewVerticalStripes model.settings.showVerticalStripes
         , lazy viewBlocks model.bottomBlocks
         , lazy2 viewGhostPiece model.settings.showGhostPiece model.ghostPiece
-        , lazy viewBlocks model.fallingPiece.blocks
+        , lazy viewFallingPiece model.fallingPiece
         , lazy viewDialogIfAny model.screen
         ]
 
@@ -1171,6 +1167,16 @@ viewGhostPiece visible blocks =
 
     else
         g [] []
+
+
+viewFallingPiece : Maybe Tetromino -> Svg Msg
+viewFallingPiece fallingPiece =
+    let
+        blocks =
+            Maybe.map .blocks fallingPiece
+                |> Maybe.withDefault []
+    in
+    viewBlocks blocks
 
 
 viewVerticalStripes : Bool -> Svg Msg
