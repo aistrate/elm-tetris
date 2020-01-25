@@ -555,12 +555,22 @@ updateForTransform transform alternativeTranslations model =
                         (transform fallingPiece)
                         model.occupiedCells
                         |> Maybe.withDefault fallingPiece
+
+                ghostPiece =
+                    calculateGhostPiece viableFallingPiece.blocks model.occupiedCells
+
+                hasReachedBottom =
+                    vertDistance viableFallingPiece.blocks ghostPiece == 0
             in
             ( { model
                 | fallingPiece = Just viableFallingPiece
-                , ghostPiece = calculateGhostPiece viableFallingPiece.blocks model.occupiedCells
+                , ghostPiece = ghostPiece
               }
-            , Cmd.none
+            , if hasReachedBottom then
+                triggerMessage DropAndLock
+
+              else
+                Cmd.none
             )
 
         Nothing ->
