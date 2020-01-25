@@ -422,7 +422,7 @@ updateForShapeGenerated shape model =
     ( { model
         | fallingPiece = fallingPiece
         , ghostPiece = calculateGhostPiece fallingPiece.blocks model.occupiedCells
-        , dropAnimationTimer = interval DropAnimationAfterSpawn model.settings.level
+        , dropAnimationTimer = interval DropAnimationOnSpawning model.settings.level
         , screen = screen
       }
     , Cmd.none
@@ -450,14 +450,14 @@ updateForAnimationFrame timeDelta model =
 
 
 type IntervalType
-    = DropAnimationAfterSpawn
+    = DropAnimationOnSpawning
     | DropAnimation
 
 
 interval : IntervalType -> Int -> Maybe Float
 interval intervalType level =
     case intervalType of
-        DropAnimationAfterSpawn ->
+        DropAnimationOnSpawning ->
             if level == 0 then
                 Nothing
 
