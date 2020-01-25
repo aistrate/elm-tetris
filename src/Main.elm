@@ -693,6 +693,7 @@ updateForDropAndLock model =
             , ghostPiece = []
             , bottomBlocks = bottomBlocks
             , occupiedCells = occupiedCells
+            , dropAnimationTimer = Nothing
           }
         , Random.generate ShapeGenerated shapeGenerator
         )
