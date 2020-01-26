@@ -222,19 +222,19 @@ updatePlayScreen msg model =
             updateForAnimationFrame timeDelta model
 
         MoveLeft ->
-            updateForTransform (shiftBy ( -1, 0 )) noAlternatives model
+            updateForMove (shiftBy ( -1, 0 )) noAlternatives model
 
         MoveRight ->
-            updateForTransform (shiftBy ( 1, 0 )) noAlternatives model
+            updateForMove (shiftBy ( 1, 0 )) noAlternatives model
 
         MoveDown ->
-            updateForTransform (shiftBy ( 0, 1 )) noAlternatives model
+            updateForMove (shiftBy ( 0, 1 )) noAlternatives model
 
         RotateClockwise ->
-            updateForTransform (rotate Clockwise) (wallKickAlternatives Clockwise) model
+            updateForMove (rotate Clockwise) (wallKickAlternatives Clockwise) model
 
         RotateCounterclockwise ->
-            updateForTransform (rotate Counterclockwise) (wallKickAlternatives Counterclockwise) model
+            updateForMove (rotate Counterclockwise) (wallKickAlternatives Counterclockwise) model
 
         DropAndLock ->
             updateForDropAndLock model
@@ -564,15 +564,15 @@ triggerMessage msg =
     Task.perform (always msg) (Task.succeed ())
 
 
-updateForTransform : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> ( Model, Cmd Msg )
-updateForTransform transform alternativeTranslations model =
+updateForMove : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> ( Model, Cmd Msg )
+updateForMove move alternativeTranslations model =
     case model.fallingPiece of
         Just fallingPiece ->
             let
                 viableFallingPiece =
                     firstViableAlternative
                         (alternativeTranslations fallingPiece)
-                        (transform fallingPiece)
+                        (move fallingPiece)
                         model.occupiedCells
                         |> Maybe.withDefault fallingPiece
 
