@@ -177,7 +177,7 @@ type Msg
     | ToggleHelpDialog
     | AnswerYes
     | AnswerNo
-    | ExitDialog
+    | Exit
     | LevelUp
     | LevelDown
     | ToggleGhostPiece
@@ -248,6 +248,11 @@ updatePlayScreen msg model =
             )
 
         TogglePauseDialog ->
+            ( { model | screen = PauseDialog }
+            , Cmd.none
+            )
+
+        Exit ->
             ( { model | screen = PauseDialog }
             , Cmd.none
             )
@@ -351,7 +356,7 @@ updateRestartDialog msg model =
             , Cmd.none
             )
 
-        ExitDialog ->
+        Exit ->
             ( { model | screen = PlayScreen }
             , Cmd.none
             )
@@ -375,7 +380,7 @@ updatePauseDialog msg model =
             , Cmd.none
             )
 
-        ExitDialog ->
+        Exit ->
             ( { model | screen = PlayScreen }
             , Cmd.none
             )
@@ -399,7 +404,7 @@ updateHelpDialog prevScreen msg model =
             , Cmd.none
             )
 
-        ExitDialog ->
+        Exit ->
             ( { model | screen = prevScreen }
             , Cmd.none
             )
@@ -1152,11 +1157,11 @@ toKeyboardMsg key =
             AnswerNo
 
         "escape" ->
-            ExitDialog
+            Exit
 
         -- IE
         "esc" ->
-            ExitDialog
+            Exit
 
         "+" ->
             LevelUp
@@ -1385,7 +1390,7 @@ viewPauseDialog =
     viewDialog
         [ LargeText "Paused"
         , EmptyLine
-        , LargeText "Press P to continue"
+        , LargeText "Press Esc or P to continue"
         ]
 
 
@@ -1401,7 +1406,7 @@ viewHelpDialog =
         , EmptyLine
         , Shortcut "Space" "Drop"
         , EmptyLine
-        , Shortcut "P" "Pause"
+        , Shortcut "Esc or P" "Pause"
         , Shortcut "R" "Restart"
         , EmptyLine
         , Shortcut "+" ("Level up (0 - " ++ String.fromInt maxLevel ++ ")")
