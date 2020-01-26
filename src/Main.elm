@@ -116,6 +116,7 @@ type alias Model =
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
     , dropAnimationTimer : Maybe Float
+    , lockDelayTimer : Maybe Float
     , fullRowsDelayTimer : Maybe Float
     , screen : Screen
     , settings : Settings
@@ -129,6 +130,7 @@ init _ =
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
       , dropAnimationTimer = Nothing
+      , lockDelayTimer = Nothing
       , fullRowsDelayTimer = Nothing
       , screen = PlayScreen
       , settings =
@@ -436,6 +438,7 @@ updateForSpawn shape model =
         | fallingPiece = fallingPiece
         , ghostPiece = ghostPiece
         , dropAnimationTimer = interval DropAnimationOnSpawning model.settings.level
+        , lockDelayTimer = Nothing
         , fullRowsDelayTimer = Nothing
         , screen = screen
       }
@@ -458,27 +461,41 @@ updateForAnimationFrame timeDelta model =
                 )
 
         Nothing ->
-            case model.dropAnimationTimer of
-                Just dropAnimationTimer ->
-                    if dropAnimationTimer - timeDelta <= 0 then
-                        ( { model | dropAnimationTimer = interval DropAnimation model.settings.level }
-                        , triggerMessage MoveDown
+            case model.lockDelayTimer of
+                Just lockDelayTimer ->
+                    if lockDelayTimer - timeDelta <= 0 then
+                        ( { model | lockDelayTimer = Nothing }
+                        , triggerMessage DropAndLock
                         )
 
                     else
-                        ( { model | dropAnimationTimer = Just (dropAnimationTimer - timeDelta) }
+                        ( { model | lockDelayTimer = Just (lockDelayTimer - timeDelta) }
                         , Cmd.none
                         )
 
                 Nothing ->
-                    ( model
-                    , Cmd.none
-                    )
+                    case model.dropAnimationTimer of
+                        Just dropAnimationTimer ->
+                            if dropAnimationTimer - timeDelta <= 0 then
+                                ( { model | dropAnimationTimer = interval DropAnimation model.settings.level }
+                                , triggerMessage MoveDown
+                                )
+
+                            else
+                                ( { model | dropAnimationTimer = Just (dropAnimationTimer - timeDelta) }
+                                , Cmd.none
+                                )
+
+                        Nothing ->
+                            ( model
+                            , Cmd.none
+                            )
 
 
 type IntervalType
     = DropAnimationOnSpawning
     | DropAnimation
+    | LockDelay
     | FullRowsDelay
 
 
@@ -495,6 +512,9 @@ interval intervalType level =
         DropAnimation ->
             Dict.get level dropAnimationIntervals
                 |> Maybe.withDefault Nothing
+
+        LockDelay ->
+            Just 500
 
         FullRowsDelay ->
             Just 200
@@ -561,16 +581,25 @@ updateForTransform transform alternativeTranslations model =
 
                 hasReachedBottom =
                     vertDistance viableFallingPiece.blocks ghostPiece == 0
+
+                ( dropAnimationTimer, lockDelayTimer ) =
+                    if hasReachedBottom && model.lockDelayTimer == Nothing then
+                        ( Nothing
+                        , interval LockDelay model.settings.level
+                        )
+
+                    else
+                        ( model.dropAnimationTimer
+                        , model.lockDelayTimer
+                        )
             in
             ( { model
                 | fallingPiece = Just viableFallingPiece
                 , ghostPiece = ghostPiece
+                , dropAnimationTimer = dropAnimationTimer
+                , lockDelayTimer = lockDelayTimer
               }
-            , if hasReachedBottom then
-                triggerMessage DropAndLock
-
-              else
-                Cmd.none
+            , Cmd.none
             )
 
         Nothing ->
@@ -752,6 +781,7 @@ updateForDropAndLock model =
                 , bottomBlocks = bottomBlocks
                 , occupiedCells = occupiedCells
                 , dropAnimationTimer = Nothing
+                , lockDelayTimer = Nothing
                 , fullRowsDelayTimer = fullRowsDelayTimer
               }
             , command
