@@ -12,6 +12,7 @@ import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (lazy, lazy2)
 import Task
+import Time
 
 
 main : Program () Model Msg
@@ -599,7 +600,15 @@ updateForMove move alternativeTranslations model =
                 , dropAnimationTimer = dropAnimationTimer
                 , lockDelayTimer = lockDelayTimer
               }
-            , Cmd.none
+            , Task.perform
+                (\time ->
+                    let
+                        t =
+                            Debug.log "time" time
+                    in
+                    OtherKey
+                )
+                Time.now
             )
 
         Nothing ->
@@ -772,7 +781,7 @@ updateForDropAndLock model =
 
                     else
                         ( Nothing
-                        , generateShape
+                        , Cmd.none
                         )
             in
             ( { model
