@@ -117,7 +117,9 @@ type alias Model =
     , occupiedCells : CellOccupancy
     , dropAnimationTimer : Maybe Float
     , lockDelayTimer : Maybe Float
+    , lockDelayMovesRemaining : Int
     , fullRowsDelayTimer : Maybe Float
+    , maxRowReached : Int
     , screen : Screen
     , settings : Settings
     }
@@ -131,7 +133,9 @@ init _ =
       , occupiedCells = Dict.fromList []
       , dropAnimationTimer = Nothing
       , lockDelayTimer = Nothing
+      , lockDelayMovesRemaining = 0
       , fullRowsDelayTimer = Nothing
+      , maxRowReached = 0
       , screen = PlayScreen
       , settings =
             { level = 1
@@ -422,18 +426,21 @@ updateHelpDialog prevScreen msg model =
 updateForSpawn : Shape -> Model -> ( Model, Cmd Msg )
 updateForSpawn shape model =
     let
-        spawnedFallingPiece =
+        spawnedPiece =
             spawnTetromino shape
                 |> centerHoriz
                 |> shiftBy ( 0, spawningRow model.settings.level )
 
+        ( _, maxRowReached ) =
+            rowRange spawnedPiece.blocks
+
         gameOver =
-            collision spawnedFallingPiece.blocks model.occupiedCells
+            collision spawnedPiece.blocks model.occupiedCells
 
         ( fallingPiece, ghostPiece, screen ) =
             if not gameOver then
-                ( Just spawnedFallingPiece
-                , calculateGhostPiece spawnedFallingPiece.blocks model.occupiedCells
+                ( Just spawnedPiece
+                , calculateGhostPiece spawnedPiece.blocks model.occupiedCells
                 , PlayScreen
                 )
 
@@ -448,7 +455,9 @@ updateForSpawn shape model =
         , ghostPiece = ghostPiece
         , dropAnimationTimer = interval DropAnimationOnSpawning model.settings.level
         , lockDelayTimer = interval LockDelay model.settings.level
+        , lockDelayMovesRemaining = maxLockDelayMoves
         , fullRowsDelayTimer = Nothing
+        , maxRowReached = maxRowReached
         , screen = screen
       }
     , Cmd.none
@@ -570,6 +579,11 @@ spawningRow level =
         -2
 
 
+maxLockDelayMoves : Int
+maxLockDelayMoves =
+    15
+
+
 triggerMessage : Msg -> Cmd Msg
 triggerMessage msg =
     Task.perform (always msg) (Task.succeed ())
@@ -588,12 +602,46 @@ updateForMove move alternativeTranslations model =
             in
             case maybeMovedPiece of
                 Just movedPiece ->
+                    let
+                        ( _, bottomRow ) =
+                            rowRange movedPiece.blocks
+
+                        maxRowReached =
+                            Basics.max bottomRow model.maxRowReached
+
+                        ( lockDelayMovesRemaining, lockDelayTimer, command ) =
+                            if maxRowReached > model.maxRowReached then
+                                ( maxLockDelayMoves
+                                , interval LockDelay model.settings.level
+                                , Cmd.none
+                                )
+
+                            else if model.lockDelayMovesRemaining > 0 then
+                                ( model.lockDelayMovesRemaining - 1
+                                , interval LockDelay model.settings.level
+                                , Cmd.none
+                                )
+
+                            else if model.lockDelayTimer /= Nothing then
+                                ( 0
+                                , model.lockDelayTimer
+                                , Cmd.none
+                                )
+
+                            else
+                                ( 0
+                                , Nothing
+                                , triggerMessage LockToBottom
+                                )
+                    in
                     ( { model
                         | fallingPiece = Just movedPiece
                         , ghostPiece = calculateGhostPiece movedPiece.blocks model.occupiedCells
-                        , lockDelayTimer = interval LockDelay model.settings.level
+                        , lockDelayTimer = lockDelayTimer
+                        , lockDelayMovesRemaining = lockDelayMovesRemaining
+                        , maxRowReached = maxRowReached
                       }
-                    , Cmd.none
+                    , command
                     )
 
                 Nothing ->
@@ -756,7 +804,6 @@ updateForDropAndLock model =
             ( { model
                 | fallingPiece = Just droppedPiece
                 , ghostPiece = calculateGhostPiece droppedPiece.blocks model.occupiedCells
-                , dropAnimationTimer = Nothing
                 , lockDelayTimer = Nothing
               }
             , triggerMessage LockToBottom
