@@ -170,7 +170,7 @@ type Msg
     | MoveRight
     | RotateClockwise
     | RotateCounterclockwise
-    | LockDelayFinished
+    | LockToBottom
     | DropAndLock
     | RemoveFullRows
     | ShowRestartDialog
@@ -237,8 +237,8 @@ updatePlayScreen msg model =
         RotateCounterclockwise ->
             updateForMove (rotate Counterclockwise) (wallKickAlternatives Counterclockwise) model
 
-        LockDelayFinished ->
-            updateForLockDelayFinished model
+        LockToBottom ->
+            updateForLockToBottom model
 
         DropAndLock ->
             updateForDropAndLock model
@@ -486,7 +486,7 @@ updateForAnimationFrame timeDelta model =
             updateTimer
                 model.lockDelayTimer
                 Nothing
-                LockDelayFinished
+                LockToBottom
 
         ( fullRowsDelayTimer, fullRowsDelayCmd ) =
             updateTimer
@@ -745,8 +745,8 @@ vertDistance source dest =
     destMinRow - sourceMinRow
 
 
-updateForLockDelayFinished : Model -> ( Model, Cmd Msg )
-updateForLockDelayFinished model =
+updateForLockToBottom : Model -> ( Model, Cmd Msg )
+updateForLockToBottom model =
     let
         command =
             case model.fallingPiece of
