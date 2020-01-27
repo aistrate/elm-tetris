@@ -633,6 +633,10 @@ updateForMove move alternativeTranslations model =
                                 , Nothing
                                 , triggerMessage LockToBottom
                                 )
+
+                        t =
+                            Debug.log "( ( maxRowReached, lockDelayMovesRemaining, lockDelayTimer ), triggered directly )"
+                                ( ( maxRowReached, lockDelayMovesRemaining, lockDelayTimer ), command /= Cmd.none )
                     in
                     ( { model
                         | fallingPiece = Just movedPiece
