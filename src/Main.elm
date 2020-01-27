@@ -165,11 +165,12 @@ type RotationDirection
 type Msg
     = Spawn Shape
     | AnimationFrame Float
+    | MoveDown
     | MoveLeft
     | MoveRight
-    | MoveDown
     | RotateClockwise
     | RotateCounterclockwise
+    | LockDelayFinished
     | DropAndLock
     | RemoveFullRows
     | ShowRestartDialog
@@ -221,20 +222,23 @@ updatePlayScreen msg model =
         AnimationFrame timeDelta ->
             updateForAnimationFrame timeDelta model
 
+        MoveDown ->
+            updateForMove (shiftBy ( 0, 1 )) noAlternatives model
+
         MoveLeft ->
             updateForMove (shiftBy ( -1, 0 )) noAlternatives model
 
         MoveRight ->
             updateForMove (shiftBy ( 1, 0 )) noAlternatives model
 
-        MoveDown ->
-            updateForMove (shiftBy ( 0, 1 )) noAlternatives model
-
         RotateClockwise ->
             updateForMove (rotate Clockwise) (wallKickAlternatives Clockwise) model
 
         RotateCounterclockwise ->
             updateForMove (rotate Counterclockwise) (wallKickAlternatives Counterclockwise) model
+
+        LockDelayFinished ->
+            updateForLockDelayFinished model
 
         DropAndLock ->
             updateForDropAndLock model
@@ -443,7 +447,7 @@ updateForSpawn shape model =
         | fallingPiece = fallingPiece
         , ghostPiece = ghostPiece
         , dropAnimationTimer = interval DropAnimationOnSpawning model.settings.level
-        , lockDelayTimer = Nothing
+        , lockDelayTimer = interval LockDelay model.settings.level
         , fullRowsDelayTimer = Nothing
         , screen = screen
       }
@@ -482,7 +486,7 @@ updateForAnimationFrame timeDelta model =
             updateTimer
                 model.lockDelayTimer
                 Nothing
-                DropAndLock
+                LockDelayFinished
 
         ( fullRowsDelayTimer, fullRowsDelayCmd ) =
             updateTimer
@@ -576,38 +580,26 @@ updateForMove move alternativeTranslations model =
     case model.fallingPiece of
         Just fallingPiece ->
             let
-                viableFallingPiece =
+                maybeMovedPiece =
                     firstViableAlternative
                         (alternativeTranslations fallingPiece)
                         (move fallingPiece)
                         model.occupiedCells
-                        |> Maybe.withDefault fallingPiece
-
-                ghostPiece =
-                    calculateGhostPiece viableFallingPiece.blocks model.occupiedCells
-
-                hasReachedBottom =
-                    vertDistance viableFallingPiece.blocks ghostPiece == 0
-
-                ( dropAnimationTimer, lockDelayTimer ) =
-                    if hasReachedBottom && model.lockDelayTimer == Nothing then
-                        ( Nothing
-                        , interval LockDelay model.settings.level
-                        )
-
-                    else
-                        ( model.dropAnimationTimer
-                        , model.lockDelayTimer
-                        )
             in
-            ( { model
-                | fallingPiece = Just viableFallingPiece
-                , ghostPiece = ghostPiece
-                , dropAnimationTimer = dropAnimationTimer
-                , lockDelayTimer = lockDelayTimer
-              }
-            , Cmd.none
-            )
+            case maybeMovedPiece of
+                Just movedPiece ->
+                    ( { model
+                        | fallingPiece = Just movedPiece
+                        , ghostPiece = calculateGhostPiece movedPiece.blocks model.occupiedCells
+                        , lockDelayTimer = interval LockDelay model.settings.level
+                      }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    )
 
         Nothing ->
             ( model
@@ -751,6 +743,30 @@ vertDistance source dest =
             rowRange dest
     in
     destMinRow - sourceMinRow
+
+
+updateForLockDelayFinished : Model -> ( Model, Cmd Msg )
+updateForLockDelayFinished model =
+    let
+        command =
+            case model.fallingPiece of
+                Just fallingPiece ->
+                    let
+                        hasReachedBottom =
+                            vertDistance fallingPiece.blocks model.ghostPiece == 0
+                    in
+                    if hasReachedBottom && model.lockDelayTimer == Nothing then
+                        triggerMessage DropAndLock
+
+                    else
+                        Cmd.none
+
+                Nothing ->
+                    Cmd.none
+    in
+    ( model
+    , command
+    )
 
 
 updateForDropAndLock : Model -> ( Model, Cmd Msg )
