@@ -12,6 +12,7 @@ import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (lazy, lazy2)
 import Task
+import Time
 
 
 main : Program () Model Msg
@@ -499,7 +500,7 @@ updateForAnimationFrame timeDelta model =
         , lockDelayTimer = lockDelayTimer
         , fullRowsDelayTimer = fullRowsDelayTimer
       }
-    , Cmd.batch [ dropAnimationCmd, lockDelayCmd, fullRowsDelayCmd ]
+    , Cmd.batch [ lockDelayCmd, dropAnimationCmd, fullRowsDelayCmd ]
     )
 
 
@@ -541,7 +542,7 @@ dropAnimationIntervals : Dict Int (Maybe Float)
 dropAnimationIntervals =
     Dict.fromList
         [ ( 0, Nothing )
-        , ( 1, Just 1000 )
+        , ( 1, Just 500 )
         , ( 2, Just 793 )
         , ( 3, Just 618 )
         , ( 4, Just 473 )
@@ -593,7 +594,15 @@ updateForMove move alternativeTranslations model =
                         , ghostPiece = calculateGhostPiece movedPiece.blocks model.occupiedCells
                         , lockDelayTimer = interval LockDelay model.settings.level
                       }
-                    , Cmd.none
+                    , Task.perform
+                        (\time ->
+                            let
+                                t =
+                                    Debug.log "updateForMove" ( time, model.lockDelayTimer )
+                            in
+                            OtherKey
+                        )
+                        Time.now
                     )
 
                 Nothing ->
@@ -755,7 +764,7 @@ updateForLockDelayFinished model =
                         hasReachedBottom =
                             vertDistance fallingPiece.blocks model.ghostPiece == 0
                     in
-                    if hasReachedBottom && model.lockDelayTimer == Nothing then
+                    if hasReachedBottom then
                         triggerMessage DropAndLock
 
                     else
@@ -765,7 +774,18 @@ updateForLockDelayFinished model =
                     Cmd.none
     in
     ( model
-    , command
+    , Cmd.batch
+        [ Task.perform
+            (\time ->
+                let
+                    t =
+                        Debug.log "LockDelayFinished" ( time, model.lockDelayTimer, command /= Cmd.none )
+                in
+                OtherKey
+            )
+            Time.now
+        , command
+        ]
     )
 
 
