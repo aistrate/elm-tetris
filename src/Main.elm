@@ -453,48 +453,50 @@ updateForSpawn shape model =
 
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
-    case model.fullRowsDelayTimer of
-        Just fullRowsDelayTimer ->
-            if fullRowsDelayTimer - timeDelta <= 0 then
-                ( { model | fullRowsDelayTimer = Nothing }
-                , triggerMessage RemoveFullRows
-                )
-
-            else
-                ( { model | fullRowsDelayTimer = Just (fullRowsDelayTimer - timeDelta) }
-                , Cmd.none
-                )
-
-        Nothing ->
-            case model.lockDelayTimer of
-                Just lockDelayTimer ->
-                    if lockDelayTimer - timeDelta <= 0 then
-                        ( { model | lockDelayTimer = Nothing }
-                        , triggerMessage DropAndLock
+    let
+        updateTimer currentValue resetValue message =
+            case currentValue of
+                Just value ->
+                    if value - timeDelta <= 0 then
+                        ( resetValue
+                        , triggerMessage message
                         )
 
                     else
-                        ( { model | lockDelayTimer = Just (lockDelayTimer - timeDelta) }
+                        ( Just (value - timeDelta)
                         , Cmd.none
                         )
 
                 Nothing ->
-                    case model.dropAnimationTimer of
-                        Just dropAnimationTimer ->
-                            if dropAnimationTimer - timeDelta <= 0 then
-                                ( { model | dropAnimationTimer = interval DropAnimation model.settings.level }
-                                , triggerMessage MoveDown
-                                )
+                    ( Nothing
+                    , Cmd.none
+                    )
 
-                            else
-                                ( { model | dropAnimationTimer = Just (dropAnimationTimer - timeDelta) }
-                                , Cmd.none
-                                )
+        ( dropAnimationTimer, dropAnimationCmd ) =
+            updateTimer
+                model.dropAnimationTimer
+                (interval DropAnimation model.settings.level)
+                MoveDown
 
-                        Nothing ->
-                            ( model
-                            , Cmd.none
-                            )
+        ( lockDelayTimer, lockDelayCmd ) =
+            updateTimer
+                model.lockDelayTimer
+                Nothing
+                DropAndLock
+
+        ( fullRowsDelayTimer, fullRowsDelayCmd ) =
+            updateTimer
+                model.fullRowsDelayTimer
+                Nothing
+                RemoveFullRows
+    in
+    ( { model
+        | dropAnimationTimer = dropAnimationTimer
+        , lockDelayTimer = lockDelayTimer
+        , fullRowsDelayTimer = fullRowsDelayTimer
+      }
+    , Cmd.batch [ dropAnimationCmd, lockDelayCmd, fullRowsDelayCmd ]
+    )
 
 
 type IntervalType
