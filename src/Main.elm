@@ -170,8 +170,8 @@ type Msg
     | MoveRight
     | RotateClockwise
     | RotateCounterclockwise
-    | LockToBottom
     | DropAndLock
+    | LockToBottom
     | RemoveFullRows
     | ShowRestartDialog
     | TogglePauseDialog
@@ -237,11 +237,11 @@ updatePlayScreen msg model =
         RotateCounterclockwise ->
             updateForMove (rotate Counterclockwise) (wallKickAlternatives Counterclockwise) model
 
-        LockToBottom ->
-            updateForLockToBottom model
-
         DropAndLock ->
             updateForDropAndLock model
+
+        LockToBottom ->
+            updateForLockToBottom model
 
         RemoveFullRows ->
             updateForRemoveFullRows model
@@ -745,30 +745,6 @@ vertDistance source dest =
     destMinRow - sourceMinRow
 
 
-updateForLockToBottom : Model -> ( Model, Cmd Msg )
-updateForLockToBottom model =
-    let
-        command =
-            case model.fallingPiece of
-                Just fallingPiece ->
-                    let
-                        hasReachedBottom =
-                            vertDistance fallingPiece.blocks model.ghostPiece == 0
-                    in
-                    if hasReachedBottom && model.lockDelayTimer == Nothing then
-                        triggerMessage DropAndLock
-
-                    else
-                        Cmd.none
-
-                Nothing ->
-                    Cmd.none
-    in
-    ( model
-    , command
-    )
-
-
 updateForDropAndLock : Model -> ( Model, Cmd Msg )
 updateForDropAndLock model =
     case model.fallingPiece of
@@ -776,39 +752,68 @@ updateForDropAndLock model =
             let
                 droppedPiece =
                     shiftVertToTarget fallingPiece model.ghostPiece
-
-                bottomBlocks =
-                    model.bottomBlocks ++ droppedPiece.blocks
-
-                occupiedCells =
-                    List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
-                        |> Dict.fromList
-
-                hasFullRows =
-                    not (List.isEmpty (fullRows bottomBlocks))
-
-                ( fullRowsDelayTimer, command ) =
-                    if hasFullRows then
-                        ( interval FullRowsDelay model.settings.level
-                        , Cmd.none
-                        )
-
-                    else
-                        ( Nothing
-                        , generateShape
-                        )
             in
             ( { model
-                | fallingPiece = Nothing
-                , ghostPiece = []
-                , bottomBlocks = bottomBlocks
-                , occupiedCells = occupiedCells
+                | fallingPiece = Just droppedPiece
+                , ghostPiece = calculateGhostPiece droppedPiece.blocks model.occupiedCells
                 , dropAnimationTimer = Nothing
                 , lockDelayTimer = Nothing
-                , fullRowsDelayTimer = fullRowsDelayTimer
               }
-            , command
+            , triggerMessage LockToBottom
             )
+
+        Nothing ->
+            ( model
+            , Cmd.none
+            )
+
+
+updateForLockToBottom : Model -> ( Model, Cmd Msg )
+updateForLockToBottom model =
+    case model.fallingPiece of
+        Just fallingPiece ->
+            let
+                hasReachedBottom =
+                    vertDistance fallingPiece.blocks model.ghostPiece == 0
+            in
+            if hasReachedBottom && model.lockDelayTimer == Nothing then
+                let
+                    bottomBlocks =
+                        model.bottomBlocks ++ fallingPiece.blocks
+
+                    occupiedCells =
+                        List.map (\(Block col row _) -> ( ( col, row ), () )) bottomBlocks
+                            |> Dict.fromList
+
+                    hasFullRows =
+                        not (List.isEmpty (fullRows bottomBlocks))
+
+                    ( fullRowsDelayTimer, command ) =
+                        if hasFullRows then
+                            ( interval FullRowsDelay model.settings.level
+                            , Cmd.none
+                            )
+
+                        else
+                            ( Nothing
+                            , generateShape
+                            )
+                in
+                ( { model
+                    | fallingPiece = Nothing
+                    , ghostPiece = []
+                    , bottomBlocks = bottomBlocks
+                    , occupiedCells = occupiedCells
+                    , dropAnimationTimer = Nothing
+                    , fullRowsDelayTimer = fullRowsDelayTimer
+                  }
+                , command
+                )
+
+            else
+                ( model
+                , Cmd.none
+                )
 
         Nothing ->
             ( model
