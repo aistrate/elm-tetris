@@ -111,7 +111,8 @@ type alias Settings =
 
 
 type alias Model =
-    { fallingPiece : Maybe Tetromino
+    { nextShapes : List Shape
+    , fallingPiece : Maybe Tetromino
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
@@ -127,7 +128,8 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { fallingPiece = Nothing
+    ( { nextShapes = []
+      , fallingPiece = Nothing
       , ghostPiece = []
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
@@ -143,7 +145,7 @@ init _ =
             , showVerticalStripes = False
             }
       }
-    , generateShapeBag
+    , triggerMessage NewShape
     )
 
 
@@ -167,7 +169,9 @@ type RotationDirection
 
 
 type Msg
-    = Spawn (List Shape)
+    = NewShape
+    | NextShapes (List Shape)
+    | Spawn Shape
     | AnimationFrame Float
     | MoveDown
     | MoveLeft
@@ -220,8 +224,16 @@ update msg model =
 updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
 updatePlayScreen msg model =
     case msg of
-        Spawn shapeBag ->
-            updateForSpawn shapeBag model
+        NewShape ->
+            updateForNewShape model
+
+        NextShapes shapes ->
+            ( { model | nextShapes = model.nextShapes ++ shapes }
+            , triggerMessage NewShape
+            )
+
+        Spawn shape ->
+            updateForSpawn shape model
 
         AnimationFrame timeDelta ->
             updateForAnimationFrame timeDelta model
@@ -423,12 +435,23 @@ updateHelpDialog prevScreen msg model =
             )
 
 
-updateForSpawn : List Shape -> Model -> ( Model, Cmd Msg )
-updateForSpawn shapeBag model =
-    let
-        shape =
-            List.head shapeBag |> Maybe.withDefault IShape
+updateForNewShape : Model -> ( Model, Cmd Msg )
+updateForNewShape model =
+    case model.nextShapes of
+        shape :: remainingShapes ->
+            ( { model | nextShapes = remainingShapes }
+            , triggerMessage (Spawn shape)
+            )
 
+        [] ->
+            ( model
+            , Random.generate NextShapes shapeBagGenerator
+            )
+
+
+updateForSpawn : Shape -> Model -> ( Model, Cmd Msg )
+updateForSpawn shape model =
+    let
         spawnedPiece =
             spawnTetromino shape
                 |> centerHoriz
@@ -846,7 +869,7 @@ updateForLockToBottom model =
 
                         else
                             ( Nothing
-                            , generateShapeBag
+                            , triggerMessage NewShape
                             )
                 in
                 ( { model
@@ -887,7 +910,7 @@ updateForRemoveFullRows model =
         , bottomBlocks = bottomBlocks
         , occupiedCells = occupiedCells
       }
-    , generateShapeBag
+    , triggerMessage NewShape
     )
 
 
@@ -929,11 +952,6 @@ removeRow row blocks =
                 Block c r color
     in
     List.map shiftBlock remainingBlocks
-
-
-generateShapeBag : Cmd Msg
-generateShapeBag =
-    Random.generate Spawn shapeBagGenerator
 
 
 shapeBagGenerator : Random.Generator (List Shape)
