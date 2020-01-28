@@ -8,6 +8,7 @@ import Browser.Events
 import Dict exposing (Dict)
 import Json.Decode as Decode
 import Random
+import Random.List
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (lazy, lazy2)
@@ -167,7 +168,7 @@ type RotationDirection
 
 
 type Msg
-    = Spawn Shape
+    = Spawn (List Shape)
     | AnimationFrame Float
     | MoveDown
     | MoveLeft
@@ -220,8 +221,8 @@ update msg model =
 updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
 updatePlayScreen msg model =
     case msg of
-        Spawn shape ->
-            updateForSpawn shape model
+        Spawn shapeBag ->
+            updateForSpawn shapeBag model
 
         AnimationFrame timeDelta ->
             updateForAnimationFrame timeDelta model
@@ -423,9 +424,15 @@ updateHelpDialog prevScreen msg model =
             )
 
 
-updateForSpawn : Shape -> Model -> ( Model, Cmd Msg )
-updateForSpawn shape model =
+updateForSpawn : List Shape -> Model -> ( Model, Cmd Msg )
+updateForSpawn shapeBag model =
     let
+        t =
+            Debug.log "shapeBag" shapeBag
+
+        shape =
+            List.head shapeBag |> Maybe.withDefault IShape
+
         spawnedPiece =
             spawnTetromino shape
                 |> centerHoriz
@@ -933,9 +940,9 @@ generateShape =
     Random.generate Spawn shapeGenerator
 
 
-shapeGenerator : Random.Generator Shape
+shapeGenerator : Random.Generator (List Shape)
 shapeGenerator =
-    Random.uniform IShape [ JShape, LShape, OShape, SShape, TShape, ZShape ]
+    Random.List.shuffle [ IShape, JShape, LShape, OShape, SShape, TShape, ZShape ]
 
 
 collision : List Block -> CellOccupancy -> Bool
