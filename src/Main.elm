@@ -143,7 +143,7 @@ init _ =
             , showVerticalStripes = False
             }
       }
-    , generateShape
+    , generateShapeBag
     )
 
 
@@ -167,7 +167,7 @@ type RotationDirection
 
 
 type Msg
-    = Spawn Shape
+    = Spawn (List Shape)
     | AnimationFrame Float
     | MoveDown
     | MoveLeft
@@ -220,8 +220,8 @@ update msg model =
 updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
 updatePlayScreen msg model =
     case msg of
-        Spawn shape ->
-            updateForSpawn shape model
+        Spawn shapeBag ->
+            updateForSpawn shapeBag model
 
         AnimationFrame timeDelta ->
             updateForAnimationFrame timeDelta model
@@ -423,9 +423,12 @@ updateHelpDialog prevScreen msg model =
             )
 
 
-updateForSpawn : Shape -> Model -> ( Model, Cmd Msg )
-updateForSpawn shape model =
+updateForSpawn : List Shape -> Model -> ( Model, Cmd Msg )
+updateForSpawn shapeBag model =
     let
+        shape =
+            List.head shapeBag |> Maybe.withDefault IShape
+
         spawnedPiece =
             spawnTetromino shape
                 |> centerHoriz
@@ -843,7 +846,7 @@ updateForLockToBottom model =
 
                         else
                             ( Nothing
-                            , generateShape
+                            , generateShapeBag
                             )
                 in
                 ( { model
@@ -884,7 +887,7 @@ updateForRemoveFullRows model =
         , bottomBlocks = bottomBlocks
         , occupiedCells = occupiedCells
       }
-    , generateShape
+    , generateShapeBag
     )
 
 
@@ -928,14 +931,34 @@ removeRow row blocks =
     List.map shiftBlock remainingBlocks
 
 
-generateShape : Cmd Msg
-generateShape =
-    Random.generate Spawn shapeGenerator
+generateShapeBag : Cmd Msg
+generateShapeBag =
+    Random.generate Spawn shapeBagGenerator
 
 
-shapeGenerator : Random.Generator Shape
-shapeGenerator =
-    Random.uniform IShape [ JShape, LShape, OShape, SShape, TShape, ZShape ]
+shapeBagGenerator : Random.Generator (List Shape)
+shapeBagGenerator =
+    shuffle [ IShape, JShape, LShape, OShape, SShape, TShape, ZShape ]
+
+
+shuffle : List a -> Random.Generator (List a)
+shuffle list =
+    case list of
+        [] ->
+            Random.constant []
+
+        head :: tail ->
+            Random.uniform head tail
+                |> Random.andThen
+                    (\item ->
+                        let
+                            remainingItems =
+                                List.filter (\i -> i /= item) list
+                        in
+                        Random.map2 (::)
+                            (Random.constant item)
+                            (shuffle remainingItems)
+                    )
 
 
 collision : List Block -> CellOccupancy -> Bool
