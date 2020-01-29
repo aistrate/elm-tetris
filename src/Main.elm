@@ -1557,18 +1557,15 @@ viewCountdownScreen timer =
 
 viewCountdownText : Int -> Svg Msg
 viewCountdownText countdown =
-    let
-        vertCenteredRow =
-            (game.rows - 3) // 2
-    in
     text_
         []
         [ tspan
             [ x (String.fromFloat middleBoardX)
-            , y (String.fromFloat ((toFloat vertCenteredRow + 2.55) * blockStyle.size))
+            , y (String.fromFloat (toFloat game.rows * blockStyle.size / 2))
+            , textAnchor "middle"
+            , dominantBaseline "middle"
             , fontSize (String.fromFloat (blockStyle.size * 3))
             , fontWeight "bold"
-            , textAnchor "middle"
             ]
             [ text
                 (if countdown > 0 then
@@ -1678,9 +1675,9 @@ viewDialogTextLine yCoord textLine =
             tspan
                 [ x (String.fromFloat middleBoardX)
                 , yCoord
+                , textAnchor "middle"
                 , fontSize (String.fromFloat (blockStyle.size * 0.65))
                 , fontWeight "bold"
-                , textAnchor "middle"
                 ]
                 [ text largeText
                 ]
