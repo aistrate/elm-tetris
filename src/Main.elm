@@ -112,7 +112,7 @@ type alias Settings =
 
 
 type alias Model =
-    { nextShapes : List Shape
+    { shapeBag : List Shape
     , fallingPiece : Maybe Tetromino
     , ghostPiece : List Block
     , bottomBlocks : List Block
@@ -120,8 +120,8 @@ type alias Model =
     , dropAnimationTimer : Maybe Float
     , lockDelayTimer : Maybe Float
     , lockDelayMovesRemaining : Int
-    , fullRowsDelayTimer : Maybe Float
     , maxRowReached : Int
+    , fullRowsDelayTimer : Maybe Float
     , screen : Screen
     , settings : Settings
     }
@@ -129,7 +129,7 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { nextShapes = []
+    ( { shapeBag = []
       , fallingPiece = Nothing
       , ghostPiece = []
       , bottomBlocks = []
@@ -137,8 +137,8 @@ init _ =
       , dropAnimationTimer = Nothing
       , lockDelayTimer = Nothing
       , lockDelayMovesRemaining = 0
-      , fullRowsDelayTimer = Nothing
       , maxRowReached = 0
+      , fullRowsDelayTimer = Nothing
       , screen = PlayScreen
       , settings =
             { level = 1
@@ -171,7 +171,7 @@ type RotationDirection
 
 type Msg
     = NewShape
-    | NextShapes (List Shape)
+    | ShapeBag (List Shape)
     | Spawn Shape
     | AnimationFrame Float
     | MoveDown
@@ -212,8 +212,8 @@ update msg model =
                 PlayScreen ->
                     updatePlayScreen msg model
 
-                CountdownScreen timer nextCmd ->
-                    updateCountdownScreen timer nextCmd msg model
+                CountdownScreen timer playScreenCmd ->
+                    updateCountdownScreen timer playScreenCmd msg model
 
                 GameOverDialog ->
                     updateGameOverDialog msg model
@@ -234,8 +234,8 @@ updatePlayScreen msg model =
         NewShape ->
             updateForNewShape model
 
-        NextShapes shapes ->
-            ( { model | nextShapes = model.nextShapes ++ shapes }
+        ShapeBag shapes ->
+            ( { model | shapeBag = model.shapeBag ++ shapes }
             , triggerMessage NewShape
             )
 
@@ -350,7 +350,7 @@ updateForLevelChange level model =
 
 
 updateCountdownScreen : Maybe Float -> Cmd Msg -> Msg -> Model -> ( Model, Cmd Msg )
-updateCountdownScreen timer nextCmd msg model =
+updateCountdownScreen timer playScreenCmd msg model =
     case msg of
         AnimationFrame timeDelta ->
             case timer of
@@ -363,7 +363,7 @@ updateCountdownScreen timer nextCmd msg model =
                                 Nothing
                                 StopCountdown
                     in
-                    ( { model | screen = CountdownScreen updatedTimer nextCmd }
+                    ( { model | screen = CountdownScreen updatedTimer playScreenCmd }
                     , cmd
                     )
 
@@ -374,7 +374,7 @@ updateCountdownScreen timer nextCmd msg model =
 
         StopCountdown ->
             ( { model | screen = PlayScreen }
-            , nextCmd
+            , playScreenCmd
             )
 
         _ ->
@@ -480,15 +480,15 @@ updateHelpDialog returnScreen msg model =
 
 updateForNewShape : Model -> ( Model, Cmd Msg )
 updateForNewShape model =
-    case model.nextShapes of
+    case model.shapeBag of
         shape :: remainingShapes ->
-            ( { model | nextShapes = remainingShapes }
+            ( { model | shapeBag = remainingShapes }
             , triggerMessage (Spawn shape)
             )
 
         [] ->
             ( model
-            , Random.generate NextShapes shapeBagGenerator
+            , Random.generate ShapeBag shapeBagGenerator
             )
 
 
@@ -525,8 +525,8 @@ updateForSpawn shape model =
         , dropAnimationTimer = interval DropAnimationOnSpawning model.settings.level
         , lockDelayTimer = interval LockDelay model.settings.level
         , lockDelayMovesRemaining = maxLockDelayMoves
-        , fullRowsDelayTimer = Nothing
         , maxRowReached = maxRowReached
+        , fullRowsDelayTimer = Nothing
         , screen = screen
       }
     , Cmd.none
