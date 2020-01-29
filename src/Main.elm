@@ -97,6 +97,7 @@ type alias CellOccupancy =
 
 type Screen
     = PlayScreen
+    | CountdownScreen (Maybe Float)
     | GameOverDialog
     | RestartDialog
     | PauseDialog
@@ -187,6 +188,7 @@ type Msg
     | AnswerYes
     | AnswerNo
     | Exit
+    | StopCountdown
     | LevelUp
     | LevelDown
     | ToggleGhostPiece
@@ -208,6 +210,9 @@ update msg model =
                 PlayScreen ->
                     updatePlayScreen msg model
 
+                CountdownScreen timer ->
+                    updateCountdownScreen timer msg model
+
                 GameOverDialog ->
                     updateGameOverDialog msg model
 
@@ -217,8 +222,8 @@ update msg model =
                 PauseDialog ->
                     updatePauseDialog msg model
 
-                HelpDialog prevScreen ->
-                    updateHelpDialog prevScreen msg model
+                HelpDialog returnScreen ->
+                    updateHelpDialog returnScreen msg model
 
 
 updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
@@ -336,17 +341,45 @@ updateForLevelChange level model =
     )
 
 
+updateCountdownScreen : Maybe Float -> Msg -> Model -> ( Model, Cmd Msg )
+updateCountdownScreen timer msg model =
+    case msg of
+        AnimationFrame timeDelta ->
+            case timer of
+                Just _ ->
+                    let
+                        ( updatedTimer, cmd ) =
+                            updateTimer
+                                timer
+                                timeDelta
+                                Nothing
+                                StopCountdown
+                    in
+                    ( { model | screen = CountdownScreen updatedTimer }
+                    , cmd
+                    )
+
+                Nothing ->
+                    ( model
+                    , triggerMessage StopCountdown
+                    )
+
+        StopCountdown ->
+            ( { model | screen = PlayScreen }
+            , Cmd.none
+            )
+
+        _ ->
+            ( model
+            , Cmd.none
+            )
+
+
 updateGameOverDialog : Msg -> Model -> ( Model, Cmd Msg )
 updateGameOverDialog msg model =
     case msg of
         AnswerYes ->
-            let
-                ( initModel, initCmd ) =
-                    init ()
-            in
-            ( { initModel | settings = model.settings }
-            , initCmd
-            )
+            updateForRestart model
 
         ToggleHelpDialog ->
             ( { model | screen = HelpDialog model.screen }
@@ -363,21 +396,15 @@ updateRestartDialog : Msg -> Model -> ( Model, Cmd Msg )
 updateRestartDialog msg model =
     case msg of
         AnswerYes ->
-            let
-                ( initModel, initCmd ) =
-                    init ()
-            in
-            ( { initModel | settings = model.settings }
-            , initCmd
-            )
+            updateForRestart model
 
         AnswerNo ->
-            ( { model | screen = PlayScreen }
-            , Cmd.none
+            ( model
+            , triggerMessage Exit
             )
 
         Exit ->
-            ( { model | screen = PlayScreen }
+            ( { model | screen = initCountdownScreen }
             , Cmd.none
             )
 
@@ -392,16 +419,30 @@ updateRestartDialog msg model =
             )
 
 
+updateForRestart : Model -> ( Model, Cmd Msg )
+updateForRestart model =
+    let
+        ( initModel, initCmd ) =
+            init ()
+    in
+    ( { initModel
+        | screen = initCountdownScreen
+        , settings = model.settings
+      }
+    , initCmd
+    )
+
+
 updatePauseDialog : Msg -> Model -> ( Model, Cmd Msg )
 updatePauseDialog msg model =
     case msg of
         TogglePauseDialog ->
-            ( { model | screen = PlayScreen }
-            , Cmd.none
+            ( model
+            , triggerMessage Exit
             )
 
         Exit ->
-            ( { model | screen = PlayScreen }
+            ( { model | screen = initCountdownScreen }
             , Cmd.none
             )
 
@@ -417,17 +458,23 @@ updatePauseDialog msg model =
 
 
 updateHelpDialog : Screen -> Msg -> Model -> ( Model, Cmd Msg )
-updateHelpDialog prevScreen msg model =
+updateHelpDialog returnScreen msg model =
     case msg of
         ToggleHelpDialog ->
-            ( { model | screen = prevScreen }
-            , Cmd.none
+            ( model
+            , triggerMessage Exit
             )
 
         Exit ->
-            ( { model | screen = prevScreen }
-            , Cmd.none
-            )
+            if returnScreen == PlayScreen then
+                ( { model | screen = initCountdownScreen }
+                , Cmd.none
+                )
+
+            else
+                ( { model | screen = returnScreen }
+                , Cmd.none
+                )
 
         _ ->
             ( model
@@ -493,39 +540,24 @@ updateForSpawn shape model =
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
     let
-        updateTimer currentValue resetValue message =
-            case currentValue of
-                Just value ->
-                    if value - timeDelta <= 0 then
-                        ( resetValue
-                        , triggerMessage message
-                        )
-
-                    else
-                        ( Just (value - timeDelta)
-                        , Cmd.none
-                        )
-
-                Nothing ->
-                    ( Nothing
-                    , Cmd.none
-                    )
-
         ( dropAnimationTimer, dropAnimationCmd ) =
             updateTimer
                 model.dropAnimationTimer
+                timeDelta
                 (interval DropAnimation model.settings.level)
                 MoveDown
 
         ( lockDelayTimer, lockDelayCmd ) =
             updateTimer
                 model.lockDelayTimer
+                timeDelta
                 Nothing
                 LockToBottom
 
         ( fullRowsDelayTimer, fullRowsDelayCmd ) =
             updateTimer
                 model.fullRowsDelayTimer
+                timeDelta
                 Nothing
                 RemoveFullRows
     in
@@ -538,11 +570,32 @@ updateForAnimationFrame timeDelta model =
     )
 
 
+updateTimer : Maybe Float -> Float -> Maybe Float -> Msg -> ( Maybe Float, Cmd Msg )
+updateTimer currentValue timeDelta resetValue message =
+    case currentValue of
+        Just value ->
+            if value - timeDelta <= 0 then
+                ( resetValue
+                , triggerMessage message
+                )
+
+            else
+                ( Just (value - timeDelta)
+                , Cmd.none
+                )
+
+        Nothing ->
+            ( Nothing
+            , Cmd.none
+            )
+
+
 type IntervalType
     = DropAnimationOnSpawning
     | DropAnimation
     | LockDelay
     | FullRowsDelay
+    | Countdown
 
 
 interval : IntervalType -> Int -> Maybe Float
@@ -564,6 +617,9 @@ interval intervalType level =
 
         FullRowsDelay ->
             Just 200
+
+        Countdown ->
+            Just 3000
 
 
 
@@ -608,6 +664,11 @@ spawningRow level =
 maxLockDelayMoves : Int
 maxLockDelayMoves =
     15
+
+
+initCountdownScreen : Screen
+initCountdownScreen =
+    CountdownScreen (interval Countdown -1)
 
 
 triggerMessage : Msg -> Cmd Msg
@@ -1192,11 +1253,15 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Browser.Events.onKeyDown keyDecoder
-        , if model.screen == PlayScreen then
-            Browser.Events.onAnimationFrameDelta AnimationFrame
+        , case model.screen of
+            PlayScreen ->
+                Browser.Events.onAnimationFrameDelta AnimationFrame
 
-          else
-            Sub.none
+            CountdownScreen _ ->
+                Browser.Events.onAnimationFrameDelta AnimationFrame
+
+            _ ->
+                Sub.none
         ]
 
 
@@ -1461,6 +1526,9 @@ viewDialogIfAny screen =
         PlayScreen ->
             g [] []
 
+        CountdownScreen timer ->
+            viewCountdownScreen timer
+
         GameOverDialog ->
             viewGameOverDialog
 
@@ -1472,6 +1540,45 @@ viewDialogIfAny screen =
 
         HelpDialog _ ->
             viewHelpDialog
+
+
+viewCountdownScreen : Maybe Float -> Svg Msg
+viewCountdownScreen timer =
+    let
+        countdown =
+            ceiling (Maybe.withDefault 0 timer / 1000)
+    in
+    g
+        []
+        [ viewDialogOverlay
+        , lazy viewCountdownText countdown
+        ]
+
+
+viewCountdownText : Int -> Svg Msg
+viewCountdownText countdown =
+    let
+        vertCenteredRow =
+            (game.rows - 3) // 2
+    in
+    text_
+        []
+        [ tspan
+            [ x (String.fromFloat middleBoardX)
+            , y (String.fromFloat ((toFloat vertCenteredRow + 2.55) * blockStyle.size))
+            , fontSize (String.fromFloat (blockStyle.size * 3))
+            , fontWeight "bold"
+            , textAnchor "middle"
+            ]
+            [ text
+                (if countdown > 0 then
+                    String.fromInt countdown
+
+                 else
+                    " "
+                )
+            ]
+        ]
 
 
 type DialogTextLine
@@ -1569,7 +1676,7 @@ viewDialogTextLine yCoord textLine =
     case textLine of
         LargeText largeText ->
             tspan
-                [ x "50%"
+                [ x (String.fromFloat middleBoardX)
                 , yCoord
                 , fontSize (String.fromFloat (blockStyle.size * 0.65))
                 , fontWeight "bold"
@@ -1603,6 +1710,11 @@ viewDialogTextLine yCoord textLine =
                 ]
                 [ text " "
                 ]
+
+
+middleBoardX : Float
+middleBoardX =
+    toFloat game.columns * blockStyle.size / 2
 
 
 viewDialogOverlay : Svg Msg
