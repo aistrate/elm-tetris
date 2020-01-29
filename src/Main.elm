@@ -97,7 +97,7 @@ type alias CellOccupancy =
 
 type Screen
     = PlayScreen
-    | CountdownScreen (Maybe Float)
+    | CountdownScreen (Maybe Float) (Cmd Msg)
     | GameOverDialog
     | RestartDialog
     | PauseDialog
@@ -210,8 +210,8 @@ update msg model =
                 PlayScreen ->
                     updatePlayScreen msg model
 
-                CountdownScreen timer ->
-                    updateCountdownScreen timer msg model
+                CountdownScreen timer nextCmd ->
+                    updateCountdownScreen timer nextCmd msg model
 
                 GameOverDialog ->
                     updateGameOverDialog msg model
@@ -341,8 +341,8 @@ updateForLevelChange level model =
     )
 
 
-updateCountdownScreen : Maybe Float -> Msg -> Model -> ( Model, Cmd Msg )
-updateCountdownScreen timer msg model =
+updateCountdownScreen : Maybe Float -> Cmd Msg -> Msg -> Model -> ( Model, Cmd Msg )
+updateCountdownScreen timer nextCmd msg model =
     case msg of
         AnimationFrame timeDelta ->
             case timer of
@@ -355,7 +355,7 @@ updateCountdownScreen timer msg model =
                                 Nothing
                                 StopCountdown
                     in
-                    ( { model | screen = CountdownScreen updatedTimer }
+                    ( { model | screen = CountdownScreen updatedTimer nextCmd }
                     , cmd
                     )
 
@@ -366,7 +366,7 @@ updateCountdownScreen timer msg model =
 
         StopCountdown ->
             ( { model | screen = PlayScreen }
-            , Cmd.none
+            , nextCmd
             )
 
         _ ->
@@ -404,7 +404,7 @@ updateRestartDialog msg model =
             )
 
         Exit ->
-            ( { model | screen = initCountdownScreen }
+            ( { model | screen = initCountdownScreen Cmd.none }
             , Cmd.none
             )
 
@@ -426,10 +426,10 @@ updateForRestart model =
             init ()
     in
     ( { initModel
-        | screen = initCountdownScreen
+        | screen = initCountdownScreen initCmd
         , settings = model.settings
       }
-    , initCmd
+    , Cmd.none
     )
 
 
@@ -442,7 +442,7 @@ updatePauseDialog msg model =
             )
 
         Exit ->
-            ( { model | screen = initCountdownScreen }
+            ( { model | screen = initCountdownScreen Cmd.none }
             , Cmd.none
             )
 
@@ -467,7 +467,7 @@ updateHelpDialog returnScreen msg model =
 
         Exit ->
             if returnScreen == PlayScreen then
-                ( { model | screen = initCountdownScreen }
+                ( { model | screen = initCountdownScreen Cmd.none }
                 , Cmd.none
                 )
 
@@ -666,9 +666,9 @@ maxLockDelayMoves =
     15
 
 
-initCountdownScreen : Screen
-initCountdownScreen =
-    CountdownScreen (interval Countdown -1)
+initCountdownScreen : Cmd Msg -> Screen
+initCountdownScreen nextCmd =
+    CountdownScreen (interval Countdown -1) nextCmd
 
 
 triggerMessage : Msg -> Cmd Msg
@@ -1257,7 +1257,7 @@ subscriptions model =
             PlayScreen ->
                 Browser.Events.onAnimationFrameDelta AnimationFrame
 
-            CountdownScreen _ ->
+            CountdownScreen _ _ ->
                 Browser.Events.onAnimationFrameDelta AnimationFrame
 
             _ ->
@@ -1526,7 +1526,7 @@ viewDialogIfAny screen =
         PlayScreen ->
             g [] []
 
-        CountdownScreen timer ->
+        CountdownScreen timer _ ->
             viewCountdownScreen timer
 
         GameOverDialog ->
