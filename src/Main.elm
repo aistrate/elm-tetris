@@ -182,17 +182,19 @@ type Msg
     | DropAndLock
     | LockToBottom
     | RemoveFullRows
+    | ToggleGhostPiece
+    | ToggleVerticalStripes
     | ShowRestartDialog
     | TogglePauseDialog
     | ToggleHelpDialog
     | AnswerYes
     | AnswerNo
     | Exit
+    | Restart
+    | Unpause
     | StopCountdown
     | LevelUp
     | LevelDown
-    | ToggleGhostPiece
-    | ToggleVerticalStripes
     | OtherKey
 
 
@@ -287,6 +289,12 @@ updatePlayScreen msg model =
             , Cmd.none
             )
 
+        Restart ->
+            updateForRestart model
+
+        Unpause ->
+            updateForUnpause model
+
         ToggleGhostPiece ->
             let
                 settings =
@@ -379,7 +387,9 @@ updateGameOverDialog : Msg -> Model -> ( Model, Cmd Msg )
 updateGameOverDialog msg model =
     case msg of
         AnswerYes ->
-            updateForRestart model
+            ( { model | screen = PlayScreen }
+            , triggerMessage Restart
+            )
 
         ToggleHelpDialog ->
             ( { model | screen = HelpDialog model.screen }
@@ -396,7 +406,9 @@ updateRestartDialog : Msg -> Model -> ( Model, Cmd Msg )
 updateRestartDialog msg model =
     case msg of
         AnswerYes ->
-            updateForRestart model
+            ( { model | screen = PlayScreen }
+            , triggerMessage Restart
+            )
 
         AnswerNo ->
             ( model
@@ -404,8 +416,8 @@ updateRestartDialog msg model =
             )
 
         Exit ->
-            ( { model | screen = initCountdownScreen Cmd.none }
-            , Cmd.none
+            ( { model | screen = PlayScreen }
+            , triggerMessage Unpause
             )
 
         ToggleHelpDialog ->
@@ -419,20 +431,6 @@ updateRestartDialog msg model =
             )
 
 
-updateForRestart : Model -> ( Model, Cmd Msg )
-updateForRestart model =
-    let
-        ( initModel, initCmd ) =
-            init ()
-    in
-    ( { initModel
-        | screen = initCountdownScreen initCmd
-        , settings = model.settings
-      }
-    , Cmd.none
-    )
-
-
 updatePauseDialog : Msg -> Model -> ( Model, Cmd Msg )
 updatePauseDialog msg model =
     case msg of
@@ -442,8 +440,8 @@ updatePauseDialog msg model =
             )
 
         Exit ->
-            ( { model | screen = initCountdownScreen Cmd.none }
-            , Cmd.none
+            ( { model | screen = PlayScreen }
+            , triggerMessage Unpause
             )
 
         ToggleHelpDialog ->
@@ -466,15 +464,13 @@ updateHelpDialog returnScreen msg model =
             )
 
         Exit ->
-            if returnScreen == PlayScreen then
-                ( { model | screen = initCountdownScreen Cmd.none }
-                , Cmd.none
-                )
+            ( { model | screen = returnScreen }
+            , if returnScreen == PlayScreen then
+                triggerMessage Unpause
 
-            else
-                ( { model | screen = returnScreen }
-                , Cmd.none
-                )
+              else
+                Cmd.none
+            )
 
         _ ->
             ( model
@@ -664,11 +660,6 @@ spawningRow level =
 maxLockDelayMoves : Int
 maxLockDelayMoves =
     15
-
-
-initCountdownScreen : Cmd Msg -> Screen
-initCountdownScreen nextCmd =
-    CountdownScreen (interval Countdown -1) nextCmd
 
 
 triggerMessage : Msg -> Cmd Msg
@@ -1013,6 +1004,35 @@ removeRow row blocks =
                 Block c r color
     in
     List.map shiftBlock remainingBlocks
+
+
+updateForRestart : Model -> ( Model, Cmd Msg )
+updateForRestart model =
+    let
+        ( initModel, initCmd ) =
+            init ()
+    in
+    ( { initModel
+        | screen =
+            CountdownScreen
+                (interval Countdown model.settings.level)
+                initCmd
+        , settings = model.settings
+      }
+    , Cmd.none
+    )
+
+
+updateForUnpause : Model -> ( Model, Cmd Msg )
+updateForUnpause model =
+    ( { model
+        | screen =
+            CountdownScreen
+                (interval Countdown model.settings.level)
+                Cmd.none
+      }
+    , Cmd.none
+    )
 
 
 shapeBagGenerator : Random.Generator (List Shape)
