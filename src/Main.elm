@@ -98,7 +98,7 @@ type alias CellOccupancy =
     Dict ( Int, Int ) ()
 
 
-type alias LockDelayInfo =
+type alias LockDelay =
     { timer : Maybe Float
     , movesRemaining : Int
     , maxRowReached : Int
@@ -128,7 +128,7 @@ type alias Model =
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
     , dropAnimationTimer : Maybe Float
-    , lockDelay : LockDelayInfo
+    , lockDelay : LockDelay
     , fullRowsDelayTimer : Maybe Float
     , screen : Screen
     , settings : Settings
@@ -352,7 +352,7 @@ updateForLevelChange level model =
                     && model.fallingPiece
                     /= Nothing
             then
-                interval DropAnimation level
+                interval DropAnimationInterval level
 
             else
                 model.dropAnimationTimer
@@ -547,9 +547,9 @@ updateForSpawn shape model =
     ( { model
         | fallingPiece = fallingPiece
         , ghostPiece = ghostPiece
-        , dropAnimationTimer = interval DropAnimationOnSpawning model.settings.level
+        , dropAnimationTimer = interval SpawningDropAnimationInterval model.settings.level
         , lockDelay =
-            { timer = interval LockDelay model.settings.level
+            { timer = interval LockDelayInterval model.settings.level
             , movesRemaining = maxLockDelayMoves
             , maxRowReached = pieceBottomRow
             }
@@ -567,7 +567,7 @@ updateForAnimationFrame timeDelta model =
             updateTimer
                 model.dropAnimationTimer
                 timeDelta
-                (interval DropAnimation model.settings.level)
+                (interval DropAnimationInterval model.settings.level)
                 MoveDown
 
         ( lockDelayTimer, lockDelayCmd ) =
@@ -592,7 +592,11 @@ updateForAnimationFrame timeDelta model =
         , lockDelay = { lockDelay | timer = lockDelayTimer }
         , fullRowsDelayTimer = fullRowsDelayTimer
       }
-    , Cmd.batch [ dropAnimationCmd, lockDelayCmd, fullRowsDelayCmd ]
+    , Cmd.batch
+        [ dropAnimationCmd
+        , lockDelayCmd
+        , fullRowsDelayCmd
+        ]
     )
 
 
@@ -617,34 +621,34 @@ updateTimer currentValue timeDelta resetValue message =
 
 
 type IntervalType
-    = DropAnimationOnSpawning
-    | DropAnimation
-    | LockDelay
-    | FullRowsDelay
-    | Countdown
+    = SpawningDropAnimationInterval
+    | DropAnimationInterval
+    | LockDelayInterval
+    | FullRowsDelayInterval
+    | CountdownInterval
 
 
 interval : IntervalType -> Int -> Maybe Float
 interval intervalType level =
     case intervalType of
-        DropAnimationOnSpawning ->
+        SpawningDropAnimationInterval ->
             if level == 0 then
                 Nothing
 
             else
                 Just 0
 
-        DropAnimation ->
+        DropAnimationInterval ->
             Dict.get level dropAnimationIntervals
                 |> Maybe.withDefault Nothing
 
-        LockDelay ->
+        LockDelayInterval ->
             Just 500
 
-        FullRowsDelay ->
+        FullRowsDelayInterval ->
             Just 200
 
-        Countdown ->
+        CountdownInterval ->
             Just 3000
 
 
@@ -736,7 +740,7 @@ updateForMove move alternativeTranslations model =
             )
 
 
-updateLockDelayAfterMove : Int -> Int -> LockDelayInfo -> ( LockDelayInfo, Cmd Msg )
+updateLockDelayAfterMove : Int -> Int -> LockDelay -> ( LockDelay, Cmd Msg )
 updateLockDelayAfterMove pieceBottomRow level lockDelay =
     let
         maxRowReached =
@@ -745,13 +749,13 @@ updateLockDelayAfterMove pieceBottomRow level lockDelay =
         ( movesRemaining, timer, command ) =
             if maxRowReached > lockDelay.maxRowReached then
                 ( maxLockDelayMoves
-                , interval LockDelay level
+                , interval LockDelayInterval level
                 , Cmd.none
                 )
 
             else if lockDelay.movesRemaining > 0 then
                 ( lockDelay.movesRemaining - 1
-                , interval LockDelay level
+                , interval LockDelayInterval level
                 , Cmd.none
                 )
 
@@ -957,7 +961,7 @@ updateForLockToBottom model =
 
                     ( fullRowsDelayTimer, command ) =
                         if hasFullRows then
-                            ( interval FullRowsDelay model.settings.level
+                            ( interval FullRowsDelayInterval model.settings.level
                             , Cmd.none
                             )
 
@@ -1059,7 +1063,7 @@ updateForRestart model =
     ( { initModel
         | screen =
             CountdownScreen
-                { timer = interval Countdown model.settings.level
+                { timer = interval CountdownInterval model.settings.level
                 , afterCmd = initCmd
                 }
         , settings = model.settings
@@ -1073,7 +1077,7 @@ updateForUnpause model =
     ( { model
         | screen =
             CountdownScreen
-                { timer = interval Countdown model.settings.level
+                { timer = interval CountdownInterval model.settings.level
                 , afterCmd = Cmd.none
                 }
       }
