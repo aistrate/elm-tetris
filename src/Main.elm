@@ -916,10 +916,6 @@ updateForLockToBottom model =
                     bottomBlocks =
                         model.bottomBlocks ++ fallingPiece.blocks
 
-                    occupiedCells =
-                        List.map (\(Block { col, row }) -> ( ( col, row ), () )) bottomBlocks
-                            |> Dict.fromList
-
                     hasFullRows =
                         not (List.isEmpty (fullRows bottomBlocks))
 
@@ -938,7 +934,7 @@ updateForLockToBottom model =
                     | fallingPiece = Nothing
                     , ghostPiece = []
                     , bottomBlocks = bottomBlocks
-                    , occupiedCells = occupiedCells
+                    , occupiedCells = getOccupiedCells bottomBlocks
                     , dropAnimationTimer = Nothing
                     , fullRowsDelayTimer = fullRowsDelayTimer
                   }
@@ -961,19 +957,21 @@ updateForRemoveFullRows model =
     let
         bottomBlocks =
             removeFullRows model.bottomBlocks
-
-        occupiedCells =
-            List.map (\(Block { col, row }) -> ( ( col, row ), () )) bottomBlocks
-                |> Dict.fromList
     in
     ( { model
         | fallingPiece = Nothing
         , ghostPiece = []
         , bottomBlocks = bottomBlocks
-        , occupiedCells = occupiedCells
+        , occupiedCells = getOccupiedCells bottomBlocks
       }
     , triggerMessage NewShape
     )
+
+
+getOccupiedCells : List Block -> CellOccupancy
+getOccupiedCells bottomBlocks =
+    List.map (\(Block { col, row }) -> ( ( col, row ), () )) bottomBlocks
+        |> Dict.fromList
 
 
 fullRows : List Block -> List Int
