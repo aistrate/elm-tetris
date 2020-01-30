@@ -101,7 +101,7 @@ type Screen
     | GameOverDialog
     | RestartDialog
     | PauseDialog
-    | HelpDialog Screen
+    | HelpDialog { returnScreen : Screen }
 
 
 type alias Settings =
@@ -224,7 +224,7 @@ update msg model =
                 PauseDialog ->
                     updatePauseDialog msg model
 
-                HelpDialog returnScreen ->
+                HelpDialog { returnScreen } ->
                     updateHelpDialog returnScreen msg model
 
 
@@ -285,7 +285,7 @@ updatePlayScreen msg model =
             )
 
         ToggleHelpDialog ->
-            ( { model | screen = HelpDialog model.screen }
+            ( { model | screen = HelpDialog { returnScreen = model.screen } }
             , Cmd.none
             )
 
@@ -398,7 +398,7 @@ updateGameOverDialog msg model =
             )
 
         ToggleHelpDialog ->
-            ( { model | screen = HelpDialog model.screen }
+            ( { model | screen = HelpDialog { returnScreen = model.screen } }
             , Cmd.none
             )
 
@@ -427,7 +427,7 @@ updateRestartDialog msg model =
             )
 
         ToggleHelpDialog ->
-            ( { model | screen = HelpDialog model.screen }
+            ( { model | screen = HelpDialog { returnScreen = model.screen } }
             , Cmd.none
             )
 
@@ -451,7 +451,7 @@ updatePauseDialog msg model =
             )
 
         ToggleHelpDialog ->
-            ( { model | screen = HelpDialog model.screen }
+            ( { model | screen = HelpDialog { returnScreen = model.screen } }
             , Cmd.none
             )
 
