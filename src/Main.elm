@@ -1006,12 +1006,16 @@ removeRow row blocks =
         remainingBlocks =
             List.filter (\(Block b) -> b.row /= row) blocks
 
-        shiftBlock (Block b) =
+        shiftBlock block =
+            let
+                (Block b) =
+                    block
+            in
             if b.row < row then
                 Block { b | row = b.row + 1 }
 
             else
-                Block b
+                block
     in
     List.map shiftBlock remainingBlocks
 
@@ -1455,19 +1459,6 @@ viewBoard =
 
 viewBlocks : List Block -> Svg Msg
 viewBlocks blocks =
-    let
-        viewBlock (Block { col, row, color }) =
-            rect
-                [ x (String.fromFloat (toFloat col * blockStyle.size + blockStyle.borderWidth / 2))
-                , y (String.fromFloat (toFloat row * blockStyle.size + blockStyle.borderWidth / 2))
-                , width (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
-                , height (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
-                , fill (colorToHex color)
-                , stroke "white"
-                , strokeWidth (String.fromFloat blockStyle.borderWidth)
-                ]
-                []
-    in
     g
         []
         (List.filter
@@ -1475,8 +1466,22 @@ viewBlocks blocks =
                 0 <= col && col < game.columns && 0 <= row && row < game.rows
             )
             blocks
-            |> List.map viewBlock
+            |> List.map (lazy viewBlock)
         )
+
+
+viewBlock : Block -> Svg Msg
+viewBlock (Block b) =
+    rect
+        [ x (String.fromFloat (toFloat b.col * blockStyle.size + blockStyle.borderWidth / 2))
+        , y (String.fromFloat (toFloat b.row * blockStyle.size + blockStyle.borderWidth / 2))
+        , width (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
+        , height (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
+        , fill (colorToHex b.color)
+        , stroke "white"
+        , strokeWidth (String.fromFloat blockStyle.borderWidth)
+        ]
+        []
 
 
 viewGhostPiece : Bool -> List Block -> Svg Msg
