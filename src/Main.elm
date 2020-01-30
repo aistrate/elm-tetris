@@ -71,12 +71,6 @@ type alias Block =
     }
 
 
-type alias Translation =
-    { col : Int
-    , row : Int
-    }
-
-
 type ShapeSize
     = Size2By2
     | Size3By2
@@ -173,6 +167,12 @@ type Shape
     | ZShape
 
 
+type alias Translation =
+    { dCol : Int
+    , dRow : Int
+    }
+
+
 type RotationDirection
     = Clockwise
     | Counterclockwise
@@ -255,13 +255,13 @@ updatePlayScreen msg model =
             updateForAnimationFrame timeDelta model
 
         MoveDown ->
-            updateForMove (translateBy { col = 0, row = 1 }) noAlternatives model
+            updateForMove (translateBy { dCol = 0, dRow = 1 }) noAlternatives model
 
         MoveLeft ->
-            updateForMove (translateBy { col = -1, row = 0 }) noAlternatives model
+            updateForMove (translateBy { dCol = -1, dRow = 0 }) noAlternatives model
 
         MoveRight ->
-            updateForMove (translateBy { col = 1, row = 0 }) noAlternatives model
+            updateForMove (translateBy { dCol = 1, dRow = 0 }) noAlternatives model
 
         RotateClockwise ->
             updateForMove (rotate Clockwise) (wallKickAlternatives Clockwise) model
@@ -514,8 +514,8 @@ updateForSpawn shape model =
             spawnTetromino shape
                 |> centerHoriz
                 |> translateBy
-                    { col = 0
-                    , row = spawningRow model.settings.level
+                    { dCol = 0
+                    , dRow = spawningRow model.settings.level
                     }
 
         ( _, maxRowReached ) =
@@ -771,7 +771,7 @@ firstViableAlternative translations tetromino occupiedCells =
 
 noAlternatives : Tetromino -> List Translation
 noAlternatives _ =
-    [ { col = 0, row = 0 } ]
+    [ { dCol = 0, dRow = 0 } ]
 
 
 
@@ -840,7 +840,7 @@ wallKickAlternatives direction tetromino =
                 ( Size2By2, _, _ ) ->
                     [ ( 0, 0 ) ]
     in
-    List.map (\( col, row ) -> { col = col, row = -row }) alternatives
+    List.map (\( dCol, dRow ) -> { dCol = dCol, dRow = -dRow }) alternatives
 
 
 calculateGhostPiece : List Block -> CellOccupancy -> List Block
@@ -870,11 +870,11 @@ calculateGhostPiece blocks occupiedCells =
 
 translateVertToTarget : Tetromino -> List Block -> Tetromino
 translateVertToTarget tetromino target =
-    let
-        rowDelta =
-            vertDistance tetromino.blocks target
-    in
-    translateBy { col = 0, row = rowDelta } tetromino
+    translateBy
+        { dCol = 0
+        , dRow = vertDistance tetromino.blocks target
+        }
+        tetromino
 
 
 vertDistance : List Block -> List Block -> Int
@@ -1095,14 +1095,14 @@ translateBy translation tetromino =
             List.map
                 (\block ->
                     { block
-                        | col = block.col + translation.col
-                        , row = block.row + translation.row
+                        | col = block.col + translation.dCol
+                        , row = block.row + translation.dRow
                     }
                 )
                 tetromino.blocks
         , pivot =
-            { col = tetromino.pivot.col + toFloat translation.col
-            , row = tetromino.pivot.row + toFloat translation.row
+            { col = tetromino.pivot.col + toFloat translation.dCol
+            , row = tetromino.pivot.row + toFloat translation.dRow
             }
     }
 
@@ -1136,10 +1136,10 @@ centerHoriz tetromino =
         ( minCol, maxCol ) =
             columnRange tetromino.blocks
 
-        colDelta =
+        dCol =
             -minCol + (game.columns - (maxCol - minCol + 1)) // 2
     in
-    translateBy { col = colDelta, row = 0 } tetromino
+    translateBy { dCol = dCol, dRow = 0 } tetromino
 
 
 columnRange : List Block -> ( Int, Int )
