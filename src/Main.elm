@@ -64,12 +64,11 @@ type Color
     | Gray
 
 
-type Block
-    = Block
-        { col : Int
-        , row : Int
-        , color : Color
-        }
+type alias Block =
+    { col : Int
+    , row : Int
+    , color : Color
+    }
 
 
 type alias Translation =
@@ -849,13 +848,13 @@ calculateGhostPiece blocks occupiedCells =
     if not (List.isEmpty blocks) then
         let
             initial =
-                List.map (\(Block b) -> Block { b | color = Gray }) blocks
+                List.map (\block -> { block | color = Gray }) blocks
 
             moveToBottomFrom : List Block -> List Block
             moveToBottomFrom current =
                 let
                     next =
-                        List.map (\(Block b) -> Block { b | row = b.row + 1 }) current
+                        List.map (\block -> { block | row = block.row + 1 }) current
                 in
                 if collision next occupiedCells then
                     current
@@ -979,7 +978,7 @@ updateForRemoveFullRows model =
 
 getOccupiedCells : List Block -> CellOccupancy
 getOccupiedCells bottomBlocks =
-    List.map (\(Block { col, row }) -> ( ( col, row ), () )) bottomBlocks
+    List.map (\block -> ( ( block.col, block.row ), () )) bottomBlocks
         |> Dict.fromList
 
 
@@ -994,7 +993,7 @@ fullRows blocks =
             List.range minRow maxRow
                 |> List.map
                     (\row ->
-                        List.filter (\(Block b) -> b.row == row) blocks
+                        List.filter (\block -> block.row == row) blocks
                             |> (\bs -> ( row, List.length bs ))
                     )
     in
@@ -1011,15 +1010,11 @@ removeRow : Int -> List Block -> List Block
 removeRow row blocks =
     let
         remainingBlocks =
-            List.filter (\(Block b) -> b.row /= row) blocks
+            List.filter (\block -> block.row /= row) blocks
 
         translateIfNeeded block =
-            let
-                (Block b) =
-                    block
-            in
-            if b.row < row then
-                Block { b | row = b.row + 1 }
+            if block.row < row then
+                { block | row = block.row + 1 }
 
             else
                 block
@@ -1086,9 +1081,9 @@ shuffle list =
 collision : List Block -> CellOccupancy -> Bool
 collision blocks occupiedCells =
     let
-        blockCollision (Block { col, row }) =
-            not (0 <= col && col < game.columns && row < game.rows)
-                || Dict.member ( col, row ) occupiedCells
+        blockCollision block =
+            not (0 <= block.col && block.col < game.columns && block.row < game.rows)
+                || Dict.member ( block.col, block.row ) occupiedCells
     in
     List.any blockCollision blocks
 
@@ -1098,12 +1093,11 @@ translateBy translation tetromino =
     { tetromino
         | blocks =
             List.map
-                (\(Block b) ->
-                    Block
-                        { b
-                            | col = b.col + translation.col
-                            , row = b.row + translation.row
-                        }
+                (\block ->
+                    { block
+                        | col = block.col + translation.col
+                        , row = block.row + translation.row
+                    }
                 )
                 tetromino.blocks
         , pivot =
@@ -1124,16 +1118,15 @@ rotate direction tetromino =
                 Counterclockwise ->
                     -1
 
-        rotateBlock (Block b) =
-            Block
-                { b
-                    | col = round (tetromino.pivot.col - sign * (toFloat b.row - tetromino.pivot.row))
-                    , row = round (tetromino.pivot.row + sign * (toFloat b.col - tetromino.pivot.col))
-                }
+        rotateBlock block =
+            { block
+                | col = round (tetromino.pivot.col - sign * (toFloat block.row - tetromino.pivot.row))
+                , row = round (tetromino.pivot.row + sign * (toFloat block.col - tetromino.pivot.col))
+            }
     in
     { tetromino
         | blocks = List.map rotateBlock tetromino.blocks
-        , rotationState = nextRotationState tetromino.rotationState direction
+        , rotationState = calculateRotationState tetromino.rotationState direction
     }
 
 
@@ -1151,12 +1144,12 @@ centerHoriz tetromino =
 
 columnRange : List Block -> ( Int, Int )
 columnRange blocks =
-    range (\(Block { col }) -> col) blocks
+    range .col blocks
 
 
 rowRange : List Block -> ( Int, Int )
 rowRange blocks =
-    range (\(Block { row }) -> row) blocks
+    range .row blocks
 
 
 range : (Block -> Int) -> List Block -> ( Int, Int )
@@ -1179,10 +1172,10 @@ spawnTetromino shape =
     case shape of
         IShape ->
             { blocks =
-                [ Block { col = 0, row = 1, color = Cyan }
-                , Block { col = 1, row = 1, color = Cyan }
-                , Block { col = 2, row = 1, color = Cyan }
-                , Block { col = 3, row = 1, color = Cyan }
+                [ { col = 0, row = 1, color = Cyan }
+                , { col = 1, row = 1, color = Cyan }
+                , { col = 2, row = 1, color = Cyan }
+                , { col = 3, row = 1, color = Cyan }
                 ]
             , pivot = { col = 1.5, row = 1.5 }
             , shapeSize = Size4By1
@@ -1191,10 +1184,10 @@ spawnTetromino shape =
 
         JShape ->
             { blocks =
-                [ Block { col = 0, row = 0, color = Blue }
-                , Block { col = 0, row = 1, color = Blue }
-                , Block { col = 1, row = 1, color = Blue }
-                , Block { col = 2, row = 1, color = Blue }
+                [ { col = 0, row = 0, color = Blue }
+                , { col = 0, row = 1, color = Blue }
+                , { col = 1, row = 1, color = Blue }
+                , { col = 2, row = 1, color = Blue }
                 ]
             , pivot = { col = 1, row = 1 }
             , shapeSize = Size3By2
@@ -1203,10 +1196,10 @@ spawnTetromino shape =
 
         LShape ->
             { blocks =
-                [ Block { col = 2, row = 0, color = Orange }
-                , Block { col = 0, row = 1, color = Orange }
-                , Block { col = 1, row = 1, color = Orange }
-                , Block { col = 2, row = 1, color = Orange }
+                [ { col = 2, row = 0, color = Orange }
+                , { col = 0, row = 1, color = Orange }
+                , { col = 1, row = 1, color = Orange }
+                , { col = 2, row = 1, color = Orange }
                 ]
             , pivot = { col = 1, row = 1 }
             , shapeSize = Size3By2
@@ -1215,10 +1208,10 @@ spawnTetromino shape =
 
         OShape ->
             { blocks =
-                [ Block { col = 0, row = 0, color = Yellow }
-                , Block { col = 1, row = 0, color = Yellow }
-                , Block { col = 0, row = 1, color = Yellow }
-                , Block { col = 1, row = 1, color = Yellow }
+                [ { col = 0, row = 0, color = Yellow }
+                , { col = 1, row = 0, color = Yellow }
+                , { col = 0, row = 1, color = Yellow }
+                , { col = 1, row = 1, color = Yellow }
                 ]
             , pivot = { col = 0.5, row = 0.5 }
             , shapeSize = Size2By2
@@ -1227,10 +1220,10 @@ spawnTetromino shape =
 
         SShape ->
             { blocks =
-                [ Block { col = 1, row = 0, color = Green }
-                , Block { col = 2, row = 0, color = Green }
-                , Block { col = 0, row = 1, color = Green }
-                , Block { col = 1, row = 1, color = Green }
+                [ { col = 1, row = 0, color = Green }
+                , { col = 2, row = 0, color = Green }
+                , { col = 0, row = 1, color = Green }
+                , { col = 1, row = 1, color = Green }
                 ]
             , pivot = { col = 1, row = 1 }
             , shapeSize = Size3By2
@@ -1239,10 +1232,10 @@ spawnTetromino shape =
 
         TShape ->
             { blocks =
-                [ Block { col = 1, row = 0, color = Purple }
-                , Block { col = 0, row = 1, color = Purple }
-                , Block { col = 1, row = 1, color = Purple }
-                , Block { col = 2, row = 1, color = Purple }
+                [ { col = 1, row = 0, color = Purple }
+                , { col = 0, row = 1, color = Purple }
+                , { col = 1, row = 1, color = Purple }
+                , { col = 2, row = 1, color = Purple }
                 ]
             , pivot = { col = 1, row = 1 }
             , shapeSize = Size3By2
@@ -1251,10 +1244,10 @@ spawnTetromino shape =
 
         ZShape ->
             { blocks =
-                [ Block { col = 0, row = 0, color = Red }
-                , Block { col = 1, row = 0, color = Red }
-                , Block { col = 1, row = 1, color = Red }
-                , Block { col = 2, row = 1, color = Red }
+                [ { col = 0, row = 0, color = Red }
+                , { col = 1, row = 0, color = Red }
+                , { col = 1, row = 1, color = Red }
+                , { col = 2, row = 1, color = Red }
                 ]
             , pivot = { col = 1, row = 1 }
             , shapeSize = Size3By2
@@ -1262,8 +1255,8 @@ spawnTetromino shape =
             }
 
 
-nextRotationState : RotationState -> RotationDirection -> RotationState
-nextRotationState currentRotationState direction =
+calculateRotationState : RotationState -> RotationDirection -> RotationState
+calculateRotationState currentRotationState direction =
     case ( currentRotationState, direction ) of
         ( RotationState0, Clockwise ) ->
             RotationStateR
@@ -1470,22 +1463,20 @@ viewBlocks blocks =
     g
         []
         (List.filter
-            (\(Block { col, row }) ->
-                0 <= col && col < game.columns && 0 <= row && row < game.rows
-            )
+            (\block -> 0 <= block.col && block.col < game.columns && 0 <= block.row && block.row < game.rows)
             blocks
             |> List.map (lazy viewBlock)
         )
 
 
 viewBlock : Block -> Svg Msg
-viewBlock (Block b) =
+viewBlock block =
     rect
-        [ x (String.fromFloat (toFloat b.col * blockStyle.size + blockStyle.borderWidth / 2))
-        , y (String.fromFloat (toFloat b.row * blockStyle.size + blockStyle.borderWidth / 2))
+        [ x (String.fromFloat (toFloat block.col * blockStyle.size + blockStyle.borderWidth / 2))
+        , y (String.fromFloat (toFloat block.row * blockStyle.size + blockStyle.borderWidth / 2))
         , width (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
         , height (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
-        , fill (colorToHex b.color)
+        , fill (colorToHex block.color)
         , stroke "white"
         , strokeWidth (String.fromFloat blockStyle.borderWidth)
         ]
