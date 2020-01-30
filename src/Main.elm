@@ -89,7 +89,7 @@ type
 
 type alias Tetromino =
     { blocks : List Block
-    , pivot : ( Float, Float )
+    , pivot : { col : Float, row : Float }
     , shapeSize : ShapeSize
     , rotationState : RotationState
     }
@@ -1086,26 +1086,21 @@ collision blocks occupiedCells =
 
 shiftBy : ( Int, Int ) -> Tetromino -> Tetromino
 shiftBy ( colDelta, rowDelta ) tetromino =
-    let
-        ( colPivot, rowPivot ) =
-            tetromino.pivot
-    in
     { tetromino
         | blocks =
             List.map
                 (\(Block b) -> Block { b | col = b.col + colDelta, row = b.row + rowDelta })
                 tetromino.blocks
         , pivot =
-            ( colPivot + toFloat colDelta, rowPivot + toFloat rowDelta )
+            { col = tetromino.pivot.col + toFloat colDelta
+            , row = tetromino.pivot.row + toFloat rowDelta
+            }
     }
 
 
 rotate : RotationDirection -> Tetromino -> Tetromino
 rotate direction tetromino =
     let
-        ( pivotCol, pivotRow ) =
-            tetromino.pivot
-
         sign =
             case direction of
                 Clockwise ->
@@ -1117,8 +1112,8 @@ rotate direction tetromino =
         rotateBlock (Block b) =
             Block
                 { b
-                    | col = round (pivotCol - sign * (toFloat b.row - pivotRow))
-                    , row = round (pivotRow + sign * (toFloat b.col - pivotCol))
+                    | col = round (tetromino.pivot.col - sign * (toFloat b.row - tetromino.pivot.row))
+                    , row = round (tetromino.pivot.row + sign * (toFloat b.col - tetromino.pivot.col))
                 }
     in
     { tetromino
@@ -1174,7 +1169,7 @@ spawnTetromino shape =
                 , Block { col = 2, row = 1, color = Cyan }
                 , Block { col = 3, row = 1, color = Cyan }
                 ]
-            , pivot = ( 1.5, 1.5 )
+            , pivot = { col = 1.5, row = 1.5 }
             , shapeSize = Size4By1
             , rotationState = RotationState0
             }
@@ -1186,7 +1181,7 @@ spawnTetromino shape =
                 , Block { col = 1, row = 1, color = Blue }
                 , Block { col = 2, row = 1, color = Blue }
                 ]
-            , pivot = ( 1, 1 )
+            , pivot = { col = 1, row = 1 }
             , shapeSize = Size3By2
             , rotationState = RotationState0
             }
@@ -1198,7 +1193,7 @@ spawnTetromino shape =
                 , Block { col = 1, row = 1, color = Orange }
                 , Block { col = 2, row = 1, color = Orange }
                 ]
-            , pivot = ( 1, 1 )
+            , pivot = { col = 1, row = 1 }
             , shapeSize = Size3By2
             , rotationState = RotationState0
             }
@@ -1210,7 +1205,7 @@ spawnTetromino shape =
                 , Block { col = 0, row = 1, color = Yellow }
                 , Block { col = 1, row = 1, color = Yellow }
                 ]
-            , pivot = ( 0.5, 0.5 )
+            , pivot = { col = 0.5, row = 0.5 }
             , shapeSize = Size2By2
             , rotationState = RotationState0
             }
@@ -1222,7 +1217,7 @@ spawnTetromino shape =
                 , Block { col = 0, row = 1, color = Green }
                 , Block { col = 1, row = 1, color = Green }
                 ]
-            , pivot = ( 1, 1 )
+            , pivot = { col = 1, row = 1 }
             , shapeSize = Size3By2
             , rotationState = RotationState0
             }
@@ -1234,7 +1229,7 @@ spawnTetromino shape =
                 , Block { col = 1, row = 1, color = Purple }
                 , Block { col = 2, row = 1, color = Purple }
                 ]
-            , pivot = ( 1, 1 )
+            , pivot = { col = 1, row = 1 }
             , shapeSize = Size3By2
             , rotationState = RotationState0
             }
@@ -1246,7 +1241,7 @@ spawnTetromino shape =
                 , Block { col = 1, row = 1, color = Red }
                 , Block { col = 2, row = 1, color = Red }
                 ]
-            , pivot = ( 1, 1 )
+            , pivot = { col = 1, row = 1 }
             , shapeSize = Size3By2
             , rotationState = RotationState0
             }
