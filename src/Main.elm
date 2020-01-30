@@ -143,11 +143,7 @@ init _ =
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
       , dropAnimationTimer = Nothing
-      , lockDelay =
-            { timer = Nothing
-            , movesRemaining = 0
-            , maxRowReached = game.rows
-            }
+      , lockDelay = initLockDelay
       , fullRowsDelayTimer = Nothing
       , screen = PlayScreen
       , settings =
@@ -158,6 +154,14 @@ init _ =
       }
     , triggerMessage NewShape
     )
+
+
+initLockDelay : LockDelay
+initLockDelay =
+    { timer = Nothing
+    , movesRemaining = 0
+    , maxRowReached = game.rows
+    }
 
 
 
@@ -928,11 +932,7 @@ updateForDropAndLock model =
             ( { model
                 | fallingPiece = Just droppedPiece
                 , ghostPiece = calculateGhostPiece droppedPiece.blocks model.occupiedCells
-                , lockDelay =
-                    { timer = Nothing
-                    , movesRemaining = 0
-                    , maxRowReached = game.rows
-                    }
+                , lockDelay = initLockDelay
               }
             , triggerMessage LockToBottom
             )
