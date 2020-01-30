@@ -97,7 +97,7 @@ type alias CellOccupancy =
 
 type Screen
     = PlayScreen
-    | CountdownScreen (Maybe Float) (Cmd Msg)
+    | CountdownScreen { timer : Maybe Float, afterCmd : Cmd Msg }
     | GameOverDialog
     | RestartDialog
     | PauseDialog
@@ -212,8 +212,8 @@ update msg model =
                 PlayScreen ->
                     updatePlayScreen msg model
 
-                CountdownScreen timer playScreenCmd ->
-                    updateCountdownScreen timer playScreenCmd msg model
+                CountdownScreen { timer, afterCmd } ->
+                    updateCountdownScreen timer afterCmd msg model
 
                 GameOverDialog ->
                     updateGameOverDialog msg model
@@ -350,7 +350,7 @@ updateForLevelChange level model =
 
 
 updateCountdownScreen : Maybe Float -> Cmd Msg -> Msg -> Model -> ( Model, Cmd Msg )
-updateCountdownScreen timer playScreenCmd msg model =
+updateCountdownScreen timer afterCmd msg model =
     case msg of
         AnimationFrame timeDelta ->
             case timer of
@@ -363,7 +363,13 @@ updateCountdownScreen timer playScreenCmd msg model =
                                 Nothing
                                 StopCountdown
                     in
-                    ( { model | screen = CountdownScreen updatedTimer playScreenCmd }
+                    ( { model
+                        | screen =
+                            CountdownScreen
+                                { timer = updatedTimer
+                                , afterCmd = afterCmd
+                                }
+                      }
                     , cmd
                     )
 
@@ -374,7 +380,7 @@ updateCountdownScreen timer playScreenCmd msg model =
 
         StopCountdown ->
             ( { model | screen = PlayScreen }
-            , playScreenCmd
+            , afterCmd
             )
 
         _ ->
@@ -1015,8 +1021,9 @@ updateForRestart model =
     ( { initModel
         | screen =
             CountdownScreen
-                (interval Countdown model.settings.level)
-                initCmd
+                { timer = interval Countdown model.settings.level
+                , afterCmd = initCmd
+                }
         , settings = model.settings
       }
     , Cmd.none
@@ -1028,8 +1035,9 @@ updateForUnpause model =
     ( { model
         | screen =
             CountdownScreen
-                (interval Countdown model.settings.level)
-                Cmd.none
+                { timer = interval Countdown model.settings.level
+                , afterCmd = Cmd.none
+                }
       }
     , Cmd.none
     )
@@ -1277,7 +1285,7 @@ subscriptions model =
             PlayScreen ->
                 Browser.Events.onAnimationFrameDelta AnimationFrame
 
-            CountdownScreen _ _ ->
+            CountdownScreen _ ->
                 Browser.Events.onAnimationFrameDelta AnimationFrame
 
             _ ->
@@ -1546,7 +1554,7 @@ viewDialogIfAny screen =
         PlayScreen ->
             g [] []
 
-        CountdownScreen timer _ ->
+        CountdownScreen { timer } ->
             viewCountdownScreen timer
 
         GameOverDialog ->
