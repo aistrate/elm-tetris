@@ -121,9 +121,11 @@ type alias Model =
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
     , dropAnimationTimer : Maybe Float
-    , lockDelayTimer : Maybe Float
-    , lockDelayMovesRemaining : Int
-    , maxRowReached : Int
+    , lockDelay :
+        { timer : Maybe Float
+        , movesRemaining : Int
+        , maxRowReached : Int
+        }
     , fullRowsDelayTimer : Maybe Float
     , screen : Screen
     , settings : Settings
@@ -138,9 +140,11 @@ init _ =
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
       , dropAnimationTimer = Nothing
-      , lockDelayTimer = Nothing
-      , lockDelayMovesRemaining = 0
-      , maxRowReached = 0
+      , lockDelay =
+            { timer = Nothing
+            , movesRemaining = 0
+            , maxRowReached = game.rows
+            }
       , fullRowsDelayTimer = Nothing
       , screen = PlayScreen
       , settings =
@@ -518,7 +522,7 @@ updateForSpawn shape model =
                     , dRow = spawningRow model.settings.level
                     }
 
-        ( _, maxRowReached ) =
+        ( _, pieceBottomRow ) =
             rowRange spawnedPiece.blocks
 
         gameOver =
@@ -541,9 +545,11 @@ updateForSpawn shape model =
         | fallingPiece = fallingPiece
         , ghostPiece = ghostPiece
         , dropAnimationTimer = interval DropAnimationOnSpawning model.settings.level
-        , lockDelayTimer = interval LockDelay model.settings.level
-        , lockDelayMovesRemaining = maxLockDelayMoves
-        , maxRowReached = maxRowReached
+        , lockDelay =
+            { timer = interval LockDelay model.settings.level
+            , movesRemaining = maxLockDelayMoves
+            , maxRowReached = pieceBottomRow
+            }
         , fullRowsDelayTimer = Nothing
         , screen = screen
       }
@@ -563,7 +569,7 @@ updateForAnimationFrame timeDelta model =
 
         ( lockDelayTimer, lockDelayCmd ) =
             updateTimer
-                model.lockDelayTimer
+                model.lockDelay.timer
                 timeDelta
                 Nothing
                 LockToBottom
@@ -574,10 +580,13 @@ updateForAnimationFrame timeDelta model =
                 timeDelta
                 Nothing
                 RemoveFullRows
+
+        lockDelay =
+            model.lockDelay
     in
     ( { model
         | dropAnimationTimer = dropAnimationTimer
-        , lockDelayTimer = lockDelayTimer
+        , lockDelay = { lockDelay | timer = lockDelayTimer }
         , fullRowsDelayTimer = fullRowsDelayTimer
       }
     , Cmd.batch [ dropAnimationCmd, lockDelayCmd, fullRowsDelayCmd ]
@@ -699,28 +708,28 @@ updateForMove move alternativeTranslations model =
             case maybeMovedPiece of
                 Just movedPiece ->
                     let
-                        ( _, bottomRow ) =
+                        ( _, pieceBottomRow ) =
                             rowRange movedPiece.blocks
 
                         maxRowReached =
-                            Basics.max bottomRow model.maxRowReached
+                            Basics.max pieceBottomRow model.lockDelay.maxRowReached
 
-                        ( lockDelayMovesRemaining, lockDelayTimer, command ) =
-                            if maxRowReached > model.maxRowReached then
+                        ( movesRemaining, lockDelayTimer, command ) =
+                            if maxRowReached > model.lockDelay.maxRowReached then
                                 ( maxLockDelayMoves
                                 , interval LockDelay model.settings.level
                                 , Cmd.none
                                 )
 
-                            else if model.lockDelayMovesRemaining > 0 then
-                                ( model.lockDelayMovesRemaining - 1
+                            else if model.lockDelay.movesRemaining > 0 then
+                                ( model.lockDelay.movesRemaining - 1
                                 , interval LockDelay model.settings.level
                                 , Cmd.none
                                 )
 
-                            else if model.lockDelayTimer /= Nothing then
+                            else if model.lockDelay.timer /= Nothing then
                                 ( 0
-                                , model.lockDelayTimer
+                                , model.lockDelay.timer
                                 , Cmd.none
                                 )
 
@@ -733,9 +742,11 @@ updateForMove move alternativeTranslations model =
                     ( { model
                         | fallingPiece = Just movedPiece
                         , ghostPiece = calculateGhostPiece movedPiece.blocks model.occupiedCells
-                        , lockDelayTimer = lockDelayTimer
-                        , lockDelayMovesRemaining = lockDelayMovesRemaining
-                        , maxRowReached = maxRowReached
+                        , lockDelay =
+                            { timer = lockDelayTimer
+                            , movesRemaining = movesRemaining
+                            , maxRowReached = maxRowReached
+                            }
                       }
                     , command
                     )
@@ -900,7 +911,11 @@ updateForDropAndLock model =
             ( { model
                 | fallingPiece = Just droppedPiece
                 , ghostPiece = calculateGhostPiece droppedPiece.blocks model.occupiedCells
-                , lockDelayTimer = Nothing
+                , lockDelay =
+                    { timer = Nothing
+                    , movesRemaining = 0
+                    , maxRowReached = game.rows
+                    }
               }
             , triggerMessage LockToBottom
             )
@@ -919,7 +934,7 @@ updateForLockToBottom model =
                 hasReachedBottom =
                     vertDistance fallingPiece.blocks model.ghostPiece == 0
             in
-            if hasReachedBottom && model.lockDelayTimer == Nothing then
+            if hasReachedBottom && model.lockDelay.timer == Nothing then
                 let
                     bottomBlocks =
                         model.bottomBlocks ++ fallingPiece.blocks
