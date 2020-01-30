@@ -72,6 +72,12 @@ type Block
         }
 
 
+type alias Translation =
+    { col : Int
+    , row : Int
+    }
+
+
 type ShapeSize
     = Size2By2
     | Size3By2
@@ -250,13 +256,13 @@ updatePlayScreen msg model =
             updateForAnimationFrame timeDelta model
 
         MoveDown ->
-            updateForMove (shiftBy ( 0, 1 )) noAlternatives model
+            updateForMove (translateBy { col = 0, row = 1 }) noAlternatives model
 
         MoveLeft ->
-            updateForMove (shiftBy ( -1, 0 )) noAlternatives model
+            updateForMove (translateBy { col = -1, row = 0 }) noAlternatives model
 
         MoveRight ->
-            updateForMove (shiftBy ( 1, 0 )) noAlternatives model
+            updateForMove (translateBy { col = 1, row = 0 }) noAlternatives model
 
         RotateClockwise ->
             updateForMove (rotate Clockwise) (wallKickAlternatives Clockwise) model
@@ -508,7 +514,10 @@ updateForSpawn shape model =
         spawnedPiece =
             spawnTetromino shape
                 |> centerHoriz
-                |> shiftBy ( 0, spawningRow model.settings.level )
+                |> translateBy
+                    { col = 0
+                    , row = spawningRow model.settings.level
+                    }
 
         ( _, maxRowReached ) =
             rowRange spawnedPiece.blocks
@@ -677,7 +686,7 @@ triggerMessage msg =
     Task.perform (always msg) (Task.succeed ())
 
 
-updateForMove : (Tetromino -> Tetromino) -> (Tetromino -> List ( Int, Int )) -> Model -> ( Model, Cmd Msg )
+updateForMove : (Tetromino -> Tetromino) -> (Tetromino -> List Translation) -> Model -> ( Model, Cmd Msg )
 updateForMove move alternativeTranslations model =
     case model.fallingPiece of
         Just fallingPiece ->
@@ -743,13 +752,13 @@ updateForMove move alternativeTranslations model =
             )
 
 
-firstViableAlternative : List ( Int, Int ) -> Tetromino -> CellOccupancy -> Maybe Tetromino
+firstViableAlternative : List Translation -> Tetromino -> CellOccupancy -> Maybe Tetromino
 firstViableAlternative translations tetromino occupiedCells =
     case translations of
-        firstTranslation :: remainingTranslations ->
+        translation :: remainingTranslations ->
             let
                 alternative =
-                    shiftBy firstTranslation tetromino
+                    translateBy translation tetromino
             in
             if not (collision alternative.blocks occupiedCells) then
                 Just alternative
@@ -761,16 +770,16 @@ firstViableAlternative translations tetromino occupiedCells =
             Nothing
 
 
-noAlternatives : Tetromino -> List ( Int, Int )
+noAlternatives : Tetromino -> List Translation
 noAlternatives _ =
-    [ ( 0, 0 ) ]
+    [ { col = 0, row = 0 } ]
 
 
 
 -- See https://tetris.wiki/Super_Rotation_System for details on tetromino Wall Kicks after rotation
 
 
-wallKickAlternatives : RotationDirection -> Tetromino -> List ( Int, Int )
+wallKickAlternatives : RotationDirection -> Tetromino -> List Translation
 wallKickAlternatives direction tetromino =
     let
         alternatives =
@@ -832,7 +841,7 @@ wallKickAlternatives direction tetromino =
                 ( Size2By2, _, _ ) ->
                     [ ( 0, 0 ) ]
     in
-    List.map (\( col, row ) -> ( col, -row )) alternatives
+    List.map (\( col, row ) -> { col = col, row = -row }) alternatives
 
 
 calculateGhostPiece : List Block -> CellOccupancy -> List Block
@@ -860,13 +869,13 @@ calculateGhostPiece blocks occupiedCells =
         []
 
 
-shiftVertToTarget : Tetromino -> List Block -> Tetromino
-shiftVertToTarget tetromino target =
+translateVertToTarget : Tetromino -> List Block -> Tetromino
+translateVertToTarget tetromino target =
     let
         rowDelta =
             vertDistance tetromino.blocks target
     in
-    shiftBy ( 0, rowDelta ) tetromino
+    translateBy { col = 0, row = rowDelta } tetromino
 
 
 vertDistance : List Block -> List Block -> Int
@@ -887,7 +896,7 @@ updateForDropAndLock model =
         Just fallingPiece ->
             let
                 droppedPiece =
-                    shiftVertToTarget fallingPiece model.ghostPiece
+                    translateVertToTarget fallingPiece model.ghostPiece
             in
             ( { model
                 | fallingPiece = Just droppedPiece
@@ -1004,7 +1013,7 @@ removeRow row blocks =
         remainingBlocks =
             List.filter (\(Block b) -> b.row /= row) blocks
 
-        shiftBlock block =
+        translateIfNeeded block =
             let
                 (Block b) =
                     block
@@ -1015,7 +1024,7 @@ removeRow row blocks =
             else
                 block
     in
-    List.map shiftBlock remainingBlocks
+    List.map translateIfNeeded remainingBlocks
 
 
 updateForRestart : Model -> ( Model, Cmd Msg )
@@ -1084,16 +1093,22 @@ collision blocks occupiedCells =
     List.any blockCollision blocks
 
 
-shiftBy : ( Int, Int ) -> Tetromino -> Tetromino
-shiftBy ( colDelta, rowDelta ) tetromino =
+translateBy : Translation -> Tetromino -> Tetromino
+translateBy translation tetromino =
     { tetromino
         | blocks =
             List.map
-                (\(Block b) -> Block { b | col = b.col + colDelta, row = b.row + rowDelta })
+                (\(Block b) ->
+                    Block
+                        { b
+                            | col = b.col + translation.col
+                            , row = b.row + translation.row
+                        }
+                )
                 tetromino.blocks
         , pivot =
-            { col = tetromino.pivot.col + toFloat colDelta
-            , row = tetromino.pivot.row + toFloat rowDelta
+            { col = tetromino.pivot.col + toFloat translation.col
+            , row = tetromino.pivot.row + toFloat translation.row
             }
     }
 
@@ -1125,13 +1140,13 @@ rotate direction tetromino =
 centerHoriz : Tetromino -> Tetromino
 centerHoriz tetromino =
     let
-        ( min, max ) =
+        ( minCol, maxCol ) =
             columnRange tetromino.blocks
 
-        delta =
-            -min + (game.columns - (max - min + 1)) // 2
+        colDelta =
+            -minCol + (game.columns - (maxCol - minCol + 1)) // 2
     in
-    shiftBy ( delta, 0 ) tetromino
+    translateBy { col = colDelta, row = 0 } tetromino
 
 
 columnRange : List Block -> ( Int, Int )
