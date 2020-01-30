@@ -98,6 +98,13 @@ type alias CellOccupancy =
     Dict ( Int, Int ) ()
 
 
+type alias LockDelayInfo =
+    { timer : Maybe Float
+    , movesRemaining : Int
+    , maxRowReached : Int
+    }
+
+
 type Screen
     = PlayScreen
     | CountdownScreen { timer : Maybe Float, afterCmd : Cmd Msg }
@@ -121,11 +128,7 @@ type alias Model =
     , bottomBlocks : List Block
     , occupiedCells : CellOccupancy
     , dropAnimationTimer : Maybe Float
-    , lockDelay :
-        { timer : Maybe Float
-        , movesRemaining : Int
-        , maxRowReached : Int
-        }
+    , lockDelay : LockDelayInfo
     , fullRowsDelayTimer : Maybe Float
     , screen : Screen
     , settings : Settings
@@ -711,42 +714,13 @@ updateForMove move alternativeTranslations model =
                         ( _, pieceBottomRow ) =
                             rowRange movedPiece.blocks
 
-                        maxRowReached =
-                            Basics.max pieceBottomRow model.lockDelay.maxRowReached
-
-                        ( movesRemaining, lockDelayTimer, command ) =
-                            if maxRowReached > model.lockDelay.maxRowReached then
-                                ( maxLockDelayMoves
-                                , interval LockDelay model.settings.level
-                                , Cmd.none
-                                )
-
-                            else if model.lockDelay.movesRemaining > 0 then
-                                ( model.lockDelay.movesRemaining - 1
-                                , interval LockDelay model.settings.level
-                                , Cmd.none
-                                )
-
-                            else if model.lockDelay.timer /= Nothing then
-                                ( 0
-                                , model.lockDelay.timer
-                                , Cmd.none
-                                )
-
-                            else
-                                ( 0
-                                , Nothing
-                                , triggerMessage LockToBottom
-                                )
+                        ( lockDelay, command ) =
+                            updateLockDelayAfterMove pieceBottomRow model.settings.level model.lockDelay
                     in
                     ( { model
                         | fallingPiece = Just movedPiece
                         , ghostPiece = calculateGhostPiece movedPiece.blocks model.occupiedCells
-                        , lockDelay =
-                            { timer = lockDelayTimer
-                            , movesRemaining = movesRemaining
-                            , maxRowReached = maxRowReached
-                            }
+                        , lockDelay = lockDelay
                       }
                     , command
                     )
@@ -760,6 +734,45 @@ updateForMove move alternativeTranslations model =
             ( model
             , Cmd.none
             )
+
+
+updateLockDelayAfterMove : Int -> Int -> LockDelayInfo -> ( LockDelayInfo, Cmd Msg )
+updateLockDelayAfterMove pieceBottomRow level lockDelay =
+    let
+        maxRowReached =
+            Basics.max pieceBottomRow lockDelay.maxRowReached
+
+        ( movesRemaining, timer, command ) =
+            if maxRowReached > lockDelay.maxRowReached then
+                ( maxLockDelayMoves
+                , interval LockDelay level
+                , Cmd.none
+                )
+
+            else if lockDelay.movesRemaining > 0 then
+                ( lockDelay.movesRemaining - 1
+                , interval LockDelay level
+                , Cmd.none
+                )
+
+            else if lockDelay.timer /= Nothing then
+                ( 0
+                , lockDelay.timer
+                , Cmd.none
+                )
+
+            else
+                ( 0
+                , Nothing
+                , triggerMessage LockToBottom
+                )
+    in
+    ( { timer = timer
+      , movesRemaining = movesRemaining
+      , maxRowReached = maxRowReached
+      }
+    , command
+    )
 
 
 firstViableAlternative : List Translation -> Tetromino -> CellOccupancy -> Maybe Tetromino
