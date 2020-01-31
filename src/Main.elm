@@ -434,7 +434,7 @@ updateForMove move alternativeTranslations model =
                             rowRange movedPiece.blocks
 
                         lockDelay =
-                            updateLockDelayAfterMove pieceBottomRow model.settings.level model.lockDelay
+                            updateLockDelay pieceBottomRow model.settings.level model.lockDelay
                     in
                     ( { model
                         | fallingPiece = Just movedPiece
@@ -455,8 +455,8 @@ updateForMove move alternativeTranslations model =
             )
 
 
-updateLockDelayAfterMove : Int -> Int -> LockDelay -> LockDelay
-updateLockDelayAfterMove pieceBottomRow level lockDelay =
+updateLockDelay : Int -> Int -> LockDelay -> LockDelay
+updateLockDelay pieceBottomRow level lockDelay =
     let
         maxRowReached =
             Basics.max pieceBottomRow lockDelay.maxRowReached
@@ -512,7 +512,7 @@ updateForDropAndLock model =
 
 zeroLockDelay : LockDelay
 zeroLockDelay =
-    -- lock immediately (if on the bottom now, or moving there later)
+    -- lock immediately (if on the bottom now, or when moving there later)
     { timer = Just 0
     , movesRemaining = 0
     , maxRowReached = game.rows
