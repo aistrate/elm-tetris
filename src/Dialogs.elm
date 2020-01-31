@@ -1,6 +1,9 @@
 module Dialogs exposing (..)
 
 import Common exposing (..)
+import Svg exposing (..)
+import Svg.Attributes exposing (..)
+import Svg.Lazy exposing (lazy)
 
 
 
@@ -159,3 +162,214 @@ updateHelpDialog returnScreen msg screen =
             ( screen
             , Cmd.none
             )
+
+
+
+-- VIEW
+
+
+viewDialogIfAny : Screen -> Svg Msg
+viewDialogIfAny screen =
+    case screen of
+        PlayScreen ->
+            g [] []
+
+        CountdownScreen { timer } ->
+            viewCountdownScreen timer
+
+        GameOverDialog ->
+            viewGameOverDialog
+
+        RestartDialog ->
+            viewRestartDialog
+
+        PauseDialog ->
+            viewPauseDialog
+
+        HelpDialog _ ->
+            viewHelpDialog
+
+
+viewCountdownScreen : Maybe Float -> Svg Msg
+viewCountdownScreen timer =
+    let
+        countdown =
+            ceiling (Maybe.withDefault 0 timer / 1000)
+    in
+    g
+        []
+        [ viewDialogOverlay
+        , lazy viewCountdownText countdown
+        ]
+
+
+viewCountdownText : Int -> Svg Msg
+viewCountdownText countdown =
+    text_
+        []
+        [ tspan
+            [ x (String.fromFloat middleBoardX)
+            , y (String.fromFloat (toFloat game.rows * blockStyle.size / 2))
+            , textAnchor "middle"
+            , dominantBaseline "middle"
+            , fontSize (String.fromFloat (blockStyle.size * 3))
+            , fontWeight "bold"
+            ]
+            [ text
+                (if countdown > 0 then
+                    String.fromInt countdown
+
+                 else
+                    " "
+                )
+            ]
+        ]
+
+
+type DialogTextLine
+    = LargeText String
+    | Shortcut String String
+    | EmptyLine
+
+
+viewGameOverDialog : Svg Msg
+viewGameOverDialog =
+    viewDialog
+        [ LargeText "Game Over"
+        , EmptyLine
+        , LargeText "Restart? (Y/N)"
+        ]
+
+
+viewRestartDialog : Svg Msg
+viewRestartDialog =
+    viewDialog
+        [ LargeText "Restart? (Y/N)"
+        ]
+
+
+viewPauseDialog : Svg Msg
+viewPauseDialog =
+    viewDialog
+        [ LargeText "Paused"
+        , EmptyLine
+        , LargeText "Press Esc or P to continue"
+        ]
+
+
+viewHelpDialog : Svg Msg
+viewHelpDialog =
+    viewDialog
+        [ Shortcut "Arrow Left" "Move left"
+        , Shortcut "Arrow Right" "Move right"
+        , Shortcut "Arrow Down" "Move down"
+        , EmptyLine
+        , Shortcut "Arrow Up or X" "Rotate clockwise"
+        , Shortcut "Ctrl or Z" "Rotate counterclockwise"
+        , EmptyLine
+        , Shortcut "Space" "Drop"
+        , EmptyLine
+        , Shortcut "Esc or P" "Pause"
+        , Shortcut "R" "Restart"
+        , EmptyLine
+        , Shortcut "+" ("Level up (0 - " ++ String.fromInt maxLevel ++ ")")
+        , Shortcut "-" "Level down"
+        , EmptyLine
+        , Shortcut "G" "Ghost piece"
+        , Shortcut "V" "Vertical stripes"
+        , EmptyLine
+        , LargeText "Press Esc or H to exit"
+        ]
+
+
+viewDialog : List DialogTextLine -> Svg Msg
+viewDialog textLines =
+    let
+        vertCenteredFirstRow =
+            (game.rows - List.length textLines) // 2
+
+        firstLineY =
+            String.fromFloat ((toFloat vertCenteredFirstRow + 0.8) * blockStyle.size)
+
+        nextLineDy =
+            String.fromFloat blockStyle.size
+    in
+    g
+        []
+        [ viewDialogOverlay
+        , text_
+            []
+            (List.indexedMap
+                (\idx textLine ->
+                    let
+                        yCoord =
+                            if idx == 0 then
+                                y firstLineY
+
+                            else
+                                dy nextLineDy
+                    in
+                    viewDialogTextLine yCoord textLine
+                )
+                textLines
+            )
+        ]
+
+
+viewDialogTextLine : Attribute Msg -> DialogTextLine -> Svg Msg
+viewDialogTextLine yCoord textLine =
+    case textLine of
+        LargeText largeText ->
+            tspan
+                [ x (String.fromFloat middleBoardX)
+                , yCoord
+                , textAnchor "middle"
+                , fontSize (String.fromFloat (blockStyle.size * 0.65))
+                , fontWeight "bold"
+                ]
+                [ text largeText
+                ]
+
+        Shortcut key description ->
+            tspan
+                [ yCoord
+                , fontSize (String.fromFloat (blockStyle.size * 0.5))
+                ]
+                [ tspan
+                    [ x (String.fromFloat (blockStyle.size * 0.25))
+                    ]
+                    [ text key
+                    ]
+                , tspan
+                    [ x (String.fromFloat (blockStyle.size * 4.25))
+                    ]
+                    [ text description
+                    ]
+                ]
+
+        EmptyLine ->
+            tspan
+                [ x "0"
+                , yCoord
+                , fontSize "10"
+                ]
+                [ text " "
+                ]
+
+
+viewDialogOverlay : Svg Msg
+viewDialogOverlay =
+    rect
+        [ x (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding))
+        , y (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding))
+        , width (String.fromFloat boardWidth)
+        , height (String.fromFloat boardHeight)
+        , fill "white"
+        , opacity "0.7"
+        ]
+        []
+
+
+middleBoardX : Float
+middleBoardX =
+    toFloat game.columns * blockStyle.size / 2

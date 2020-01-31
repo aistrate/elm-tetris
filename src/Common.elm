@@ -4,6 +4,17 @@ import Shape exposing (..)
 import Task
 
 
+game : { columns : Int, rows : Int }
+game =
+    { columns = 10
+    , rows = 20
+    }
+
+
+
+-- UPDATE
+
+
 type Msg
     = NewShape
     | ShapeBag (List Shape)
@@ -42,11 +53,6 @@ type Screen
     | HelpDialog { returnScreen : Screen }
 
 
-triggerMessage : Msg -> Cmd Msg
-triggerMessage msg =
-    Task.perform (always msg) (Task.succeed ())
-
-
 updateTimer : Maybe Float -> Float -> Maybe Float -> Msg -> ( Maybe Float, Cmd Msg )
 updateTimer currentValue timeDelta resetValue message =
     case currentValue of
@@ -65,3 +71,46 @@ updateTimer currentValue timeDelta resetValue message =
             ( Nothing
             , Cmd.none
             )
+
+
+triggerMessage : Msg -> Cmd Msg
+triggerMessage msg =
+    Task.perform (always msg) (Task.succeed ())
+
+
+maxLevel : Int
+maxLevel =
+    12
+
+
+
+-- VIEW
+
+
+boardStyle =
+    { marginTop = 12.0
+    , borderWidth = 2.0
+    , padding = 1.5
+    , footerHeight = 100.0
+    }
+
+
+blockStyle =
+    { size = 35.0
+    , borderWidth = 0.5
+    }
+
+
+boardWidth : Float
+boardWidth =
+    boardSize game.columns
+
+
+boardHeight : Float
+boardHeight =
+    boardSize game.rows
+
+
+boardSize : Int -> Float
+boardSize blockCount =
+    toFloat blockCount * blockStyle.size + 2 * (boardStyle.borderWidth + boardStyle.padding)
