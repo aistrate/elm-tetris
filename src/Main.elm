@@ -7,13 +7,15 @@ import Block exposing (..)
 import Board exposing (..)
 import Browser
 import Browser.Events
+import Common exposing (..)
+import Dialogs exposing (..)
 import Dict exposing (Dict)
 import Json.Decode as Decode
 import Random
+import Shape exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (lazy, lazy2)
-import Task
 import Tetromino exposing (..)
 
 
@@ -63,15 +65,6 @@ type alias LockDelay =
     }
 
 
-type Screen
-    = PlayScreen
-    | CountdownScreen { timer : Maybe Float, afterCmd : Cmd Msg }
-    | GameOverDialog
-    | RestartDialog
-    | PauseDialog
-    | HelpDialog { returnScreen : Screen }
-
-
 type alias Settings =
     { level : Int
     , showGhostPiece : Bool
@@ -118,35 +111,6 @@ init _ =
 -- UPDATE
 
 
-type Msg
-    = NewShape
-    | ShapeBag (List Shape)
-    | Spawn Shape
-    | AnimationFrame Float
-    | MoveDown
-    | MoveLeft
-    | MoveRight
-    | RotateClockwise
-    | RotateCounterclockwise
-    | DropAndLock
-    | LockToBottom
-    | RemoveFullRows
-    | ToggleGhostPiece
-    | ToggleVerticalStripes
-    | ShowRestartDialog
-    | TogglePauseDialog
-    | ToggleHelpDialog
-    | AnswerYes
-    | AnswerNo
-    | Exit
-    | Restart
-    | Unpause
-    | StopCountdown
-    | LevelUp
-    | LevelDown
-    | OtherKey
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -157,24 +121,47 @@ update msg model =
             updateForLevelChange (model.settings.level - 1) model
 
         _ ->
-            case model.screen of
-                PlayScreen ->
-                    updatePlayScreen msg model
+            if model.screen == PlayScreen then
+                updatePlayScreen msg model
 
-                CountdownScreen { timer, afterCmd } ->
-                    updateCountdownScreen timer afterCmd msg model
+            else
+                let
+                    ( screen, cmd ) =
+                        updateDialog msg model.screen
+                in
+                ( { model | screen = screen }
+                , cmd
+                )
 
-                GameOverDialog ->
-                    updateGameOverDialog msg model
 
-                RestartDialog ->
-                    updateRestartDialog msg model
+updateForLevelChange : Int -> Model -> ( Model, Cmd Msg )
+updateForLevelChange level model =
+    let
+        settings =
+            model.settings
 
-                PauseDialog ->
-                    updatePauseDialog msg model
+        dropAnimationTimer =
+            if
+                settings.level
+                    == 0
+                    && level
+                    == 1
+                    && model.dropAnimationTimer
+                    == Nothing
+                    && model.fallingPiece
+                    /= Nothing
+            then
+                interval DropAnimationInterval level
 
-                HelpDialog { returnScreen } ->
-                    updateHelpDialog returnScreen msg model
+            else
+                model.dropAnimationTimer
+    in
+    ( { model
+        | settings = { settings | level = clamp 0 maxLevel level }
+        , dropAnimationTimer = dropAnimationTimer
+      }
+    , Cmd.none
+    )
 
 
 updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
@@ -283,171 +270,6 @@ updatePlayScreen msg model =
             )
 
 
-updateForLevelChange : Int -> Model -> ( Model, Cmd Msg )
-updateForLevelChange level model =
-    let
-        settings =
-            model.settings
-
-        dropAnimationTimer =
-            if
-                settings.level
-                    == 0
-                    && level
-                    == 1
-                    && model.dropAnimationTimer
-                    == Nothing
-                    && model.fallingPiece
-                    /= Nothing
-            then
-                interval DropAnimationInterval level
-
-            else
-                model.dropAnimationTimer
-    in
-    ( { model
-        | settings = { settings | level = clamp 0 maxLevel level }
-        , dropAnimationTimer = dropAnimationTimer
-      }
-    , Cmd.none
-    )
-
-
-updateCountdownScreen : Maybe Float -> Cmd Msg -> Msg -> Model -> ( Model, Cmd Msg )
-updateCountdownScreen timer afterCmd msg model =
-    case msg of
-        AnimationFrame timeDelta ->
-            case timer of
-                Just _ ->
-                    let
-                        ( updatedTimer, cmd ) =
-                            updateTimer
-                                timer
-                                timeDelta
-                                Nothing
-                                StopCountdown
-                    in
-                    ( { model
-                        | screen =
-                            CountdownScreen
-                                { timer = updatedTimer
-                                , afterCmd = afterCmd
-                                }
-                      }
-                    , cmd
-                    )
-
-                Nothing ->
-                    ( model
-                    , triggerMessage StopCountdown
-                    )
-
-        StopCountdown ->
-            ( { model | screen = PlayScreen }
-            , afterCmd
-            )
-
-        _ ->
-            ( model
-            , Cmd.none
-            )
-
-
-updateGameOverDialog : Msg -> Model -> ( Model, Cmd Msg )
-updateGameOverDialog msg model =
-    case msg of
-        AnswerYes ->
-            ( { model | screen = PlayScreen }
-            , triggerMessage Restart
-            )
-
-        ToggleHelpDialog ->
-            ( { model | screen = HelpDialog { returnScreen = model.screen } }
-            , Cmd.none
-            )
-
-        _ ->
-            ( model
-            , Cmd.none
-            )
-
-
-updateRestartDialog : Msg -> Model -> ( Model, Cmd Msg )
-updateRestartDialog msg model =
-    case msg of
-        AnswerYes ->
-            ( { model | screen = PlayScreen }
-            , triggerMessage Restart
-            )
-
-        AnswerNo ->
-            ( model
-            , triggerMessage Exit
-            )
-
-        Exit ->
-            ( { model | screen = PlayScreen }
-            , triggerMessage Unpause
-            )
-
-        ToggleHelpDialog ->
-            ( { model | screen = HelpDialog { returnScreen = model.screen } }
-            , Cmd.none
-            )
-
-        _ ->
-            ( model
-            , Cmd.none
-            )
-
-
-updatePauseDialog : Msg -> Model -> ( Model, Cmd Msg )
-updatePauseDialog msg model =
-    case msg of
-        TogglePauseDialog ->
-            ( model
-            , triggerMessage Exit
-            )
-
-        Exit ->
-            ( { model | screen = PlayScreen }
-            , triggerMessage Unpause
-            )
-
-        ToggleHelpDialog ->
-            ( { model | screen = HelpDialog { returnScreen = model.screen } }
-            , Cmd.none
-            )
-
-        _ ->
-            ( model
-            , Cmd.none
-            )
-
-
-updateHelpDialog : Screen -> Msg -> Model -> ( Model, Cmd Msg )
-updateHelpDialog returnScreen msg model =
-    case msg of
-        ToggleHelpDialog ->
-            ( model
-            , triggerMessage Exit
-            )
-
-        Exit ->
-            ( { model | screen = returnScreen }
-            , if returnScreen == PlayScreen then
-                triggerMessage Unpause
-
-              else
-                Cmd.none
-            )
-
-        _ ->
-            ( model
-            , Cmd.none
-            )
-
-
 updateForNewShape : Model -> ( Model, Cmd Msg )
 updateForNewShape model =
     case model.shapeBag of
@@ -548,26 +370,6 @@ updateForAnimationFrame timeDelta model =
     )
 
 
-updateTimer : Maybe Float -> Float -> Maybe Float -> Msg -> ( Maybe Float, Cmd Msg )
-updateTimer currentValue timeDelta resetValue message =
-    case currentValue of
-        Just value ->
-            if value - timeDelta <= 0 then
-                ( resetValue
-                , triggerMessage message
-                )
-
-            else
-                ( Just (value - timeDelta)
-                , Cmd.none
-                )
-
-        Nothing ->
-            ( Nothing
-            , Cmd.none
-            )
-
-
 type IntervalType
     = SpawningDropAnimationInterval
     | DropAnimationInterval
@@ -642,11 +444,6 @@ spawningRow level =
 maxLockDelayMoves : Int
 maxLockDelayMoves =
     15
-
-
-triggerMessage : Msg -> Cmd Msg
-triggerMessage msg =
-    Task.perform (always msg) (Task.succeed ())
 
 
 updateForMove : (Tetromino -> Tetromino) -> (Tetromino -> List Translation) -> Model -> ( Model, Cmd Msg )

@@ -1,7 +1,7 @@
 module Tetromino exposing (..)
 
 import Block exposing (..)
-import Random
+import Shape exposing (..)
 
 
 type alias Tetromino =
@@ -27,16 +27,6 @@ type
     | RotationStateL -- state resulting from a counter-clockwise ("left") rotation from spawn
 
 
-type Shape
-    = IShape
-    | JShape
-    | LShape
-    | OShape
-    | SShape
-    | TShape
-    | ZShape
-
-
 type alias Translation =
     { dCol : Int
     , dRow : Int
@@ -46,31 +36,6 @@ type alias Translation =
 type RotationDirection
     = Clockwise
     | Counterclockwise
-
-
-shapeBagGenerator : Random.Generator (List Shape)
-shapeBagGenerator =
-    shuffle [ IShape, JShape, LShape, OShape, SShape, TShape, ZShape ]
-
-
-shuffle : List a -> Random.Generator (List a)
-shuffle list =
-    case list of
-        [] ->
-            Random.constant []
-
-        head :: tail ->
-            Random.uniform head tail
-                |> Random.andThen
-                    (\item ->
-                        let
-                            remainingItems =
-                                List.filter (\i -> i /= item) list
-                        in
-                        Random.map2 (::)
-                            (Random.constant item)
-                            (shuffle remainingItems)
-                    )
 
 
 spawnTetromino : Shape -> Tetromino
