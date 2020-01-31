@@ -4,6 +4,7 @@
 module Main exposing (..)
 
 import Block exposing (..)
+import Board exposing (..)
 import Browser
 import Browser.Events
 import Dict exposing (Dict)
@@ -55,10 +56,6 @@ blockStyle =
 -- MODEL
 
 
-type alias CellOccupancy =
-    Dict ( Int, Int ) ()
-
-
 type alias LockDelay =
     { timer : Maybe Float
     , movesRemaining : Int
@@ -87,7 +84,7 @@ type alias Model =
     , fallingPiece : Maybe Tetromino
     , ghostPiece : List Block
     , bottomBlocks : List Block
-    , occupiedCells : CellOccupancy
+    , board : Board
     , dropAnimationTimer : Maybe Float
     , lockDelay : LockDelay
     , fullRowsDelayTimer : Maybe Float
@@ -102,7 +99,7 @@ init _ =
       , fallingPiece = Nothing
       , ghostPiece = []
       , bottomBlocks = []
-      , occupiedCells = Dict.fromList []
+      , board = createBoard game.columns game.rows []
       , dropAnimationTimer = Nothing
       , lockDelay = zeroLockDelay
       , fullRowsDelayTimer = Nothing
@@ -480,12 +477,12 @@ updateForSpawn shape model =
             rowRange spawnedPiece.blocks
 
         gameOver =
-            collision spawnedPiece.blocks model.occupiedCells
+            collision spawnedPiece.blocks model.board
 
         ( fallingPiece, ghostPiece, screen ) =
             if not gameOver then
                 ( Just spawnedPiece
-                , calculateGhostPiece spawnedPiece.blocks model.occupiedCells
+                , calculateGhostPiece spawnedPiece.blocks model.board
                 , PlayScreen
                 )
 
@@ -661,7 +658,7 @@ updateForMove move alternativeTranslations model =
                     firstViableAlternative
                         (alternativeTranslations fallingPiece)
                         (move fallingPiece)
-                        model.occupiedCells
+                        model.board
             in
             case maybeMovedPiece of
                 Just movedPiece ->
@@ -674,7 +671,7 @@ updateForMove move alternativeTranslations model =
                     in
                     ( { model
                         | fallingPiece = Just movedPiece
-                        , ghostPiece = calculateGhostPiece movedPiece.blocks model.occupiedCells
+                        , ghostPiece = calculateGhostPiece movedPiece.blocks model.board
                         , lockDelay = lockDelay
                       }
                     , Cmd.none
@@ -724,49 +721,6 @@ updateLockDelayAfterMove pieceBottomRow level lockDelay =
     }
 
 
-firstViableAlternative : List Translation -> Tetromino -> CellOccupancy -> Maybe Tetromino
-firstViableAlternative translations tetromino occupiedCells =
-    case translations of
-        translation :: remainingTranslations ->
-            let
-                alternative =
-                    translateBy translation tetromino
-            in
-            if not (collision alternative.blocks occupiedCells) then
-                Just alternative
-
-            else
-                firstViableAlternative remainingTranslations tetromino occupiedCells
-
-        [] ->
-            Nothing
-
-
-calculateGhostPiece : List Block -> CellOccupancy -> List Block
-calculateGhostPiece blocks occupiedCells =
-    if not (List.isEmpty blocks) then
-        let
-            initial =
-                List.map (\block -> { block | color = Gray }) blocks
-
-            moveToBottomFrom : List Block -> List Block
-            moveToBottomFrom current =
-                let
-                    next =
-                        List.map (\block -> { block | row = block.row + 1 }) current
-                in
-                if collision next occupiedCells then
-                    current
-
-                else
-                    moveToBottomFrom next
-        in
-        moveToBottomFrom initial
-
-    else
-        []
-
-
 updateForDropAndLock : Model -> ( Model, Cmd Msg )
 updateForDropAndLock model =
     case model.fallingPiece of
@@ -777,7 +731,7 @@ updateForDropAndLock model =
             in
             ( { model
                 | fallingPiece = Just droppedPiece
-                , ghostPiece = calculateGhostPiece droppedPiece.blocks model.occupiedCells
+                , ghostPiece = calculateGhostPiece droppedPiece.blocks model.board
                 , lockDelay = zeroLockDelay
               }
             , Cmd.none
@@ -829,7 +783,7 @@ updateForLockToBottom model =
                     | fallingPiece = Nothing
                     , ghostPiece = []
                     , bottomBlocks = bottomBlocks
-                    , occupiedCells = getOccupiedCells bottomBlocks
+                    , board = createBoard game.columns game.rows bottomBlocks
                     , dropAnimationTimer = Nothing
                     , fullRowsDelayTimer = fullRowsDelayTimer
                   }
@@ -857,16 +811,10 @@ updateForRemoveFullRows model =
         | fallingPiece = Nothing
         , ghostPiece = []
         , bottomBlocks = bottomBlocks
-        , occupiedCells = getOccupiedCells bottomBlocks
+        , board = createBoard game.columns game.rows bottomBlocks
       }
     , triggerMessage NewShape
     )
-
-
-getOccupiedCells : List Block -> CellOccupancy
-getOccupiedCells bottomBlocks =
-    List.map (\block -> ( ( block.col, block.row ), () )) bottomBlocks
-        |> Dict.fromList
 
 
 updateForRestart : Model -> ( Model, Cmd Msg )
@@ -898,16 +846,6 @@ updateForUnpause model =
       }
     , Cmd.none
     )
-
-
-collision : List Block -> CellOccupancy -> Bool
-collision blocks occupiedCells =
-    let
-        blockCollision block =
-            not (0 <= block.col && block.col < game.columns && block.row < game.rows)
-                || Dict.member ( block.col, block.row ) occupiedCells
-    in
-    List.any blockCollision blocks
 
 
 
