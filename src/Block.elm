@@ -52,7 +52,11 @@ fullRows maxColumns blocks =
 
 removeFullRows : Int -> List Block -> List Block
 removeFullRows maxColumns blocks =
-    List.foldl removeRow blocks (fullRows maxColumns blocks)
+    let
+        rows =
+            fullRows maxColumns blocks
+    in
+    List.foldl removeRow blocks rows
 
 
 removeRow : Int -> List Block -> List Block
