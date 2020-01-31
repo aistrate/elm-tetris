@@ -143,7 +143,7 @@ init _ =
       , bottomBlocks = []
       , occupiedCells = Dict.fromList []
       , dropAnimationTimer = Nothing
-      , lockDelay = initLockDelay
+      , lockDelay = zeroLockDelay
       , fullRowsDelayTimer = Nothing
       , screen = PlayScreen
       , settings =
@@ -154,14 +154,6 @@ init _ =
       }
     , triggerMessage NewShape
     )
-
-
-initLockDelay : LockDelay
-initLockDelay =
-    { timer = Nothing
-    , movesRemaining = 0
-    , maxRowReached = game.rows
-    }
 
 
 
@@ -722,7 +714,7 @@ updateForMove move alternativeTranslations model =
                         ( _, pieceBottomRow ) =
                             rowRange movedPiece.blocks
 
-                        ( lockDelay, command ) =
+                        lockDelay =
                             updateLockDelayAfterMove pieceBottomRow model.settings.level model.lockDelay
                     in
                     ( { model
@@ -730,7 +722,7 @@ updateForMove move alternativeTranslations model =
                         , ghostPiece = calculateGhostPiece movedPiece.blocks model.occupiedCells
                         , lockDelay = lockDelay
                       }
-                    , command
+                    , Cmd.none
                     )
 
                 Nothing ->
@@ -744,43 +736,37 @@ updateForMove move alternativeTranslations model =
             )
 
 
-updateLockDelayAfterMove : Int -> Int -> LockDelay -> ( LockDelay, Cmd Msg )
+updateLockDelayAfterMove : Int -> Int -> LockDelay -> LockDelay
 updateLockDelayAfterMove pieceBottomRow level lockDelay =
     let
         maxRowReached =
             Basics.max pieceBottomRow lockDelay.maxRowReached
 
-        ( movesRemaining, timer, command ) =
+        ( movesRemaining, timer ) =
             if maxRowReached > lockDelay.maxRowReached then
                 ( maxLockDelayMoves
                 , interval LockDelayInterval level
-                , Cmd.none
                 )
 
             else if lockDelay.movesRemaining > 0 then
                 ( lockDelay.movesRemaining - 1
                 , interval LockDelayInterval level
-                , Cmd.none
                 )
 
             else if lockDelay.timer /= Nothing then
                 ( 0
                 , lockDelay.timer
-                , Cmd.none
                 )
 
             else
                 ( 0
-                , Nothing
-                , triggerMessage LockToBottom
+                , Just 0
                 )
     in
-    ( { timer = timer
-      , movesRemaining = movesRemaining
-      , maxRowReached = maxRowReached
-      }
-    , command
-    )
+    { timer = timer
+    , movesRemaining = movesRemaining
+    , maxRowReached = maxRowReached
+    }
 
 
 firstViableAlternative : List Translation -> Tetromino -> CellOccupancy -> Maybe Tetromino
@@ -932,15 +918,24 @@ updateForDropAndLock model =
             ( { model
                 | fallingPiece = Just droppedPiece
                 , ghostPiece = calculateGhostPiece droppedPiece.blocks model.occupiedCells
-                , lockDelay = initLockDelay
+                , lockDelay = zeroLockDelay
               }
-            , triggerMessage LockToBottom
+            , Cmd.none
             )
 
         Nothing ->
             ( model
             , Cmd.none
             )
+
+
+zeroLockDelay : LockDelay
+zeroLockDelay =
+    -- lock immediately (if on the bottom now, or moving there later)
+    { timer = Just 0
+    , movesRemaining = 0
+    , maxRowReached = game.rows
+    }
 
 
 updateForLockToBottom : Model -> ( Model, Cmd Msg )
