@@ -23,8 +23,8 @@ updateDialog msg screen =
         RestartDialog ->
             updateRestartDialog msg screen
 
-        PauseDialog ->
-            updatePauseDialog msg screen
+        PauseDialog { afterCmd } ->
+            updatePauseDialog afterCmd msg screen
 
         HelpDialog { returnScreen } ->
             updateHelpDialog returnScreen msg screen
@@ -67,7 +67,7 @@ updateCountdownScreen timer afterCmd msg screen =
         VisibilityChange visibility ->
             if visibility == Browser.Events.Hidden then
                 -- on minimize window or change tab
-                ( PauseDialog
+                ( PauseDialog { afterCmd = afterCmd }
                 , Cmd.none
                 )
 
@@ -116,7 +116,7 @@ updateRestartDialog msg screen =
 
         Exit ->
             ( PlayScreen
-            , triggerMessage Unpause
+            , triggerMessage (Unpause Cmd.none)
             )
 
         ToggleHelpDialog ->
@@ -130,8 +130,8 @@ updateRestartDialog msg screen =
             )
 
 
-updatePauseDialog : Msg -> Screen -> ( Screen, Cmd Msg )
-updatePauseDialog msg screen =
+updatePauseDialog : Cmd Msg -> Msg -> Screen -> ( Screen, Cmd Msg )
+updatePauseDialog afterCmd msg screen =
     case msg of
         TogglePauseDialog ->
             ( screen
@@ -140,7 +140,7 @@ updatePauseDialog msg screen =
 
         Exit ->
             ( PlayScreen
-            , triggerMessage Unpause
+            , triggerMessage (Unpause afterCmd)
             )
 
         ToggleHelpDialog ->
@@ -165,7 +165,7 @@ updateHelpDialog returnScreen msg screen =
         Exit ->
             ( returnScreen
             , if returnScreen == PlayScreen then
-                triggerMessage Unpause
+                triggerMessage (Unpause Cmd.none)
 
               else
                 Cmd.none
@@ -196,7 +196,7 @@ viewDialogIfAny screen =
         RestartDialog ->
             viewRestartDialog
 
-        PauseDialog ->
+        PauseDialog _ ->
             viewPauseDialog
 
         HelpDialog _ ->

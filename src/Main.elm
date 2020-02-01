@@ -201,12 +201,12 @@ updatePlayScreen msg model =
             )
 
         TogglePauseDialog ->
-            ( { model | screen = PauseDialog }
+            ( { model | screen = PauseDialog { afterCmd = Cmd.none } }
             , Cmd.none
             )
 
         Exit ->
-            ( { model | screen = PauseDialog }
+            ( { model | screen = PauseDialog { afterCmd = Cmd.none } }
             , Cmd.none
             )
 
@@ -218,8 +218,8 @@ updatePlayScreen msg model =
         Restart ->
             updateForRestart model
 
-        Unpause ->
-            updateForUnpause model
+        Unpause afterCmd ->
+            updateForUnpause afterCmd model
 
         ToggleGhostPiece ->
             let
@@ -242,7 +242,7 @@ updatePlayScreen msg model =
         VisibilityChange visibility ->
             if visibility == Browser.Events.Hidden then
                 -- on minimize window or change tab
-                ( { model | screen = PauseDialog }
+                ( { model | screen = PauseDialog { afterCmd = Cmd.none } }
                 , Cmd.none
                 )
 
@@ -534,13 +534,13 @@ updateForRestart model =
     )
 
 
-updateForUnpause : Model -> ( Model, Cmd Msg )
-updateForUnpause model =
+updateForUnpause : Cmd Msg -> Model -> ( Model, Cmd Msg )
+updateForUnpause afterCmd model =
     ( { model
         | screen =
             CountdownScreen
                 { timer = initialInterval CountdownInterval model.settings.level
-                , afterCmd = Cmd.none
+                , afterCmd = afterCmd
                 }
       }
     , Cmd.none

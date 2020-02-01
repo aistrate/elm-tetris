@@ -38,7 +38,7 @@ type Msg
     | AnswerNo
     | Exit
     | Restart
-    | Unpause
+    | Unpause (Cmd Msg)
     | StopCountdown
     | VisibilityChange Visibility
     | LevelUp
@@ -51,7 +51,7 @@ type Screen
     | CountdownScreen { timer : TimeInterval, afterCmd : Cmd Msg }
     | GameOverDialog
     | RestartDialog
-    | PauseDialog
+    | PauseDialog { afterCmd : Cmd Msg }
     | HelpDialog { returnScreen : Screen }
 
 
