@@ -64,17 +64,10 @@ updateCountdownScreen timer afterCmd msg screen =
             , afterCmd
             )
 
-        VisibilityChange visibility ->
-            if visibility == Browser.Events.Hidden then
-                -- on minimize window or change tab
-                ( PauseDialog { afterCmd = afterCmd }
-                , Cmd.none
-                )
-
-            else
-                ( screen
-                , Cmd.none
-                )
+        WindowMinimized ->
+            ( PauseDialog { afterCmd = afterCmd }
+            , Cmd.none
+            )
 
         _ ->
             ( screen

@@ -1,6 +1,5 @@
 module Common exposing (..)
 
-import Browser.Events exposing (Visibility)
 import Shape exposing (Shape)
 import Task
 
@@ -40,10 +39,10 @@ type Msg
     | Restart
     | Unpause (Cmd Msg)
     | StopCountdown
-    | VisibilityChange Visibility
     | LevelUp
     | LevelDown
-    | OtherKey
+    | WindowMinimized
+    | NoOp
 
 
 type Screen

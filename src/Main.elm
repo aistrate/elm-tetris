@@ -206,8 +206,8 @@ updatePlayScreen msg model =
             )
 
         Exit ->
-            ( { model | screen = PauseDialog { afterCmd = Cmd.none } }
-            , Cmd.none
+            ( model
+            , triggerMessage TogglePauseDialog
             )
 
         ToggleHelpDialog ->
@@ -239,17 +239,10 @@ updatePlayScreen msg model =
             , Cmd.none
             )
 
-        VisibilityChange visibility ->
-            if visibility == Browser.Events.Hidden then
-                -- on minimize window or change tab
-                ( { model | screen = PauseDialog { afterCmd = Cmd.none } }
-                , Cmd.none
-                )
-
-            else
-                ( model
-                , Cmd.none
-                )
+        WindowMinimized ->
+            ( model
+            , triggerMessage TogglePauseDialog
+            )
 
         _ ->
             ( model
@@ -642,7 +635,7 @@ subscriptions model =
 
             _ ->
                 Sub.none
-        , Browser.Events.onVisibilityChange VisibilityChange
+        , Browser.Events.onVisibilityChange visibilityChanged
         ]
 
 
@@ -733,7 +726,17 @@ toKeyboardMsg key =
             ToggleVerticalStripes
 
         _ ->
-            OtherKey
+            NoOp
+
+
+visibilityChanged : Browser.Events.Visibility -> Msg
+visibilityChanged visibility =
+    case visibility of
+        Browser.Events.Hidden ->
+            WindowMinimized
+
+        Browser.Events.Visible ->
+            NoOp
 
 
 
