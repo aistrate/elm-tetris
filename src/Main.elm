@@ -716,7 +716,15 @@ toKeyboardMsg key =
         "+" ->
             LevelUp
 
+        -- IE (numpad)
+        "add" ->
+            LevelUp
+
         "-" ->
+            LevelDown
+
+        -- IE (numpad)
+        "subtract" ->
             LevelDown
 
         "g" ->
