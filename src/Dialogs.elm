@@ -3,7 +3,7 @@ module Dialogs exposing (..)
 import Common exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
-import Svg.Lazy exposing (lazy)
+import Svg.Lazy exposing (..)
 
 
 

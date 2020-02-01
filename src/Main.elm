@@ -15,7 +15,7 @@ import Random
 import Shape exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
-import Svg.Lazy exposing (lazy, lazy2)
+import Svg.Lazy exposing (..)
 import Tetromino exposing (..)
 
 
