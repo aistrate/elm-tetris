@@ -523,14 +523,9 @@ updateForRestart model =
             init ()
     in
     ( { initModel
-        | screen =
-            CountdownScreen
-                { timer = initialInterval CountdownInterval model.settings.level
-                , afterCmd = initCmd
-                }
-        , settings = model.settings
+        | settings = model.settings
       }
-    , Cmd.none
+    , triggerMessage (Unpause initCmd)
     )
 
 
