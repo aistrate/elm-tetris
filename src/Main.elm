@@ -239,6 +239,18 @@ updatePlayScreen msg model =
             , Cmd.none
             )
 
+        VisibilityChange visibility ->
+            if visibility == Browser.Events.Hidden then
+                -- on minimize window or change tab
+                ( { model | screen = PauseDialog }
+                , Cmd.none
+                )
+
+            else
+                ( model
+                , Cmd.none
+                )
+
         _ ->
             ( model
             , Cmd.none
@@ -635,6 +647,7 @@ subscriptions model =
 
             _ ->
                 Sub.none
+        , Browser.Events.onVisibilityChange VisibilityChange
         ]
 
 

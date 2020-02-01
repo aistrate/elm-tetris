@@ -1,5 +1,6 @@
 module Dialogs exposing (..)
 
+import Browser.Events
 import Common exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
@@ -62,6 +63,18 @@ updateCountdownScreen timer afterCmd msg screen =
             ( PlayScreen
             , afterCmd
             )
+
+        VisibilityChange visibility ->
+            if visibility == Browser.Events.Hidden then
+                -- on minimize window or change tab
+                ( PauseDialog
+                , Cmd.none
+                )
+
+            else
+                ( screen
+                , Cmd.none
+                )
 
         _ ->
             ( screen
