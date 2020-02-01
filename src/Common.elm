@@ -1,6 +1,6 @@
 module Common exposing (..)
 
-import Shape exposing (..)
+import Shape exposing (Shape)
 import Task
 
 

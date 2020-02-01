@@ -729,7 +729,7 @@ toKeyboardMsg key =
 -- VIEW
 
 
-view : Model -> Svg Msg
+view : Model -> Svg msg
 view model =
     svg
         rootSvgAttributes
@@ -743,7 +743,7 @@ view model =
         ]
 
 
-rootSvgAttributes : List (Attribute Msg)
+rootSvgAttributes : List (Attribute msg)
 rootSvgAttributes =
     [ width "100%"
     , height (String.fromFloat (boardStyle.marginTop + boardHeight + boardStyle.footerHeight))
@@ -761,7 +761,7 @@ rootSvgAttributes =
     ]
 
 
-viewBoard : Svg Msg
+viewBoard : Svg msg
 viewBoard =
     rect
         [ x (String.fromFloat -(boardStyle.borderWidth / 2 + boardStyle.padding))
@@ -775,7 +775,7 @@ viewBoard =
         []
 
 
-viewBlocks : List Block -> Svg Msg
+viewBlocks : List Block -> Svg msg
 viewBlocks blocks =
     g
         []
@@ -786,7 +786,7 @@ viewBlocks blocks =
         )
 
 
-viewBlock : Block -> Svg Msg
+viewBlock : Block -> Svg msg
 viewBlock block =
     rect
         [ x (String.fromFloat (toFloat block.col * blockStyle.size + blockStyle.borderWidth / 2))
@@ -800,7 +800,7 @@ viewBlock block =
         []
 
 
-viewGhostPiece : Bool -> List Block -> Svg Msg
+viewGhostPiece : Bool -> List Block -> Svg msg
 viewGhostPiece visible blocks =
     if visible then
         viewBlocks blocks
@@ -809,7 +809,7 @@ viewGhostPiece visible blocks =
         g [] []
 
 
-viewFallingPiece : Maybe Tetromino -> Svg Msg
+viewFallingPiece : Maybe Tetromino -> Svg msg
 viewFallingPiece fallingPiece =
     let
         blocks =
@@ -819,7 +819,7 @@ viewFallingPiece fallingPiece =
     viewBlocks blocks
 
 
-viewVerticalStripes : Bool -> Svg Msg
+viewVerticalStripes : Bool -> Svg msg
 viewVerticalStripes visible =
     let
         viewVerticalStripe col =
@@ -846,7 +846,7 @@ viewVerticalStripes visible =
         )
 
 
-viewFooter : Int -> Svg Msg
+viewFooter : Int -> Svg msg
 viewFooter level =
     let
         footerY =

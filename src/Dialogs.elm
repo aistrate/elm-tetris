@@ -168,7 +168,7 @@ updateHelpDialog returnScreen msg screen =
 -- VIEW
 
 
-viewDialogIfAny : Screen -> Svg Msg
+viewDialogIfAny : Screen -> Svg msg
 viewDialogIfAny screen =
     case screen of
         PlayScreen ->
@@ -190,7 +190,7 @@ viewDialogIfAny screen =
             viewHelpDialog
 
 
-viewCountdownScreen : Maybe Float -> Svg Msg
+viewCountdownScreen : Maybe Float -> Svg msg
 viewCountdownScreen timer =
     let
         countdown =
@@ -203,7 +203,7 @@ viewCountdownScreen timer =
         ]
 
 
-viewCountdownText : Int -> Svg Msg
+viewCountdownText : Int -> Svg msg
 viewCountdownText countdown =
     text_
         []
@@ -232,7 +232,7 @@ type DialogTextLine
     | EmptyLine
 
 
-viewGameOverDialog : Svg Msg
+viewGameOverDialog : Svg msg
 viewGameOverDialog =
     viewDialog
         [ LargeText "Game Over"
@@ -241,14 +241,14 @@ viewGameOverDialog =
         ]
 
 
-viewRestartDialog : Svg Msg
+viewRestartDialog : Svg msg
 viewRestartDialog =
     viewDialog
         [ LargeText "Restart? (Y/N)"
         ]
 
 
-viewPauseDialog : Svg Msg
+viewPauseDialog : Svg msg
 viewPauseDialog =
     viewDialog
         [ LargeText "Paused"
@@ -257,7 +257,7 @@ viewPauseDialog =
         ]
 
 
-viewHelpDialog : Svg Msg
+viewHelpDialog : Svg msg
 viewHelpDialog =
     viewDialog
         [ Shortcut "Arrow Left" "Move left"
@@ -282,7 +282,7 @@ viewHelpDialog =
         ]
 
 
-viewDialog : List DialogTextLine -> Svg Msg
+viewDialog : List DialogTextLine -> Svg msg
 viewDialog textLines =
     let
         vertCenteredFirstRow =
@@ -316,7 +316,7 @@ viewDialog textLines =
         ]
 
 
-viewDialogTextLine : Attribute Msg -> DialogTextLine -> Svg Msg
+viewDialogTextLine : Attribute msg -> DialogTextLine -> Svg msg
 viewDialogTextLine yCoord textLine =
     case textLine of
         LargeText largeText ->
@@ -357,7 +357,7 @@ viewDialogTextLine yCoord textLine =
                 ]
 
 
-viewDialogOverlay : Svg Msg
+viewDialogOverlay : Svg msg
 viewDialogOverlay =
     rect
         [ x (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding))
