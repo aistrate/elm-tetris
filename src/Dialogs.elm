@@ -32,7 +32,7 @@ updateDialog msg screen =
             ( screen, Cmd.none )
 
 
-updateCountdownScreen : Maybe Float -> Cmd Msg -> Msg -> Screen -> ( Screen, Cmd Msg )
+updateCountdownScreen : TimeInterval -> Cmd Msg -> Msg -> Screen -> ( Screen, Cmd Msg )
 updateCountdownScreen timer afterCmd msg screen =
     case msg of
         AnimationFrame timeDelta ->
@@ -190,7 +190,7 @@ viewDialogIfAny screen =
             viewHelpDialog
 
 
-viewCountdownScreen : Maybe Float -> Svg msg
+viewCountdownScreen : TimeInterval -> Svg msg
 viewCountdownScreen timer =
     let
         countdown =

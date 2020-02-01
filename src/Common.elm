@@ -46,14 +46,18 @@ type Msg
 
 type Screen
     = PlayScreen
-    | CountdownScreen { timer : Maybe Float, afterCmd : Cmd Msg }
+    | CountdownScreen { timer : TimeInterval, afterCmd : Cmd Msg }
     | GameOverDialog
     | RestartDialog
     | PauseDialog
     | HelpDialog { returnScreen : Screen }
 
 
-updateTimer : Maybe Float -> Float -> Maybe Float -> Msg -> ( Maybe Float, Cmd Msg )
+type alias TimeInterval =
+    Maybe Float
+
+
+updateTimer : TimeInterval -> Float -> TimeInterval -> Msg -> ( TimeInterval, Cmd Msg )
 updateTimer currentValue timeDelta resetValue message =
     case currentValue of
         Just value ->

@@ -39,16 +39,16 @@ type alias Model =
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , board : Board
-    , dropAnimationTimer : Maybe Float
+    , dropAnimationTimer : TimeInterval
     , lockDelay : LockDelay
-    , fullRowsDelayTimer : Maybe Float
+    , fullRowsDelayTimer : TimeInterval
     , screen : Screen
     , settings : Settings
     }
 
 
 type alias LockDelay =
-    { timer : Maybe Float
+    { timer : TimeInterval
     , movesRemaining : Int
     , maxRowReached : Int
     }
@@ -126,7 +126,7 @@ updateForLevelChange level model =
                     && model.fallingPiece
                     /= Nothing
             then
-                interval DropAnimationInterval level
+                initialInterval DropAnimationInterval level
 
             else
                 model.dropAnimationTimer
@@ -292,9 +292,9 @@ updateForSpawn shape model =
     ( { model
         | fallingPiece = fallingPiece
         , ghostPiece = ghostPiece
-        , dropAnimationTimer = interval SpawningDropAnimationInterval model.settings.level
+        , dropAnimationTimer = initialInterval SpawningDropAnimationInterval model.settings.level
         , lockDelay =
-            { timer = interval LockDelayInterval model.settings.level
+            { timer = initialInterval LockDelayInterval model.settings.level
             , movesRemaining = maxLockDelayMoves
             , maxRowReached = pieceBottomRow
             }
@@ -312,7 +312,7 @@ updateForAnimationFrame timeDelta model =
             updateTimer
                 model.dropAnimationTimer
                 timeDelta
-                (interval DropAnimationInterval model.settings.level)
+                (initialInterval DropAnimationInterval model.settings.level)
                 MoveDown
 
         ( lockDelayTimer, lockDelayCmd ) =
@@ -393,12 +393,12 @@ updateLockDelay pieceBottomRow level lockDelay =
         ( movesRemaining, timer ) =
             if maxRowReached > lockDelay.maxRowReached then
                 ( maxLockDelayMoves
-                , interval LockDelayInterval level
+                , initialInterval LockDelayInterval level
                 )
 
             else if lockDelay.movesRemaining > 0 then
                 ( lockDelay.movesRemaining - 1
-                , interval LockDelayInterval level
+                , initialInterval LockDelayInterval level
                 )
 
             else if lockDelay.timer /= Nothing then
@@ -457,7 +457,7 @@ updateForLockToBottom model =
 
                     ( fullRowsDelayTimer, command ) =
                         if hasFullRows then
-                            ( interval FullRowsDelayInterval model.settings.level
+                            ( initialInterval FullRowsDelayInterval model.settings.level
                             , Cmd.none
                             )
 
@@ -513,7 +513,7 @@ updateForRestart model =
     ( { initModel
         | screen =
             CountdownScreen
-                { timer = interval CountdownInterval model.settings.level
+                { timer = initialInterval CountdownInterval model.settings.level
                 , afterCmd = initCmd
                 }
         , settings = model.settings
@@ -527,7 +527,7 @@ updateForUnpause model =
     ( { model
         | screen =
             CountdownScreen
-                { timer = interval CountdownInterval model.settings.level
+                { timer = initialInterval CountdownInterval model.settings.level
                 , afterCmd = Cmd.none
                 }
       }
@@ -543,8 +543,8 @@ type IntervalType
     | CountdownInterval
 
 
-interval : IntervalType -> Int -> Maybe Float
-interval intervalType level =
+initialInterval : IntervalType -> Int -> TimeInterval
+initialInterval intervalType level =
     case intervalType of
         SpawningDropAnimationInterval ->
             if level == 0 then
@@ -554,8 +554,12 @@ interval intervalType level =
                 Just 0
 
         DropAnimationInterval ->
-            Dict.get level dropAnimationIntervals
-                |> Maybe.withDefault Nothing
+            if level == 0 then
+                Nothing
+
+            else
+                Dict.get level dropAnimationIntervals
+                    |> Maybe.withDefault Nothing
 
         LockDelayInterval ->
             Just 500
@@ -573,11 +577,10 @@ interval intervalType level =
 -- where (pow x n) is x to the nth power
 
 
-dropAnimationIntervals : Dict Int (Maybe Float)
+dropAnimationIntervals : Dict Int TimeInterval
 dropAnimationIntervals =
     Dict.fromList
-        [ ( 0, Nothing )
-        , ( 1, Just 1000 )
+        [ ( 1, Just 1000 )
         , ( 2, Just 793 )
         , ( 3, Just 618 )
         , ( 4, Just 473 )
