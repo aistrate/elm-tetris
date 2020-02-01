@@ -345,77 +345,6 @@ updateForAnimationFrame timeDelta model =
     )
 
 
-type IntervalType
-    = SpawningDropAnimationInterval
-    | DropAnimationInterval
-    | LockDelayInterval
-    | FullRowsDelayInterval
-    | CountdownInterval
-
-
-interval : IntervalType -> Int -> Maybe Float
-interval intervalType level =
-    case intervalType of
-        SpawningDropAnimationInterval ->
-            if level == 0 then
-                Nothing
-
-            else
-                Just 0
-
-        DropAnimationInterval ->
-            Dict.get level dropAnimationIntervals
-                |> Maybe.withDefault Nothing
-
-        LockDelayInterval ->
-            Just 500
-
-        FullRowsDelayInterval ->
-            Just 200
-
-        CountdownInterval ->
-            Just 3000
-
-
-
--- See https://tetris.fandom.com/wiki/Tetris_Worlds, under the heading Gravity.
--- Formula: round (1000 * pow (0.8 - ((toFloat level - 1) * 0.007)) (level - 1)),
--- where (pow x n) is x to the nth power
-
-
-dropAnimationIntervals : Dict Int (Maybe Float)
-dropAnimationIntervals =
-    Dict.fromList
-        [ ( 0, Nothing )
-        , ( 1, Just 1000 )
-        , ( 2, Just 793 )
-        , ( 3, Just 618 )
-        , ( 4, Just 473 )
-        , ( 5, Just 355 )
-        , ( 6, Just 262 )
-        , ( 7, Just 190 )
-        , ( 8, Just 135 )
-        , ( 9, Just 94 )
-        , ( 10, Just 64 )
-        , ( 11, Just 43 )
-        , ( 12, Just 28 )
-        ]
-
-
-spawningRow : Int -> Int
-spawningRow level =
-    if level == 0 then
-        0
-
-    else
-        -2
-
-
-maxLockDelayMoves : Int
-maxLockDelayMoves =
-    15
-
-
 updateForMove : (Tetromino -> Tetromino) -> (Tetromino -> List Translation) -> Model -> ( Model, Cmd Msg )
 updateForMove move alternativeTranslations model =
     case model.fallingPiece of
@@ -508,15 +437,6 @@ updateForDropAndLock model =
             ( model
             , Cmd.none
             )
-
-
-zeroLockDelay : LockDelay
-zeroLockDelay =
-    -- lock immediately (if on the bottom now, or when moving there later)
-    { timer = Just 0
-    , movesRemaining = 0
-    , maxRowReached = game.rows
-    }
 
 
 updateForLockToBottom : Model -> ( Model, Cmd Msg )
@@ -613,6 +533,86 @@ updateForUnpause model =
       }
     , Cmd.none
     )
+
+
+type IntervalType
+    = SpawningDropAnimationInterval
+    | DropAnimationInterval
+    | LockDelayInterval
+    | FullRowsDelayInterval
+    | CountdownInterval
+
+
+interval : IntervalType -> Int -> Maybe Float
+interval intervalType level =
+    case intervalType of
+        SpawningDropAnimationInterval ->
+            if level == 0 then
+                Nothing
+
+            else
+                Just 0
+
+        DropAnimationInterval ->
+            Dict.get level dropAnimationIntervals
+                |> Maybe.withDefault Nothing
+
+        LockDelayInterval ->
+            Just 500
+
+        FullRowsDelayInterval ->
+            Just 200
+
+        CountdownInterval ->
+            Just 3000
+
+
+
+-- See https://tetris.fandom.com/wiki/Tetris_Worlds, under heading Gravity.
+-- Formula: round (1000 * pow (0.8 - ((toFloat level - 1) * 0.007)) (level - 1)),
+-- where (pow x n) is x to the nth power
+
+
+dropAnimationIntervals : Dict Int (Maybe Float)
+dropAnimationIntervals =
+    Dict.fromList
+        [ ( 0, Nothing )
+        , ( 1, Just 1000 )
+        , ( 2, Just 793 )
+        , ( 3, Just 618 )
+        , ( 4, Just 473 )
+        , ( 5, Just 355 )
+        , ( 6, Just 262 )
+        , ( 7, Just 190 )
+        , ( 8, Just 135 )
+        , ( 9, Just 94 )
+        , ( 10, Just 64 )
+        , ( 11, Just 43 )
+        , ( 12, Just 28 )
+        ]
+
+
+spawningRow : Int -> Int
+spawningRow level =
+    if level == 0 then
+        0
+
+    else
+        -2
+
+
+maxLockDelayMoves : Int
+maxLockDelayMoves =
+    15
+
+
+zeroLockDelay : LockDelay
+zeroLockDelay =
+    -- lock immediately (if on the bottom now, or when moving there later)
+    { timer = Just 0
+    , movesRemaining = 0
+    , maxRowReached = game.rows
+    }
 
 
 
