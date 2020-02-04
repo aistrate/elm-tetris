@@ -17,6 +17,9 @@ updateDialog msg screen =
         CountdownScreen { timer, afterCmd } ->
             updateCountdownScreen timer afterCmd msg screen
 
+        StartDialog ->
+            updateStartDialog msg screen
+
         GameOverDialog ->
             updateGameOverDialog msg screen
 
@@ -75,12 +78,36 @@ updateCountdownScreen timer afterCmd msg screen =
             )
 
 
+updateStartDialog : Msg -> Screen -> ( Screen, Cmd Msg )
+updateStartDialog msg screen =
+    case msg of
+        ExitStartDialog ->
+            ( screen
+            , triggerMessage Exit
+            )
+
+        Exit ->
+            ( PlayScreen
+            , triggerMessage NewGame
+            )
+
+        ToggleHelpDialog ->
+            ( HelpDialog { returnScreen = screen }
+            , Cmd.none
+            )
+
+        _ ->
+            ( screen
+            , Cmd.none
+            )
+
+
 updateGameOverDialog : Msg -> Screen -> ( Screen, Cmd Msg )
 updateGameOverDialog msg screen =
     case msg of
         AnswerYes ->
             ( PlayScreen
-            , triggerMessage Restart
+            , triggerMessage NewGame
             )
 
         ToggleHelpDialog ->
@@ -99,7 +126,7 @@ updateRestartDialog msg screen =
     case msg of
         AnswerYes ->
             ( PlayScreen
-            , triggerMessage Restart
+            , triggerMessage NewGame
             )
 
         AnswerNo ->
@@ -183,6 +210,9 @@ viewDialogIfAny screen =
         CountdownScreen { timer } ->
             viewCountdownScreen timer
 
+        StartDialog ->
+            viewStartDialog
+
         GameOverDialog ->
             viewGameOverDialog
 
@@ -236,6 +266,15 @@ type DialogTextLine
     = LargeText String
     | Shortcut String String
     | EmptyLine
+
+
+viewStartDialog : Svg msg
+viewStartDialog =
+    viewDialog
+        [ LargeText "Press Esc or S to start"
+        , EmptyLine
+        , LargeText "Press H for Help"
+        ]
 
 
 viewGameOverDialog : Svg msg

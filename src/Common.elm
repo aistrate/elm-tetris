@@ -30,13 +30,14 @@ type Msg
     | RemoveFullRows
     | ToggleGhostPiece
     | ToggleVerticalStripes
+    | ExitStartDialog
     | ShowRestartDialog
     | TogglePauseDialog
     | ToggleHelpDialog
     | AnswerYes
     | AnswerNo
     | Exit
-    | Restart
+    | NewGame
     | Unpause (Cmd Msg)
     | StopCountdown
     | LevelUp
@@ -48,6 +49,7 @@ type Msg
 type Screen
     = PlayScreen
     | CountdownScreen { timer : TimeInterval, afterCmd : Cmd Msg }
+    | StartDialog
     | GameOverDialog
     | RestartDialog
     | PauseDialog { afterCmd : Cmd Msg }

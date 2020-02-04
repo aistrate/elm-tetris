@@ -63,23 +63,28 @@ type alias Settings =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { shapeBag = []
-      , fallingPiece = Nothing
-      , ghostPiece = []
-      , bottomBlocks = []
-      , board = createBoard game.columns game.rows []
-      , dropAnimationTimer = Nothing
-      , lockDelay = zeroLockDelay
-      , fullRowsDelayTimer = Nothing
-      , screen = PlayScreen
-      , settings =
-            { level = 1
-            , showGhostPiece = False
-            , showVerticalStripes = False
-            }
-      }
-    , triggerMessage NewShape
+    ( { initModel | screen = StartDialog }
+    , Cmd.none
     )
+
+
+initModel : Model
+initModel =
+    { shapeBag = []
+    , fallingPiece = Nothing
+    , ghostPiece = []
+    , bottomBlocks = []
+    , board = createBoard game.columns game.rows []
+    , dropAnimationTimer = Nothing
+    , lockDelay = zeroLockDelay
+    , fullRowsDelayTimer = Nothing
+    , screen = PlayScreen
+    , settings =
+        { level = 1
+        , showGhostPiece = False
+        , showVerticalStripes = False
+        }
+    }
 
 
 
@@ -215,8 +220,8 @@ updatePlayScreen msg model =
             , Cmd.none
             )
 
-        Restart ->
-            updateForRestart model
+        NewGame ->
+            updateForNewGame model
 
         Unpause afterCmd ->
             updateForUnpause afterCmd model
@@ -509,16 +514,12 @@ updateForRemoveFullRows model =
     )
 
 
-updateForRestart : Model -> ( Model, Cmd Msg )
-updateForRestart model =
-    let
-        ( initModel, initCmd ) =
-            init ()
-    in
+updateForNewGame : Model -> ( Model, Cmd Msg )
+updateForNewGame model =
     ( { initModel
         | settings = model.settings
       }
-    , triggerMessage (Unpause initCmd)
+    , triggerMessage (Unpause (triggerMessage NewShape))
     )
 
 
@@ -690,6 +691,9 @@ toKeyboardMsg key =
         -- IE
         "spacebar" ->
             DropAndLock
+
+        "s" ->
+            ExitStartDialog
 
         "r" ->
             ShowRestartDialog
