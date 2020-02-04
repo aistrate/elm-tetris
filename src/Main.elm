@@ -43,6 +43,7 @@ type alias Model =
     , lockDelay : LockDelay
     , fullRowsDelayTimer : TimeInterval
     , screen : Screen
+    , sidePanel : SidePanel
     , settings : Settings
     }
 
@@ -54,9 +55,13 @@ type alias LockDelay =
     }
 
 
-type alias Settings =
+type alias SidePanel =
     { level : Int
-    , showGhostPiece : Bool
+    }
+
+
+type alias Settings =
+    { showGhostPiece : Bool
     , showVerticalStripes : Bool
     }
 
@@ -79,9 +84,11 @@ initModel =
     , lockDelay = zeroLockDelay
     , fullRowsDelayTimer = Nothing
     , screen = PlayScreen
-    , settings =
+    , sidePanel =
         { level = 1
-        , showGhostPiece = False
+        }
+    , settings =
+        { showGhostPiece = False
         , showVerticalStripes = False
         }
     }
@@ -95,10 +102,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         LevelUp ->
-            updateForLevelChange (model.settings.level + 1) model
+            updateForLevelChange (model.sidePanel.level + 1) model
 
         LevelDown ->
-            updateForLevelChange (model.settings.level - 1) model
+            updateForLevelChange (model.sidePanel.level - 1) model
 
         _ ->
             if model.screen == PlayScreen then
@@ -117,12 +124,12 @@ update msg model =
 updateForLevelChange : Int -> Model -> ( Model, Cmd Msg )
 updateForLevelChange level model =
     let
-        settings =
-            model.settings
+        sidePanel =
+            model.sidePanel
 
         dropAnimationTimer =
             if
-                settings.level
+                sidePanel.level
                     == 0
                     && level
                     == 1
@@ -137,7 +144,7 @@ updateForLevelChange level model =
                 model.dropAnimationTimer
     in
     ( { model
-        | settings = { settings | level = clamp 0 maxLevel level }
+        | sidePanel = { sidePanel | level = clamp 0 maxLevel level }
         , dropAnimationTimer = dropAnimationTimer
       }
     , Cmd.none
@@ -277,7 +284,7 @@ updateForSpawn shape model =
                 |> centerHoriz game.columns
                 |> translateBy
                     { dCol = 0
-                    , dRow = spawningRow model.settings.level
+                    , dRow = spawningRow model.sidePanel.level
                     }
 
         ( _, pieceBottomRow ) =
@@ -302,9 +309,9 @@ updateForSpawn shape model =
     ( { model
         | fallingPiece = fallingPiece
         , ghostPiece = ghostPiece
-        , dropAnimationTimer = initialInterval SpawningDropAnimationInterval model.settings.level
+        , dropAnimationTimer = initialInterval SpawningDropAnimationInterval model.sidePanel.level
         , lockDelay =
-            { timer = initialInterval LockDelayInterval model.settings.level
+            { timer = initialInterval LockDelayInterval model.sidePanel.level
             , movesRemaining = maxLockDelayMoves
             , maxRowReached = pieceBottomRow
             }
@@ -322,7 +329,7 @@ updateForAnimationFrame timeDelta model =
             updateTimer
                 model.dropAnimationTimer
                 timeDelta
-                (initialInterval DropAnimationInterval model.settings.level)
+                (initialInterval DropAnimationInterval model.sidePanel.level)
                 MoveDown
 
         ( lockDelayTimer, lockDelayCmd ) =
@@ -373,7 +380,7 @@ updateForMove move alternativeTranslations model =
                             rowRange movedPiece.blocks
 
                         lockDelay =
-                            updateLockDelay pieceBottomRow model.settings.level model.lockDelay
+                            updateLockDelay pieceBottomRow model.sidePanel.level model.lockDelay
                     in
                     ( { model
                         | fallingPiece = Just movedPiece
@@ -467,7 +474,7 @@ updateForLockToBottom model =
 
                     ( fullRowsDelayTimer, command ) =
                         if hasFullRows then
-                            ( initialInterval FullRowsDelayInterval model.settings.level
+                            ( initialInterval FullRowsDelayInterval model.sidePanel.level
                             , Cmd.none
                             )
 
@@ -516,8 +523,13 @@ updateForRemoveFullRows model =
 
 updateForNewGame : Model -> ( Model, Cmd Msg )
 updateForNewGame model =
+    let
+        sidePanel =
+            model.sidePanel
+    in
     ( { initModel
-        | settings = model.settings
+        | sidePanel = { sidePanel | level = sidePanel.level }
+        , settings = model.settings
       }
     , triggerMessage (Unpause (triggerMessage NewShape))
     )
@@ -528,7 +540,7 @@ updateForUnpause afterCmd model =
     ( { model
         | screen =
             CountdownScreen
-                { timer = initialInterval CountdownInterval model.settings.level
+                { timer = initialInterval CountdownInterval model.sidePanel.level
                 , afterCmd = afterCmd
                 }
       }
@@ -759,7 +771,7 @@ view : Model -> Svg msg
 view model =
     svg
         rootSvgAttributes
-        [ lazy viewFooter model.settings.level
+        [ lazy viewFooter model.sidePanel.level
         , viewBoard
         , lazy viewVerticalStripes model.settings.showVerticalStripes
         , lazy viewBlocks model.bottomBlocks
