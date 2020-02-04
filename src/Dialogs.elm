@@ -1,6 +1,5 @@
 module Dialogs exposing (..)
 
-import Browser.Events
 import Common exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)

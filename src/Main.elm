@@ -13,6 +13,7 @@ import Dict exposing (Dict)
 import Json.Decode as Decode
 import Random
 import Shape exposing (..)
+import SidePanel exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (..)
@@ -52,11 +53,6 @@ type alias LockDelay =
     { timer : TimeInterval
     , movesRemaining : Int
     , maxRowReached : Int
-    }
-
-
-type alias SidePanel =
-    { level : Int
     }
 
 
@@ -771,7 +767,7 @@ view : Model -> Svg msg
 view model =
     svg
         rootSvgAttributes
-        [ lazy viewFooter model.sidePanel.level
+        [ lazy viewFooter model.sidePanel
         , viewBoard
         , lazy viewVerticalStripes model.settings.showVerticalStripes
         , lazy viewBlocks model.bottomBlocks
@@ -882,56 +878,3 @@ viewVerticalStripes visible =
          else
             []
         )
-
-
-viewFooter : Int -> Svg msg
-viewFooter level =
-    let
-        footerY =
-            boardHeight - (boardStyle.borderWidth + boardStyle.padding)
-
-        levelText =
-            "Level "
-                ++ String.fromInt level
-                ++ (if level == 0 then
-                        " (no gravity)"
-
-                    else
-                        ""
-                   )
-    in
-    g
-        []
-        [ text_
-            []
-            [ tspan
-                [ x "0"
-                , y (String.fromFloat (footerY + blockStyle.size))
-                , fontSize (String.fromFloat (blockStyle.size * 0.65))
-                ]
-                [ text levelText
-                ]
-            , tspan
-                [ y (String.fromFloat (footerY + boardStyle.footerHeight - 4))
-                , fontSize "15"
-                ]
-                [ tspan
-                    [ x "0"
-                    ]
-                    [ text "Press H for Help"
-                    ]
-                , a
-                    [ xlinkHref "https://github.com/aistrate/elm-tetris"
-                    , target "_blank"
-                    , Svg.Attributes.style "fill: #0366D6; text-decoration: underline;"
-                    ]
-                    [ tspan
-                        [ x (String.fromFloat (blockStyle.size * toFloat game.columns))
-                        , textAnchor "end"
-                        ]
-                        [ text "Code"
-                        ]
-                    ]
-                ]
-            ]
-        ]
