@@ -767,7 +767,7 @@ view : Model -> Svg msg
 view model =
     svg
         rootSvgAttributes
-        [ lazy viewFooter model.sidePanel
+        [ lazy viewSidePanel model.sidePanel
         , viewBoard
         , lazy viewVerticalStripes model.settings.showVerticalStripes
         , lazy viewBlocks model.bottomBlocks
@@ -780,15 +780,15 @@ view model =
 rootSvgAttributes : List (Attribute msg)
 rootSvgAttributes =
     [ width "100%"
-    , height (String.fromFloat (boardStyle.marginTop + boardHeight + boardStyle.footerHeight))
+    , height (String.fromFloat (2 * boardStyle.margin + boardHeight))
     , viewBox
-        (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding)
+        (String.fromFloat -(boardStyle.margin + boardStyle.borderWidth + boardStyle.padding)
             ++ " "
-            ++ String.fromFloat -(boardStyle.marginTop + boardStyle.borderWidth + boardStyle.padding)
+            ++ String.fromFloat -(boardStyle.margin + boardStyle.borderWidth + boardStyle.padding)
             ++ " "
-            ++ String.fromFloat boardWidth
+            ++ String.fromFloat (2 * boardStyle.margin + boardWidth + sidePanelStyle.width + sidePanelStyle.marginRight)
             ++ " "
-            ++ String.fromFloat (boardStyle.marginTop + boardHeight + boardStyle.footerHeight)
+            ++ String.fromFloat (2 * boardStyle.margin + boardHeight)
         )
     , fontFamily "sans-serif"
     , fill "#222"

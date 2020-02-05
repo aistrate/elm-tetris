@@ -18,39 +18,47 @@ type alias SidePanel =
 -- VIEW
 
 
-viewFooter : SidePanel -> Svg msg
-viewFooter sidePanel =
-    let
-        footerY =
-            boardHeight - (boardStyle.borderWidth + boardStyle.padding)
+sidePanelStyle =
+    { x = boardWidth - (boardStyle.borderWidth + boardStyle.padding) + boardStyle.margin
+    , y = 0
+    , width = blockStyle.size * 6.5
+    , height = blockStyle.size * toFloat game.rows
+    , marginRight = 12.0
+    , paddingLeft = blockStyle.size * 1
+    , paddingRight = blockStyle.size * 0.1
+    , paddingTop = blockStyle.size * 0.1
+    , paddingBottom = 3.5
+    }
 
-        levelText =
-            "Level "
-                ++ String.fromInt sidePanel.level
-                ++ (if sidePanel.level == 0 then
-                        " (no gravity)"
 
-                    else
-                        ""
-                   )
-    in
+viewSidePanel : SidePanel -> Svg msg
+viewSidePanel sidePanel =
     g
         []
         [ text_
             []
             [ tspan
-                [ x "0"
-                , y (String.fromFloat (footerY + blockStyle.size))
+                [ y (String.fromFloat (sidePanelStyle.y + sidePanelStyle.paddingTop + (blockStyle.size * 0.65)))
                 , fontSize (String.fromFloat (blockStyle.size * 0.65))
                 ]
-                [ text levelText
+                [ tspan
+                    [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.paddingLeft))
+                    ]
+                    [ text "Level"
+                    ]
+                , tspan
+                    [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.width - sidePanelStyle.paddingRight))
+                    , textAnchor "end"
+                    ]
+                    [ text (String.fromInt sidePanel.level)
+                    ]
                 ]
             , tspan
-                [ y (String.fromFloat (footerY + boardStyle.footerHeight - 4))
+                [ y (String.fromFloat (sidePanelStyle.y + sidePanelStyle.height - sidePanelStyle.paddingBottom))
                 , fontSize "15"
                 ]
                 [ tspan
-                    [ x "0"
+                    [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.paddingLeft))
                     ]
                     [ text "Press H for Help"
                     ]
@@ -60,7 +68,7 @@ viewFooter sidePanel =
                     , Svg.Attributes.style "fill: #0366D6; text-decoration: underline;"
                     ]
                     [ tspan
-                        [ x (String.fromFloat (blockStyle.size * toFloat game.columns))
+                        [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.width - sidePanelStyle.paddingRight))
                         , textAnchor "end"
                         ]
                         [ text "Code"

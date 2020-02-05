@@ -95,10 +95,9 @@ maxLevel =
 
 
 boardStyle =
-    { marginTop = 12.0
+    { margin = 12.0
     , borderWidth = 2.0
     , padding = 1.5
-    , footerHeight = 100.0
     }
 
 
