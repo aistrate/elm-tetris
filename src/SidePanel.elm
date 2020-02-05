@@ -1,8 +1,11 @@
 module SidePanel exposing (..)
 
 import Common exposing (..)
+import FormatNumber exposing (format)
+import FormatNumber.Locales exposing (usLocale)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
+import Svg.Lazy exposing (..)
 
 
 
@@ -11,6 +14,7 @@ import Svg.Attributes exposing (..)
 
 type alias SidePanel =
     { level : Int
+    , lines : Int
     }
 
 
@@ -37,43 +41,69 @@ viewSidePanel sidePanel =
         []
         [ text_
             []
+            [ lazy viewLevel sidePanel.level
+            , lazy viewLines sidePanel.lines
+            , viewFooter
+            ]
+        ]
+
+
+viewLevel : Int -> Svg msg
+viewLevel level =
+    viewStatistic 0 "Level" (String.fromInt level)
+
+
+viewLines : Int -> Svg msg
+viewLines lines =
+    viewStatistic 1 "Lines" (prettyFormatInt lines)
+
+
+viewStatistic : Int -> String -> String -> Svg msg
+viewStatistic row label value =
+    tspan
+        [ y (String.fromFloat (sidePanelStyle.y + sidePanelStyle.paddingTop + (blockStyle.size * (toFloat row + 0.65))))
+        , fontSize (String.fromFloat (blockStyle.size * 0.65))
+        ]
+        [ tspan
+            [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.paddingLeft))
+            ]
+            [ text label
+            ]
+        , tspan
+            [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.width - sidePanelStyle.paddingRight))
+            , textAnchor "end"
+            ]
+            [ text value
+            ]
+        ]
+
+
+viewFooter : Svg msg
+viewFooter =
+    tspan
+        [ y (String.fromFloat (sidePanelStyle.y + sidePanelStyle.height - sidePanelStyle.paddingBottom))
+        , fontSize "15"
+        ]
+        [ tspan
+            [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.paddingLeft))
+            ]
+            [ text "Press H for Help"
+            ]
+        , a
+            [ xlinkHref "https://github.com/aistrate/elm-tetris"
+            , target "_blank"
+            , Svg.Attributes.style "fill: #0366D6; text-decoration: underline;"
+            ]
             [ tspan
-                [ y (String.fromFloat (sidePanelStyle.y + sidePanelStyle.paddingTop + (blockStyle.size * 0.65)))
-                , fontSize (String.fromFloat (blockStyle.size * 0.65))
+                [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.width - sidePanelStyle.paddingRight))
+                , textAnchor "end"
                 ]
-                [ tspan
-                    [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.paddingLeft))
-                    ]
-                    [ text "Level"
-                    ]
-                , tspan
-                    [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.width - sidePanelStyle.paddingRight))
-                    , textAnchor "end"
-                    ]
-                    [ text (String.fromInt sidePanel.level)
-                    ]
-                ]
-            , tspan
-                [ y (String.fromFloat (sidePanelStyle.y + sidePanelStyle.height - sidePanelStyle.paddingBottom))
-                , fontSize "15"
-                ]
-                [ tspan
-                    [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.paddingLeft))
-                    ]
-                    [ text "Press H for Help"
-                    ]
-                , a
-                    [ xlinkHref "https://github.com/aistrate/elm-tetris"
-                    , target "_blank"
-                    , Svg.Attributes.style "fill: #0366D6; text-decoration: underline;"
-                    ]
-                    [ tspan
-                        [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.width - sidePanelStyle.paddingRight))
-                        , textAnchor "end"
-                        ]
-                        [ text "Code"
-                        ]
-                    ]
+                [ text "Code"
                 ]
             ]
         ]
+
+
+prettyFormatInt : Int -> String
+prettyFormatInt i =
+    FormatNumber.format { usLocale | decimals = 0 } (toFloat i)

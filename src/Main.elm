@@ -82,6 +82,7 @@ initModel =
     , screen = PlayScreen
     , sidePanel =
         { level = 1
+        , lines = 0
         }
     , settings =
         { showGhostPiece = False
