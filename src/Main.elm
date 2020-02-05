@@ -83,6 +83,7 @@ initModel =
     , sidePanel =
         { level = 1
         , lines = 0
+        , time = 0
         }
     , settings =
         { showGhostPiece = False
@@ -345,11 +346,15 @@ updateForAnimationFrame timeDelta model =
 
         lockDelay =
             model.lockDelay
+
+        sidePanel =
+            model.sidePanel
     in
     ( { model
         | dropAnimationTimer = dropAnimationTimer
         , lockDelay = { lockDelay | timer = lockDelayTimer }
         , fullRowsDelayTimer = fullRowsDelayTimer
+        , sidePanel = { sidePanel | time = sidePanel.time + timeDelta }
       }
     , Cmd.batch
         [ dropAnimationCmd

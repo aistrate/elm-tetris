@@ -15,6 +15,7 @@ import Svg.Lazy exposing (..)
 type alias SidePanel =
     { level : Int
     , lines : Int
+    , time : Float
     }
 
 
@@ -25,7 +26,7 @@ type alias SidePanel =
 sidePanelStyle =
     { x = boardWidth - (boardStyle.borderWidth + boardStyle.padding) + boardStyle.margin
     , y = 0
-    , width = blockStyle.size * 6
+    , width = blockStyle.size * 6.5
     , height = blockStyle.size * toFloat game.rows
     , marginRight = 12.0
     , paddingLeft = blockStyle.size * 0.5
@@ -37,12 +38,17 @@ sidePanelStyle =
 
 viewSidePanel : SidePanel -> Svg msg
 viewSidePanel sidePanel =
+    let
+        timeInSeconds =
+            floor (sidePanel.time / 1000)
+    in
     g
         []
         [ text_
             []
             [ lazy viewLevel sidePanel.level
             , lazy viewLines sidePanel.lines
+            , lazy viewTime timeInSeconds
             , viewFooter
             ]
         ]
@@ -56,6 +62,11 @@ viewLevel level =
 viewLines : Int -> Svg msg
 viewLines lines =
     viewStatistic 1 "Lines" (prettyFormatInt lines)
+
+
+viewTime : Int -> Svg msg
+viewTime timeInSeconds =
+    viewStatistic 2 "Time" (prettyFormatTime timeInSeconds)
 
 
 viewStatistic : Int -> String -> String -> Svg msg
@@ -72,6 +83,8 @@ viewStatistic row label value =
         , tspan
             [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.width - sidePanelStyle.paddingRight))
             , textAnchor "end"
+            , fontFamily "Courier New, sans-serif"
+            , fontWeight "bold"
             ]
             [ text value
             ]
@@ -107,3 +120,37 @@ viewFooter =
 prettyFormatInt : Int -> String
 prettyFormatInt i =
     FormatNumber.format { usLocale | decimals = 0 } (toFloat i)
+
+
+prettyFormatTime : Int -> String
+prettyFormatTime timeInSeconds =
+    let
+        seconds =
+            modBy 60 timeInSeconds
+
+        minutes =
+            modBy 60 (timeInSeconds // 60)
+
+        hours =
+            modBy 24 (timeInSeconds // 3600)
+
+        days =
+            timeInSeconds // 86400
+
+        pad t =
+            String.padLeft 2 '0' (String.fromInt t)
+
+        minSecPadded =
+            pad minutes ++ ":" ++ pad seconds
+
+        hrMinSecPadded =
+            pad hours ++ ":" ++ minSecPadded
+    in
+    if days > 0 then
+        String.fromInt days ++ "d " ++ hrMinSecPadded
+
+    else if hours > 0 then
+        hrMinSecPadded
+
+    else
+        minSecPadded
