@@ -525,11 +525,11 @@ updateForRemoveFullRows model =
 updateForNewGame : Model -> ( Model, Cmd Msg )
 updateForNewGame model =
     let
-        sidePanel =
-            model.sidePanel
+        initSidePanel =
+            initModel.sidePanel
     in
     ( { initModel
-        | sidePanel = { sidePanel | level = sidePanel.level }
+        | sidePanel = { initSidePanel | level = model.sidePanel.level }
         , settings = model.settings
       }
     , triggerMessage (Unpause (triggerMessage NewShape))
