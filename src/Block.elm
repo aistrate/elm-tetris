@@ -50,13 +50,19 @@ fullRows maxColumns blocks =
         |> List.map (\( row, _ ) -> row)
 
 
-removeFullRows : Int -> List Block -> List Block
+removeFullRows : Int -> List Block -> ( List Block, Int )
 removeFullRows maxColumns blocks =
     let
-        rows =
+        fullRowIndexes =
             fullRows maxColumns blocks
+
+        blocksAfterRemoval =
+            List.foldl removeRow blocks fullRowIndexes
+
+        rowsRemoved =
+            List.length fullRowIndexes
     in
-    List.foldl removeRow blocks rows
+    ( blocksAfterRemoval, rowsRemoved )
 
 
 removeRow : Int -> List Block -> List Block

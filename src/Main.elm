@@ -505,14 +505,18 @@ updateForLockToBottom model =
 updateForRemoveFullRows : Model -> ( Model, Cmd Msg )
 updateForRemoveFullRows model =
     let
-        bottomBlocks =
+        ( bottomBlocks, rowsRemoved ) =
             removeFullRows game.columns model.bottomBlocks
+
+        sidePanel =
+            model.sidePanel
     in
     ( { model
         | fallingPiece = Nothing
         , ghostPiece = []
         , bottomBlocks = bottomBlocks
         , board = createBoard game.columns game.rows bottomBlocks
+        , sidePanel = { sidePanel | lines = sidePanel.lines + rowsRemoved }
       }
     , triggerMessage NewShape
     )
