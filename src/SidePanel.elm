@@ -15,7 +15,7 @@ import Svg.Lazy exposing (..)
 type alias SidePanel =
     { level : Int
     , lines : Int
-    , time : Float
+    , time : Int
     }
 
 
@@ -38,17 +38,13 @@ sidePanelStyle =
 
 viewSidePanel : SidePanel -> Svg msg
 viewSidePanel sidePanel =
-    let
-        timeInSeconds =
-            floor (sidePanel.time / 1000)
-    in
     g
         []
         [ text_
             []
             [ lazy viewLevel sidePanel.level
             , lazy viewLines sidePanel.lines
-            , lazy viewTime timeInSeconds
+            , lazy viewTime sidePanel.time
             , viewFooter
             ]
         ]
@@ -65,8 +61,8 @@ viewLines lines =
 
 
 viewTime : Int -> Svg msg
-viewTime timeInSeconds =
-    viewStatistic 2 "Time" (prettyFormatTime timeInSeconds)
+viewTime time =
+    viewStatistic 2 "Time" (prettyFormatTime time)
 
 
 viewStatistic : Int -> String -> String -> Svg msg

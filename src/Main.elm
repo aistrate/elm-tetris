@@ -44,6 +44,7 @@ type alias Model =
     , lockDelay : LockDelay
     , fullRowsDelayTimer : TimeInterval
     , screen : Screen
+    , timePlayed : Float
     , sidePanel : SidePanel
     , settings : Settings
     }
@@ -80,6 +81,7 @@ initModel =
     , lockDelay = zeroLockDelay
     , fullRowsDelayTimer = Nothing
     , screen = PlayScreen
+    , timePlayed = 0
     , sidePanel =
         { level = 1
         , lines = 0
@@ -347,14 +349,28 @@ updateForAnimationFrame timeDelta model =
         lockDelay =
             model.lockDelay
 
-        sidePanel =
+        timePlayed =
+            model.timePlayed + timeDelta
+
+        time =
+            floor (timePlayed / 1000)
+
+        oldSidePanel =
             model.sidePanel
+
+        sidePanel =
+            if time /= oldSidePanel.time then
+                { oldSidePanel | time = time }
+
+            else
+                oldSidePanel
     in
     ( { model
         | dropAnimationTimer = dropAnimationTimer
         , lockDelay = { lockDelay | timer = lockDelayTimer }
         , fullRowsDelayTimer = fullRowsDelayTimer
-        , sidePanel = { sidePanel | time = sidePanel.time + timeDelta }
+        , timePlayed = timePlayed
+        , sidePanel = sidePanel
       }
     , Cmd.batch
         [ dropAnimationCmd
