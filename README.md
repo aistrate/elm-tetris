@@ -1,6 +1,6 @@
 # Elm Tetris
 
-[Demo](https://aistrate.github.io/demo/elm-tetris/index.html)
+See [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
 
 ## Building and Deploying
 
