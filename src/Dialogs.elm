@@ -404,10 +404,10 @@ viewDialogTextLine yCoord textLine =
 viewDialogOverlay : Svg msg
 viewDialogOverlay =
     rect
-        [ x (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding))
-        , y (String.fromFloat -(boardStyle.borderWidth + boardStyle.padding))
-        , width (String.fromFloat boardWidth)
-        , height (String.fromFloat boardHeight)
+        [ x "0"
+        , y "0"
+        , width (String.fromFloat (toFloat game.columns * blockStyle.size))
+        , height (String.fromFloat (toFloat game.rows * blockStyle.size))
         , fill "white"
         , opacity "0.7"
         ]
