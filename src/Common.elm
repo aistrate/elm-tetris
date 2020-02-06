@@ -17,7 +17,7 @@ game =
 
 type Msg
     = NewShape
-    | ShapeBag (List Shape)
+    | ShapesGenerated (List Shape)
     | Spawn Shape
     | AnimationFrame Float
     | MoveDown

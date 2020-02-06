@@ -13,9 +13,15 @@ type Shape
     | ZShape
 
 
-shapeBagGenerator : Random.Generator (List Shape)
-shapeBagGenerator =
+sevenBagShapeGenerator : Random.Generator (List Shape)
+sevenBagShapeGenerator =
     shuffle [ IShape, JShape, LShape, OShape, SShape, TShape, ZShape ]
+
+
+singleShapeGenerator : Random.Generator (List Shape)
+singleShapeGenerator =
+    Random.uniform IShape [ JShape, LShape, OShape, SShape, TShape, ZShape ]
+        |> Random.map List.singleton
 
 
 shuffle : List a -> Random.Generator (List a)

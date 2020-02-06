@@ -35,7 +35,7 @@ main =
 
 
 type alias Model =
-    { shapeBag : List Shape
+    { unusedShapes : List Shape
     , fallingPiece : Maybe Tetromino
     , ghostPiece : List Block
     , bottomBlocks : List Block
@@ -71,7 +71,7 @@ init _ =
 
 initModel : Model
 initModel =
-    { shapeBag = []
+    { unusedShapes = []
     , fallingPiece = Nothing
     , ghostPiece = []
     , bottomBlocks = []
@@ -155,8 +155,8 @@ updatePlayScreen msg model =
         NewShape ->
             updateForNewShape model
 
-        ShapeBag shapes ->
-            ( { model | shapeBag = model.shapeBag ++ shapes }
+        ShapesGenerated shapes ->
+            ( { model | unusedShapes = model.unusedShapes ++ shapes }
             , triggerMessage NewShape
             )
 
@@ -262,15 +262,15 @@ updatePlayScreen msg model =
 
 updateForNewShape : Model -> ( Model, Cmd Msg )
 updateForNewShape model =
-    case model.shapeBag of
+    case model.unusedShapes of
         shape :: remainingShapes ->
-            ( { model | shapeBag = remainingShapes }
+            ( { model | unusedShapes = remainingShapes }
             , triggerMessage (Spawn shape)
             )
 
         [] ->
             ( model
-            , Random.generate ShapeBag shapeBagGenerator
+            , Random.generate ShapesGenerated sevenBagShapeGenerator
             )
 
 
