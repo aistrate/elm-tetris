@@ -3,9 +3,11 @@ module SidePanel exposing (..)
 import Common exposing (..)
 import FormatNumber exposing (format)
 import FormatNumber.Locales exposing (usLocale)
+import Shape exposing (Shape)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (..)
+import Tetromino exposing (ShapeSize(..), Tetromino, spawnTetromino)
 
 
 
@@ -16,6 +18,7 @@ type alias SidePanel =
     { level : Int
     , lines : Int
     , time : Float
+    , previewShapes : List Shape
     }
 
 
@@ -44,7 +47,8 @@ viewSidePanel sidePanel =
     in
     g
         []
-        [ text_
+        [ lazy viewPreviewShapes sidePanel.previewShapes
+        , text_
             []
             [ lazy viewLevel sidePanel.level
             , lazy viewLines sidePanel.lines
@@ -89,6 +93,53 @@ viewStatistic row label value =
             [ text value
             ]
         ]
+
+
+viewPreviewShapes : List Shape -> Svg msg
+viewPreviewShapes shapes =
+    let
+        startRow =
+            5
+    in
+    g
+        []
+        (List.indexedMap
+            (\index shape -> viewPreviewShape (startRow + 3 * index) shape)
+            shapes
+        )
+
+
+viewPreviewShape : Int -> Shape -> Svg msg
+viewPreviewShape row shape =
+    let
+        tetromino =
+            spawnTetromino shape
+
+        ( tetrominoCols, tetrominoRows ) =
+            tetrominoSize tetromino.shapeSize
+
+        shiftY =
+            if tetrominoRows == 1 then
+                -0.5 * blockStyle.size
+
+            else
+                0
+
+        s =
+            sidePanelStyle
+
+        tetrominoX =
+            s.x + s.paddingLeft + (s.width - s.paddingLeft - s.paddingRight - toFloat tetrominoCols * blockStyle.size) / 2
+
+        tetrominoY =
+            s.y + toFloat row * blockStyle.size + shiftY
+    in
+    g
+        []
+        (List.map
+            (viewBlock ( tetrominoX, tetrominoY ))
+            tetromino.blocks
+        )
 
 
 viewFooter : Svg msg
@@ -154,3 +205,16 @@ prettyFormatTime timeInSeconds =
 
     else
         minSecPadded
+
+
+tetrominoSize : ShapeSize -> ( Int, Int )
+tetrominoSize shapeSize =
+    case shapeSize of
+        Size2By2 ->
+            ( 2, 2 )
+
+        Size3By2 ->
+            ( 3, 2 )
+
+        Size4By1 ->
+            ( 4, 1 )

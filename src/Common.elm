@@ -1,6 +1,9 @@
 module Common exposing (..)
 
+import Block exposing (Block, colorToHex)
 import Shape exposing (Shape)
+import Svg exposing (..)
+import Svg.Attributes exposing (..)
 import Task
 
 
@@ -120,3 +123,17 @@ boardHeight =
 boardSize : Int -> Float
 boardSize blockCount =
     toFloat blockCount * blockStyle.size + 2 * (boardStyle.borderWidth + boardStyle.padding)
+
+
+viewBlock : ( Float, Float ) -> Block -> Svg msg
+viewBlock ( originX, originY ) block =
+    rect
+        [ x (String.fromFloat (originX + toFloat block.col * blockStyle.size + blockStyle.borderWidth / 2))
+        , y (String.fromFloat (originY + toFloat block.row * blockStyle.size + blockStyle.borderWidth / 2))
+        , width (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
+        , height (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
+        , fill (colorToHex block.color)
+        , stroke "white"
+        , strokeWidth (String.fromFloat blockStyle.borderWidth)
+        ]
+        []

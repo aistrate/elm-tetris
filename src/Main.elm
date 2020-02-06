@@ -84,6 +84,7 @@ initModel =
         { level = 1
         , lines = 0
         , time = 0
+        , previewShapes = []
         }
     , settings =
         { showGhostPiece = False
@@ -780,7 +781,7 @@ view model =
         [ lazy viewSidePanel model.sidePanel
         , viewBoard
         , lazy viewVerticalStripes model.settings.showVerticalStripes
-        , lazy viewBlocks model.bottomBlocks
+        , lazy viewBoardBlocks model.bottomBlocks
         , lazy2 viewGhostPiece model.settings.showGhostPiece model.ghostPiece
         , lazy viewFallingPiece model.fallingPiece
         , lazy viewDialogIfAny model.screen
@@ -819,35 +820,26 @@ viewBoard =
         []
 
 
-viewBlocks : List Block -> Svg msg
-viewBlocks blocks =
+viewBoardBlocks : List Block -> Svg msg
+viewBoardBlocks blocks =
     g
         []
         (List.filter
             (\block -> 0 <= block.col && block.col < game.columns && 0 <= block.row && block.row < game.rows)
             blocks
-            |> List.map (lazy viewBlock)
+            |> List.map (lazy viewBoardBlock)
         )
 
 
-viewBlock : Block -> Svg msg
-viewBlock block =
-    rect
-        [ x (String.fromFloat (toFloat block.col * blockStyle.size + blockStyle.borderWidth / 2))
-        , y (String.fromFloat (toFloat block.row * blockStyle.size + blockStyle.borderWidth / 2))
-        , width (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
-        , height (String.fromFloat (blockStyle.size - blockStyle.borderWidth))
-        , fill (colorToHex block.color)
-        , stroke "white"
-        , strokeWidth (String.fromFloat blockStyle.borderWidth)
-        ]
-        []
+viewBoardBlock : Block -> Svg msg
+viewBoardBlock block =
+    viewBlock ( 0, 0 ) block
 
 
 viewGhostPiece : Bool -> List Block -> Svg msg
 viewGhostPiece visible blocks =
     if visible then
-        viewBlocks blocks
+        viewBoardBlocks blocks
 
     else
         g [] []
@@ -860,7 +852,7 @@ viewFallingPiece fallingPiece =
             Maybe.map .blocks fallingPiece
                 |> Maybe.withDefault []
     in
-    viewBlocks blocks
+    viewBoardBlocks blocks
 
 
 viewVerticalStripes : Bool -> Svg msg
