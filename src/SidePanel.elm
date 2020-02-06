@@ -56,21 +56,29 @@ viewSidePanel sidePanel =
 
 viewLevel : Int -> Svg msg
 viewLevel level =
-    viewStatistic 0 "Level" (String.fromInt level)
+    let
+        smallExplanation =
+            if level == 0 then
+                "(no gravity)"
+
+            else
+                ""
+    in
+    viewStatistic 0 "Level" (String.fromInt level) smallExplanation
 
 
 viewLines : Int -> Svg msg
 viewLines lines =
-    viewStatistic 1 "Lines" (prettyFormatInt lines)
+    viewStatistic 1 "Lines" (prettyFormatInt lines) ""
 
 
 viewTime : Int -> Svg msg
 viewTime timeInSeconds =
-    viewStatistic 2 "Time" (prettyFormatTime timeInSeconds)
+    viewStatistic 2 "Time" (prettyFormatTime timeInSeconds) ""
 
 
-viewStatistic : Int -> String -> String -> Svg msg
-viewStatistic row label value =
+viewStatistic : Int -> String -> String -> String -> Svg msg
+viewStatistic row label value smallExplanation =
     tspan
         [ y (String.fromFloat (sidePanelStyle.y + sidePanelStyle.paddingTop + (blockStyle.size * (toFloat row + 0.65))))
         , fontSize (String.fromFloat (blockStyle.size * 0.65))
@@ -86,7 +94,19 @@ viewStatistic row label value =
             , fontFamily "Courier New, sans-serif"
             , fontWeight "bold"
             ]
-            [ text value
+            [ if smallExplanation /= "" then
+                tspan
+                    [ fontSize (String.fromFloat (blockStyle.size * 0.4))
+
+                    -- "after-edge" deprecated
+                    , alignmentBaseline "after-edge"
+                    ]
+                    [ text (smallExplanation ++ " ")
+                    ]
+
+              else
+                text ""
+            , text value
             ]
         ]
 
