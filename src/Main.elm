@@ -813,7 +813,7 @@ viewBoard =
         , width (String.fromFloat (boardWidth - boardStyle.borderWidth))
         , height (String.fromFloat (boardHeight - boardStyle.borderWidth))
         , fill "transparent"
-        , stroke "#D3BCA3"
+        , stroke "#AAA"
         , strokeWidth (String.fromFloat boardStyle.borderWidth)
         ]
         []
