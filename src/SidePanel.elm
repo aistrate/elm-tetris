@@ -1,8 +1,6 @@
 module SidePanel exposing (..)
 
 import Common exposing (..)
-import FormatNumber exposing (format)
-import FormatNumber.Locales exposing (usLocale)
 import Shape exposing (Shape)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
@@ -182,8 +180,33 @@ viewFooter =
 
 
 prettyFormatInt : Int -> String
-prettyFormatInt i =
-    FormatNumber.format { usLocale | decimals = 0 } (toFloat i)
+prettyFormatInt number =
+    let
+        sign =
+            if number < 0 then
+                "-"
+
+            else
+                ""
+    in
+    String.fromInt (abs number)
+        |> String.reverse
+        |> String.toList
+        |> splitIntoGroupsOf 3
+        |> List.map String.fromList
+        |> String.join ","
+        |> String.reverse
+        |> (++) sign
+
+
+splitIntoGroupsOf : Int -> List a -> List (List a)
+splitIntoGroupsOf n list =
+    case list of
+        [] ->
+            []
+
+        _ ->
+            List.take n list :: splitIntoGroupsOf n (List.drop n list)
 
 
 prettyFormatTime : Int -> String
