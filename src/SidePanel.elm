@@ -44,15 +44,22 @@ sidePanelStyle =
     }
 
 
-viewSidePanel : SidePanel -> Svg msg
-viewSidePanel sidePanel =
+viewSidePanel : SidePanel -> Screen -> Svg msg
+viewSidePanel sidePanel screen =
     let
+        showPreviews =
+            screen /= GameOverDialog
+
         timeInSeconds =
             floor (sidePanel.time / 1000)
     in
     g
         []
-        [ lazy viewPreviewShapes sidePanel.previewShapes
+        [ if showPreviews then
+            lazy viewPreviewShapes sidePanel.previewShapes
+
+          else
+            g [] []
         , text_
             []
             [ lazy viewLevel sidePanel.level

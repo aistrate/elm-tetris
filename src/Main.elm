@@ -800,7 +800,7 @@ view : Model -> Svg msg
 view model =
     svg
         rootSvgAttributes
-        [ lazy viewSidePanel model.sidePanel
+        [ lazy2 viewSidePanel model.sidePanel model.screen
         , viewBoard
         , lazy viewVerticalStripes model.settings.showVerticalStripes
         , lazy viewBoardBlocks model.bottomBlocks
