@@ -75,12 +75,12 @@ viewLevel level =
 
 viewLines : Int -> Svg msg
 viewLines lines =
-    viewStatistic 1 "Lines" (prettyFormatInt lines)
+    viewStatistic 1 "Lines" (formatInt lines)
 
 
 viewTime : Int -> Svg msg
 viewTime timeInSeconds =
-    viewStatistic 2 "Time" (prettyFormatTime timeInSeconds)
+    viewStatistic 2 "Time" (formatTime timeInSeconds)
 
 
 viewStatistic : Int -> String -> String -> Svg msg
@@ -179,8 +179,8 @@ viewFooter =
         ]
 
 
-prettyFormatInt : Int -> String
-prettyFormatInt number =
+formatInt : Int -> String
+formatInt number =
     let
         sign =
             if number < 0 then
@@ -209,8 +209,8 @@ splitIntoGroupsOf n list =
             List.take n list :: splitIntoGroupsOf n (List.drop n list)
 
 
-prettyFormatTime : Int -> String
-prettyFormatTime timeInSeconds =
+formatTime : Int -> String
+formatTime timeInSeconds =
     let
         seconds =
             modBy 60 timeInSeconds
