@@ -333,7 +333,7 @@ viewDialog textLines =
             (game.rows - List.length textLines) // 2
 
         firstLineY =
-            String.fromFloat ((toFloat vertCenteredFirstRow + 0.8) * blockStyle.size)
+            String.fromFloat ((toFloat vertCenteredFirstRow + 0.7) * blockStyle.size)
 
         nextLineDy =
             String.fromFloat blockStyle.size
@@ -368,7 +368,7 @@ viewDialogTextLine yCoord textLine =
                 [ x (String.fromFloat middleBoardX)
                 , yCoord
                 , textAnchor "middle"
-                , fontSize (String.fromFloat (blockStyle.size * 0.65))
+                , fontSize (String.fromFloat (blockStyle.size * 0.6))
                 , fontWeight "bold"
                 ]
                 [ text largeText

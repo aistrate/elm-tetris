@@ -39,7 +39,7 @@ sidePanelStyle =
     , marginRight = 12.0
     , paddingLeft = blockStyle.size * 0.5
     , paddingRight = blockStyle.size * 0.1
-    , paddingTop = blockStyle.size * 0.1
+    , paddingTop = 0
     , paddingBottom = 3.5
     }
 
@@ -88,17 +88,18 @@ viewTime timeInSeconds =
 viewStatistic : Int -> String -> String -> Svg msg
 viewStatistic row label value =
     tspan
-        [ y (String.fromFloat (sidePanelStyle.y + sidePanelStyle.paddingTop + (blockStyle.size * (toFloat row + 0.65))))
-        , fontSize (String.fromFloat (blockStyle.size * 0.65))
+        [ y (String.fromFloat (sidePanelStyle.y + sidePanelStyle.paddingTop + (blockStyle.size * (toFloat row + 0.7))))
         ]
         [ tspan
             [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.paddingLeft))
+            , fontSize (String.fromFloat (blockStyle.size * 0.6))
             ]
             [ text label
             ]
         , tspan
             [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.width - sidePanelStyle.paddingRight))
             , textAnchor "end"
+            , fontSize (String.fromFloat (blockStyle.size * 0.65))
             , fontFamily "Courier New, sans-serif"
             , fontWeight "bold"
             ]
