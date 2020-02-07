@@ -13,7 +13,8 @@ import Tetromino exposing (ShapeSize(..), Tetromino, createTetromino)
 
 
 type alias SidePanel =
-    { level : Int
+    { score : Int
+    , level : Int
     , lines : Int
     , time : Float
     , previewShapes : List Shape
@@ -60,7 +61,8 @@ viewSidePanel sidePanel screen =
             g [] []
         , text_
             []
-            [ lazy viewLevel sidePanel.level
+            [ lazy viewScore sidePanel.score
+            , lazy viewLevel sidePanel.level
             , lazy viewLines sidePanel.lines
             , lazy viewTime timeInSeconds
             , viewFooter
@@ -68,19 +70,24 @@ viewSidePanel sidePanel screen =
         ]
 
 
+viewScore : Int -> Svg msg
+viewScore score =
+    viewStatistic 0 "Score" (formatInt score)
+
+
 viewLevel : Int -> Svg msg
 viewLevel level =
-    viewStatistic 0 "Level" (String.fromInt level)
+    viewStatistic 1 "Level" (String.fromInt level)
 
 
 viewLines : Int -> Svg msg
 viewLines lines =
-    viewStatistic 1 "Lines" (formatInt lines)
+    viewStatistic 2 "Lines" (formatInt lines)
 
 
 viewTime : Int -> Svg msg
 viewTime timeInSeconds =
-    viewStatistic 2 "Time" (formatTime timeInSeconds)
+    viewStatistic 3 "Time" (formatTime timeInSeconds)
 
 
 viewStatistic : Int -> String -> String -> Svg msg
