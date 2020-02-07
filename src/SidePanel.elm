@@ -22,6 +22,11 @@ type alias SidePanel =
     }
 
 
+previewCount : Int
+previewCount =
+    1
+
+
 
 -- VIEW
 
@@ -99,7 +104,7 @@ viewPreviewShapes : List Shape -> Svg msg
 viewPreviewShapes shapes =
     let
         startRow =
-            5
+            8
     in
     g
         []

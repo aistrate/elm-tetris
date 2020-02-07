@@ -263,16 +263,38 @@ updatePlayScreen msg model =
 
 updateForNewShape : Model -> ( Model, Cmd Msg )
 updateForNewShape model =
-    case model.unusedShapes of
-        shape :: remainingShapes ->
-            ( { model | unusedShapes = remainingShapes }
-            , triggerMessage (Spawn shape)
-            )
+    let
+        targetCount =
+            previewCount + 1
 
-        [] ->
-            ( model
-            , Random.generate ShapesGenerated sevenBagShapeGenerator
-            )
+        actualCount =
+            List.length model.sidePanel.previewShapes + List.length model.unusedShapes
+    in
+    if actualCount >= targetCount then
+        let
+            missingCount =
+                targetCount - List.length model.sidePanel.previewShapes
+
+            previewShapes =
+                model.sidePanel.previewShapes ++ List.take missingCount model.unusedShapes
+
+            currentShape =
+                List.head previewShapes |> Maybe.withDefault IShape
+
+            sidePanel =
+                model.sidePanel
+        in
+        ( { model
+            | sidePanel = { sidePanel | previewShapes = List.drop 1 previewShapes }
+            , unusedShapes = List.drop missingCount model.unusedShapes
+          }
+        , triggerMessage (Spawn currentShape)
+        )
+
+    else
+        ( model
+        , Random.generate ShapesGenerated sevenBagShapeGenerator
+        )
 
 
 updateForSpawn : Shape -> Model -> ( Model, Cmd Msg )
