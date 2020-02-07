@@ -1,5 +1,7 @@
 # Elm Tetris
 
+Elm Tetris is the game of [Tetris](https://en.wikipedia.org/wiki/Tetris) implemented in the [Elm](<https://en.wikipedia.org/wiki/Elm_(programming_language)>) programming language.
+
 See [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
 
 ## Building and Deploying
@@ -10,7 +12,7 @@ See [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
 elm make src/Main.elm --output=main.js
 ```
 
-To deploy, copy `index.html` and `main.js` to the destination folder.
+To deploy, copy `index.html`, `main.js` and `favicon.ico` to the destination folder.
 
 ### Production:
 
@@ -30,4 +32,4 @@ npm install uglify-js --global
 
 See [here](https://github.com/elm/compiler/blob/master/hints/optimize.md) for details on how to optimize asset size in Elm.
 
-To deploy, copy `index.html` and `main.min.js` to the destination folder. Inside `index.html`, change the script tag to point to `main.min.js` instead of `main.js`.
+To deploy, copy `index.html`, `main.min.js` and `favicon.ico` to the destination folder. Inside `index.html`, change the script tag to point to `main.min.js` instead of `main.js`.
