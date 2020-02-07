@@ -812,8 +812,15 @@ view model =
 
 rootSvgAttributes : List (Attribute msg)
 rootSvgAttributes =
+    let
+        viewBoxHeight =
+            2 * boardStyle.margin + boardHeight
+    in
     [ width "100%"
-    , height (String.fromFloat (2 * boardStyle.margin + boardHeight))
+    , height "100%"
+    , Svg.Attributes.style
+        ("position: fixed; max-height: " ++ String.fromFloat viewBoxHeight ++ "px;")
+    , preserveAspectRatio "xMidYMin"
     , viewBox
         (String.fromFloat -(boardStyle.margin + boardStyle.borderWidth + boardStyle.padding)
             ++ " "
@@ -821,7 +828,7 @@ rootSvgAttributes =
             ++ " "
             ++ String.fromFloat (2 * boardStyle.margin + boardWidth + sidePanelStyle.width + sidePanelStyle.marginRight)
             ++ " "
-            ++ String.fromFloat (2 * boardStyle.margin + boardHeight)
+            ++ String.fromFloat viewBoxHeight
         )
     , fontFamily "sans-serif"
     , fill "#222"
