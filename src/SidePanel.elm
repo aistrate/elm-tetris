@@ -112,7 +112,7 @@ viewPreviewShapes : List Shape -> Svg msg
 viewPreviewShapes shapes =
     let
         startRow =
-            8
+            9
     in
     g
         []
