@@ -48,7 +48,7 @@ viewSidePanel : SidePanel -> Screen -> Svg msg
 viewSidePanel sidePanel screen =
     let
         showPreviews =
-            screen /= GameOverDialog
+            screen /= GameOverDialog && screen /= HelpDialog { returnScreen = GameOverDialog }
 
         timeInSeconds =
             floor (sidePanel.time / 1000)
