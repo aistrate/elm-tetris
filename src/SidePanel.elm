@@ -7,7 +7,7 @@ import Shape exposing (Shape)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (..)
-import Tetromino exposing (ShapeSize(..), Tetromino, spawnTetromino)
+import Tetromino exposing (ShapeSize(..), Tetromino, createTetromino)
 
 
 
@@ -125,7 +125,7 @@ viewPreviewShape : Int -> Shape -> Svg msg
 viewPreviewShape row shape =
     let
         tetromino =
-            spawnTetromino shape
+            createTetromino shape
 
         ( tetrominoCols, tetrominoRows ) =
             tetrominoSize tetromino.shapeSize

@@ -301,7 +301,7 @@ updateForSpawn : Shape -> Model -> ( Model, Cmd Msg )
 updateForSpawn shape model =
     let
         spawnedPiece =
-            spawnTetromino shape
+            createTetromino shape
                 |> centerHoriz game.columns
                 |> translateBy
                     { dCol = 0

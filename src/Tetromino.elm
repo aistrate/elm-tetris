@@ -38,8 +38,8 @@ type RotationDirection
     | Counterclockwise
 
 
-spawnTetromino : Shape -> Tetromino
-spawnTetromino shape =
+createTetromino : Shape -> Tetromino
+createTetromino shape =
     case shape of
         IShape ->
             { blocks =
