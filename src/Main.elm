@@ -545,7 +545,11 @@ updateForRemoveFullRows model =
         , ghostPiece = []
         , bottomBlocks = bottomBlocks
         , board = createBoard game.columns game.rows bottomBlocks
-        , sidePanel = { sidePanel | lines = sidePanel.lines + rowsRemoved }
+        , sidePanel =
+            { sidePanel
+                | score = sidePanel.score + calculateScorePoints rowsRemoved sidePanel.level
+                , lines = sidePanel.lines + rowsRemoved
+            }
       }
     , triggerMessage NewShape
     )
@@ -659,6 +663,29 @@ zeroLockDelay =
     , movesRemaining = 0
     , maxRowReached = game.rows
     }
+
+
+calculateScorePoints : Int -> Int -> Int
+calculateScorePoints rowsRemoved level =
+    let
+        points =
+            case rowsRemoved of
+                1 ->
+                    100
+
+                2 ->
+                    300
+
+                3 ->
+                    500
+
+                4 ->
+                    800
+
+                _ ->
+                    0
+    in
+    points * level
 
 
 
