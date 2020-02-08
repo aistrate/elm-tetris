@@ -68,7 +68,7 @@ updateTimer currentValue timeDelta resetValue message =
     case currentValue of
         Just value ->
             if value - timeDelta <= 0 then
-                ( resetValue
+                ( Maybe.map ((+) (value - timeDelta)) resetValue
                 , triggerMessage message
                 )
 
