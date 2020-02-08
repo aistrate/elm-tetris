@@ -87,7 +87,7 @@ initModel =
         , previewShapes = []
         }
     , settings =
-        { showGhostPiece = False
+        { showGhostPiece = True
         , showVerticalStripes = False
         }
     }
