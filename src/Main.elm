@@ -684,8 +684,11 @@ calculateScorePoints rowsRemoved level =
 
                 _ ->
                     0
+
+        adjustedLevel =
+            Basics.max 1 level
     in
-    points * level
+    points * adjustedLevel
 
 
 
