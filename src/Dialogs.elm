@@ -66,6 +66,16 @@ updateCountdownScreen timer afterCmd msg screen =
             , afterCmd
             )
 
+        TogglePauseDialog ->
+            ( PauseDialog { afterCmd = afterCmd }
+            , Cmd.none
+            )
+
+        Exit ->
+            ( screen
+            , triggerMessage TogglePauseDialog
+            )
+
         WindowMinimized ->
             ( PauseDialog { afterCmd = afterCmd }
             , Cmd.none
