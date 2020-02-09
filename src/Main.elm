@@ -115,12 +115,9 @@ update msg model =
 updateForLevelChange : Int -> Model -> ( Model, Cmd Msg )
 updateForLevelChange level model =
     let
-        sidePanel =
-            model.sidePanel
-
         dropAnimationTimer =
             if
-                sidePanel.level
+                model.sidePanel.level
                     == 0
                     && level
                     == 1
@@ -133,12 +130,15 @@ updateForLevelChange level model =
 
             else
                 model.dropAnimationTimer
+
+        ( sidePanel, cmd ) =
+            updateSidePanelForLevelChange level model.sidePanel
     in
     ( { model
-        | sidePanel = { sidePanel | level = clamp 0 maxLevel level }
-        , dropAnimationTimer = dropAnimationTimer
+        | dropAnimationTimer = dropAnimationTimer
+        , sidePanel = sidePanel
       }
-    , Cmd.none
+    , cmd
     )
 
 
@@ -336,19 +336,20 @@ updateForAnimationFrame timeDelta model =
         lockDelay =
             model.lockDelay
 
-        sidePanel =
-            model.sidePanel
+        ( sidePanel, sidePanelCmd ) =
+            updateSidePanelForAnimationFrame timeDelta model.sidePanel
     in
     ( { model
         | dropAnimationTimer = dropAnimationTimer
         , lockDelay = { lockDelay | timer = lockDelayTimer }
         , fullRowsDelayTimer = fullRowsDelayTimer
-        , sidePanel = { sidePanel | time = sidePanel.time + timeDelta }
+        , sidePanel = sidePanel
       }
     , Cmd.batch
         [ dropAnimationCmd
         , lockDelayCmd
         , fullRowsDelayCmd
+        , sidePanelCmd
         ]
     )
 
@@ -502,21 +503,17 @@ updateForRemoveFullRows model =
         ( bottomBlocks, rowsRemoved ) =
             removeFullRows game.columns model.bottomBlocks
 
-        sidePanel =
-            model.sidePanel
+        ( sidePanel, sidePanelCmd ) =
+            updateSidePanelForRemoveFullRows rowsRemoved model.sidePanel
     in
     ( { model
         | fallingPiece = Nothing
         , ghostPiece = []
         , bottomBlocks = bottomBlocks
         , board = createBoard game.columns game.rows bottomBlocks
-        , sidePanel =
-            { sidePanel
-                | score = sidePanel.score + calculateScorePoints rowsRemoved sidePanel.level
-                , lines = sidePanel.lines + rowsRemoved
-            }
+        , sidePanel = sidePanel
       }
-    , triggerMessage NewShape
+    , Cmd.batch [ triggerMessage NewShape, sidePanelCmd ]
     )
 
 
@@ -628,32 +625,6 @@ zeroLockDelay =
     , movesRemaining = 0
     , maxRowReached = game.rows
     }
-
-
-calculateScorePoints : Int -> Int -> Int
-calculateScorePoints rowsRemoved level =
-    let
-        points =
-            case rowsRemoved of
-                1 ->
-                    100
-
-                2 ->
-                    300
-
-                3 ->
-                    500
-
-                4 ->
-                    800
-
-                _ ->
-                    0
-
-        adjustedLevel =
-            Basics.max 1 level
-    in
-    points * adjustedLevel
 
 
 

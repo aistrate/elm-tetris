@@ -48,6 +48,12 @@ previewStartRow =
     9
 
 
+updateSidePanelForLevelChange : Int -> SidePanel -> ( SidePanel, Cmd Msg )
+updateSidePanelForLevelChange level sidePanel =
+    ( { sidePanel | level = clamp 0 maxLevel level }
+    , Cmd.none
+    )
+
 
 updateSidePanelForNewShape : SidePanel -> ( SidePanel, Cmd Msg )
 updateSidePanelForNewShape sidePanel =
@@ -87,6 +93,49 @@ updateSidePanelForShapesGenerated shapes sidePanel =
     ( { sidePanel | unusedShapes = sidePanel.unusedShapes ++ shapes }
     , triggerMessage NewShape
     )
+
+
+updateSidePanelForAnimationFrame : Float -> SidePanel -> ( SidePanel, Cmd Msg )
+updateSidePanelForAnimationFrame timeDelta sidePanel =
+    ( { sidePanel | time = sidePanel.time + timeDelta }
+    , Cmd.none
+    )
+
+
+updateSidePanelForRemoveFullRows : Int -> SidePanel -> ( SidePanel, Cmd Msg )
+updateSidePanelForRemoveFullRows rowsRemoved sidePanel =
+    ( { sidePanel
+        | score = sidePanel.score + calculateScorePoints rowsRemoved sidePanel.level
+        , lines = sidePanel.lines + rowsRemoved
+      }
+    , Cmd.none
+    )
+
+
+calculateScorePoints : Int -> Int -> Int
+calculateScorePoints rowsRemoved level =
+    let
+        points =
+            case rowsRemoved of
+                1 ->
+                    100
+
+                2 ->
+                    300
+
+                3 ->
+                    500
+
+                4 ->
+                    800
+
+                _ ->
+                    0
+
+        adjustedLevel =
+            Basics.max 1 level
+    in
+    points * adjustedLevel
 
 
 
