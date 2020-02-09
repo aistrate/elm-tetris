@@ -34,13 +34,19 @@ initSidePanel =
     }
 
 
+
+-- UPDATE
+
+
 previewCount : Int
 previewCount =
     1
 
 
+previewStartRow : Int
+previewStartRow =
+    9
 
--- UPDATE
 
 
 updateSidePanelForNewShape : SidePanel -> ( SidePanel, Cmd Msg )
@@ -169,14 +175,10 @@ viewStatistic row label value =
 
 viewPreviewShapes : List Shape -> Svg msg
 viewPreviewShapes shapes =
-    let
-        startRow =
-            9
-    in
     g
         []
         (List.indexedMap
-            (\index shape -> viewPreviewShape (startRow + 3 * index) shape)
+            (\index shape -> viewPreviewShape (previewStartRow + 3 * index) shape)
             shapes
         )
 
