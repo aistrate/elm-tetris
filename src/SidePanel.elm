@@ -1,7 +1,8 @@
 module SidePanel exposing (..)
 
 import Common exposing (..)
-import Shape exposing (Shape)
+import Random
+import Shape exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (..)
@@ -17,13 +18,69 @@ type alias SidePanel =
     , level : Int
     , lines : Int
     , time : Float
+    , unusedShapes : List Shape
     , previewShapes : List Shape
+    }
+
+
+initSidePanel : SidePanel
+initSidePanel =
+    { score = 0
+    , level = 1
+    , lines = 0
+    , time = 0
+    , unusedShapes = []
+    , previewShapes = []
     }
 
 
 previewCount : Int
 previewCount =
     1
+
+
+
+-- UPDATE
+
+
+updateSidePanelForNewShape : SidePanel -> ( SidePanel, Cmd Msg )
+updateSidePanelForNewShape sidePanel =
+    let
+        targetCount =
+            previewCount + 1
+
+        actualCount =
+            List.length sidePanel.previewShapes + List.length sidePanel.unusedShapes
+    in
+    if actualCount >= targetCount then
+        let
+            missingCount =
+                targetCount - List.length sidePanel.previewShapes
+
+            previewShapes =
+                sidePanel.previewShapes ++ List.take missingCount sidePanel.unusedShapes
+
+            fallingPieceShape =
+                List.head previewShapes |> Maybe.withDefault IShape
+        in
+        ( { sidePanel
+            | unusedShapes = List.drop missingCount sidePanel.unusedShapes
+            , previewShapes = List.drop 1 previewShapes
+          }
+        , triggerMessage (Spawn fallingPieceShape)
+        )
+
+    else
+        ( sidePanel
+        , Random.generate ShapesGenerated sevenBagShapeGenerator
+        )
+
+
+updateSidePanelForShapesGenerated : List Shape -> SidePanel -> ( SidePanel, Cmd Msg )
+updateSidePanelForShapesGenerated shapes sidePanel =
+    ( { sidePanel | unusedShapes = sidePanel.unusedShapes ++ shapes }
+    , triggerMessage NewShape
+    )
 
 
 

@@ -11,7 +11,6 @@ import Common exposing (..)
 import Dialogs exposing (..)
 import Dict exposing (Dict)
 import Json.Decode as Decode
-import Random
 import Shape exposing (..)
 import SidePanel exposing (..)
 import Svg exposing (..)
@@ -35,8 +34,7 @@ main =
 
 
 type alias Model =
-    { unusedShapes : List Shape
-    , fallingPiece : Maybe Tetromino
+    { fallingPiece : Maybe Tetromino
     , ghostPiece : List Block
     , bottomBlocks : List Block
     , board : Board
@@ -71,8 +69,7 @@ init _ =
 
 initModel : Model
 initModel =
-    { unusedShapes = []
-    , fallingPiece = Nothing
+    { fallingPiece = Nothing
     , ghostPiece = []
     , bottomBlocks = []
     , board = createBoard game.columns game.rows []
@@ -80,13 +77,7 @@ initModel =
     , lockDelay = zeroLockDelay
     , fullRowsDelayTimer = Nothing
     , screen = PlayScreen
-    , sidePanel =
-        { score = 0
-        , level = 1
-        , lines = 0
-        , time = 0
-        , previewShapes = []
-        }
+    , sidePanel = initSidePanel
     , settings =
         { showGhostPiece = True
         , showVerticalStripes = False
@@ -155,11 +146,21 @@ updatePlayScreen : Msg -> Model -> ( Model, Cmd Msg )
 updatePlayScreen msg model =
     case msg of
         NewShape ->
-            updateForNewShape model
+            let
+                ( sidePanel, cmd ) =
+                    updateSidePanelForNewShape model.sidePanel
+            in
+            ( { model | sidePanel = sidePanel }
+            , cmd
+            )
 
         ShapesGenerated shapes ->
-            ( { model | unusedShapes = model.unusedShapes ++ shapes }
-            , triggerMessage NewShape
+            let
+                ( sidePanel, cmd ) =
+                    updateSidePanelForShapesGenerated shapes model.sidePanel
+            in
+            ( { model | sidePanel = sidePanel }
+            , cmd
             )
 
         Spawn shape ->
@@ -260,42 +261,6 @@ updatePlayScreen msg model =
             ( model
             , Cmd.none
             )
-
-
-updateForNewShape : Model -> ( Model, Cmd Msg )
-updateForNewShape model =
-    let
-        targetCount =
-            previewCount + 1
-
-        actualCount =
-            List.length model.sidePanel.previewShapes + List.length model.unusedShapes
-    in
-    if actualCount >= targetCount then
-        let
-            missingCount =
-                targetCount - List.length model.sidePanel.previewShapes
-
-            previewShapes =
-                model.sidePanel.previewShapes ++ List.take missingCount model.unusedShapes
-
-            currentShape =
-                List.head previewShapes |> Maybe.withDefault IShape
-
-            sidePanel =
-                model.sidePanel
-        in
-        ( { model
-            | sidePanel = { sidePanel | previewShapes = List.drop 1 previewShapes }
-            , unusedShapes = List.drop missingCount model.unusedShapes
-          }
-        , triggerMessage (Spawn currentShape)
-        )
-
-    else
-        ( model
-        , Random.generate ShapesGenerated sevenBagShapeGenerator
-        )
 
 
 updateForSpawn : Shape -> Model -> ( Model, Cmd Msg )
