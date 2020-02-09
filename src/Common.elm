@@ -49,16 +49,6 @@ type Msg
     | NoOp
 
 
-type Screen
-    = PlayScreen
-    | CountdownScreen { timer : TimeInterval, afterCmd : Cmd Msg }
-    | StartDialog
-    | GameOverDialog
-    | RestartDialog
-    | PauseDialog { afterCmd : Cmd Msg }
-    | HelpDialog { returnScreen : Screen }
-
-
 type alias TimeInterval =
     Maybe Float
 

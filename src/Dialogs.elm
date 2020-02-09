@@ -7,6 +7,20 @@ import Svg.Lazy exposing (..)
 
 
 
+-- MODEL
+
+
+type Screen
+    = PlayScreen
+    | CountdownScreen { timer : TimeInterval, afterCmd : Cmd Msg }
+    | StartDialog
+    | GameOverDialog
+    | RestartDialog
+    | PauseDialog { afterCmd : Cmd Msg }
+    | HelpDialog { returnScreen : Screen }
+
+
+
 -- UPDATE
 
 
