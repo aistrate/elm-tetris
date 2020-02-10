@@ -102,6 +102,13 @@ updateSidePanelForAnimationFrame timeDelta sidePanel =
     )
 
 
+updateSidePanelForDropAndLock : Int -> SidePanel -> ( SidePanel, Cmd Msg )
+updateSidePanelForDropAndLock distanceDropped sidePanel =
+    ( { sidePanel | score = sidePanel.score + 2 * distanceDropped }
+    , Cmd.none
+    )
+
+
 updateSidePanelForRemoveFullRows : Int -> SidePanel -> ( SidePanel, Cmd Msg )
 updateSidePanelForRemoveFullRows rowsRemoved sidePanel =
     ( { sidePanel

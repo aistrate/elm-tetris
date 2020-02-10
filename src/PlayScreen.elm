@@ -357,13 +357,20 @@ updateForDropAndLock model =
             let
                 droppedPiece =
                     translateVertToTarget fallingPiece model.ghostPiece
+
+                distanceDropped =
+                    vertDistance fallingPiece.blocks droppedPiece.blocks
+
+                ( sidePanel, sidePanelCmd ) =
+                    updateSidePanelForDropAndLock distanceDropped model.sidePanel
             in
             ( { model
                 | fallingPiece = Just droppedPiece
                 , ghostPiece = calculateGhostPiece droppedPiece.blocks model.board
                 , lockDelay = zeroLockDelay
+                , sidePanel = sidePanel
               }
-            , Cmd.none
+            , sidePanelCmd
             )
 
         Nothing ->
