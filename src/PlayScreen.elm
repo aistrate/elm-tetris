@@ -555,6 +555,23 @@ zeroLockDelay =
 -- VIEW
 
 
+viewPlayScreen : Model -> Svg msg
+viewPlayScreen model =
+    let
+        showPreviews =
+            model.screen /= GameOverDialog && model.screen /= HelpDialog { returnScreen = GameOverDialog }
+    in
+    g
+        []
+        [ lazy2 viewSidePanel showPreviews model.sidePanel
+        , viewBoard
+        , lazy viewVerticalStripes model.settings.showVerticalStripes
+        , lazy viewBoardBlocks model.bottomBlocks
+        , lazy2 viewGhostPiece model.settings.showGhostPiece model.ghostPiece
+        , lazy viewFallingPiece model.fallingPiece
+        ]
+
+
 viewBoard : Svg msg
 viewBoard =
     rect

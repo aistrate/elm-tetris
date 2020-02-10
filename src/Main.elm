@@ -231,18 +231,9 @@ visibilityChanged visibility =
 
 view : Model -> Svg msg
 view model =
-    let
-        showPreviews =
-            model.screen /= GameOverDialog && model.screen /= HelpDialog { returnScreen = GameOverDialog }
-    in
     svg
         rootSvgAttributes
-        [ lazy2 viewSidePanel showPreviews model.sidePanel
-        , viewBoard
-        , lazy viewVerticalStripes model.settings.showVerticalStripes
-        , lazy viewBoardBlocks model.bottomBlocks
-        , lazy2 viewGhostPiece model.settings.showGhostPiece model.ghostPiece
-        , lazy viewFallingPiece model.fallingPiece
+        [ lazy viewPlayScreen model
         , lazy viewDialogIfAny model.screen
         ]
 
