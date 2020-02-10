@@ -9,7 +9,7 @@ import Common exposing (..)
 import Dialogs exposing (..)
 import Json.Decode as Decode
 import PlayScreen exposing (..)
-import SidePanel exposing (..)
+import SidePanel exposing (sidePanelStyle, updateSidePanelForLevelChange)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (..)
