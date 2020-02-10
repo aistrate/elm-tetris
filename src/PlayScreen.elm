@@ -93,34 +93,39 @@ updatePlayScreen msg model =
         AnimationFrame timeDelta ->
             updateForAnimationFrame timeDelta model
 
-        MoveDown ->
+        MoveDown moveType ->
             updateForMove
                 (translateBy { dCol = 0, dRow = 1 })
                 noAlternatives
+                (moveType == KeyboardMove)
                 model
 
         MoveLeft ->
             updateForMove
                 (translateBy { dCol = -1, dRow = 0 })
                 noAlternatives
+                False
                 model
 
         MoveRight ->
             updateForMove
                 (translateBy { dCol = 1, dRow = 0 })
                 noAlternatives
+                False
                 model
 
         RotateClockwise ->
             updateForMove
                 (Tetromino.rotate Clockwise)
                 (wallKickAlternatives Clockwise)
+                False
                 model
 
         RotateCounterclockwise ->
             updateForMove
                 (Tetromino.rotate Counterclockwise)
                 (wallKickAlternatives Counterclockwise)
+                False
                 model
 
         DropAndLock ->
@@ -241,7 +246,7 @@ updateForAnimationFrame timeDelta model =
                 model.dropAnimationTimer
                 timeDelta
                 (initialInterval DropAnimationInterval model.sidePanel.level)
-                MoveDown
+                (MoveDown AnimationMove)
 
         ( lockDelayTimer, lockDelayCmd ) =
             updateTimer
@@ -278,8 +283,8 @@ updateForAnimationFrame timeDelta model =
     )
 
 
-updateForMove : (Tetromino -> Tetromino) -> (Tetromino -> List Translation) -> Model -> ( Model, Cmd Msg )
-updateForMove move alternativeTranslations model =
+updateForMove : (Tetromino -> Tetromino) -> (Tetromino -> List Translation) -> Bool -> Model -> ( Model, Cmd Msg )
+updateForMove move alternativeTranslations softDrop model =
     case model.fallingPiece of
         Just fallingPiece ->
             let
@@ -297,13 +302,17 @@ updateForMove move alternativeTranslations model =
 
                         lockDelay =
                             updateLockDelay pieceBottomRow model.sidePanel.level model.lockDelay
+
+                        ( sidePanel, sidePanelCmd ) =
+                            updateSidePanelForMove softDrop model.sidePanel
                     in
                     ( { model
                         | fallingPiece = Just movedPiece
                         , ghostPiece = calculateGhostPiece movedPiece.blocks model.board
                         , lockDelay = lockDelay
+                        , sidePanel = sidePanel
                       }
-                    , Cmd.none
+                    , sidePanelCmd
                     )
 
                 Nothing ->

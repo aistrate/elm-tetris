@@ -137,11 +137,11 @@ toKeyboardMsg key =
             MoveRight
 
         "arrowdown" ->
-            MoveDown
+            MoveDown KeyboardMove
 
         -- IE
         "down" ->
-            MoveDown
+            MoveDown KeyboardMove
 
         "arrowup" ->
             RotateClockwise

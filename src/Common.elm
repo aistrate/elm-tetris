@@ -23,7 +23,7 @@ type Msg
     | ShapesGenerated (List Shape)
     | Spawn Shape
     | AnimationFrame Float
-    | MoveDown
+    | MoveDown MoveType
     | MoveLeft
     | MoveRight
     | RotateClockwise
@@ -47,6 +47,11 @@ type Msg
     | LevelDown
     | WindowMinimized
     | NoOp
+
+
+type MoveType
+    = KeyboardMove
+    | AnimationMove
 
 
 type alias TimeInterval =

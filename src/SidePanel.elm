@@ -102,6 +102,21 @@ updateSidePanelForAnimationFrame timeDelta sidePanel =
     )
 
 
+updateSidePanelForMove : Bool -> SidePanel -> ( SidePanel, Cmd Msg )
+updateSidePanelForMove softDrop sidePanel =
+    let
+        scorePoints =
+            if softDrop then
+                1
+
+            else
+                0
+    in
+    ( { sidePanel | score = sidePanel.score + scorePoints }
+    , Cmd.none
+    )
+
+
 updateSidePanelForDropAndLock : Int -> SidePanel -> ( SidePanel, Cmd Msg )
 updateSidePanelForDropAndLock distanceDropped sidePanel =
     ( { sidePanel | score = sidePanel.score + 2 * distanceDropped }
