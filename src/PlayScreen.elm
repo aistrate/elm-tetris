@@ -138,7 +138,7 @@ updatePlayScreen msg model =
             updateForRemoveFullRows model
 
         ShowQuitDialog ->
-            ( { model | screen = QuitDialog }
+            ( { model | screen = QuitDialog { afterCmd = Cmd.none } }
             , Cmd.none
             )
 

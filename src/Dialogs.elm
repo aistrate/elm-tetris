@@ -15,7 +15,7 @@ type Screen
     | CountdownScreen { timer : TimeInterval, afterCmd : Cmd Msg }
     | StartDialog
     | GameOverDialog
-    | QuitDialog
+    | QuitDialog { afterCmd : Cmd Msg }
     | PauseDialog { afterCmd : Cmd Msg }
     | HelpDialog { returnScreen : Screen }
 
@@ -36,8 +36,8 @@ updateDialog msg screen =
         GameOverDialog ->
             updateGameOverDialog msg screen
 
-        QuitDialog ->
-            updateQuitDialog msg screen
+        QuitDialog { afterCmd } ->
+            updateQuitDialog afterCmd msg screen
 
         PauseDialog { afterCmd } ->
             updatePauseDialog afterCmd msg screen
@@ -144,8 +144,8 @@ updateGameOverDialog msg screen =
             )
 
 
-updateQuitDialog : Msg -> Screen -> ( Screen, Cmd Msg )
-updateQuitDialog msg screen =
+updateQuitDialog : Cmd Msg -> Msg -> Screen -> ( Screen, Cmd Msg )
+updateQuitDialog afterCmd msg screen =
     case msg of
         AnswerYes ->
             ( PlayScreen
@@ -159,7 +159,7 @@ updateQuitDialog msg screen =
 
         Exit ->
             ( PlayScreen
-            , triggerMessage (Unpause Cmd.none)
+            , triggerMessage (Unpause afterCmd)
             )
 
         ToggleHelpDialog ->
@@ -184,6 +184,11 @@ updatePauseDialog afterCmd msg screen =
         Exit ->
             ( PlayScreen
             , triggerMessage (Unpause afterCmd)
+            )
+
+        ShowQuitDialog ->
+            ( QuitDialog { afterCmd = afterCmd }
+            , Cmd.none
             )
 
         ToggleHelpDialog ->
@@ -239,7 +244,7 @@ viewDialogIfAny screen =
         GameOverDialog ->
             viewGameOverDialog
 
-        QuitDialog ->
+        QuitDialog _ ->
             viewQuitDialog
 
         PauseDialog _ ->
