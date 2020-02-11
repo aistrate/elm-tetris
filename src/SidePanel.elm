@@ -20,6 +20,8 @@ type alias SidePanel =
     , time : Float
     , unusedShapes : List Shape
     , previewShapes : List Shape
+    , difficultLineClear : Bool
+    , futureBackToBackBonus : Int
     }
 
 
@@ -31,6 +33,8 @@ initSidePanel =
     , time = 0
     , unusedShapes = []
     , previewShapes = []
+    , difficultLineClear = False
+    , futureBackToBackBonus = 0
     }
 
 
@@ -126,9 +130,32 @@ updateSidePanelForDropAndLock distanceDropped sidePanel =
 
 updateSidePanelForRemoveFullRows : Int -> SidePanel -> ( SidePanel, Cmd Msg )
 updateSidePanelForRemoveFullRows rowsRemoved sidePanel =
+    let
+        points =
+            calculateScorePoints rowsRemoved sidePanel.level
+
+        difficultLineClear =
+            rowsRemoved == 4
+
+        backToBackBonus =
+            if sidePanel.difficultLineClear && difficultLineClear then
+                sidePanel.futureBackToBackBonus + points // 2
+
+            else
+                0
+
+        futureBackToBackBonus =
+            if not sidePanel.difficultLineClear && difficultLineClear then
+                points // 2
+
+            else
+                0
+    in
     ( { sidePanel
-        | score = sidePanel.score + calculateScorePoints rowsRemoved sidePanel.level
+        | score = sidePanel.score + points + backToBackBonus
         , lines = sidePanel.lines + rowsRemoved
+        , difficultLineClear = difficultLineClear
+        , futureBackToBackBonus = futureBackToBackBonus
       }
     , Cmd.none
     )
