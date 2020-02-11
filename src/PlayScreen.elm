@@ -157,8 +157,8 @@ updatePlayScreen msg model =
             , Cmd.none
             )
 
-        NewGame ->
-            updateForNewGame model
+        ResetGame ->
+            updateForResetGame model
 
         Unpause afterCmd ->
             updateForUnpause afterCmd model
@@ -457,8 +457,8 @@ updateForRemoveFullRows model =
     )
 
 
-updateForNewGame : Model -> ( Model, Cmd Msg )
-updateForNewGame model =
+updateForResetGame : Model -> ( Model, Cmd Msg )
+updateForResetGame model =
     ( { initModel | settings = model.settings }
     , Cmd.none
     )

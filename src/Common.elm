@@ -40,7 +40,7 @@ type Msg
     | AnswerYes
     | AnswerNo
     | Exit
-    | NewGame
+    | ResetGame
     | Unpause (Cmd Msg)
     | StopCountdown
     | LevelUp

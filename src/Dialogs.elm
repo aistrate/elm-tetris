@@ -130,7 +130,7 @@ updateGameOverDialog msg screen =
     case msg of
         AnswerYes ->
             ( PlayScreen
-            , triggerMessage NewGame
+            , triggerMessage ResetGame
             )
 
         ToggleHelpDialog ->
@@ -149,7 +149,7 @@ updateQuitDialog msg screen =
     case msg of
         AnswerYes ->
             ( PlayScreen
-            , triggerMessage NewGame
+            , triggerMessage ResetGame
             )
 
         AnswerNo ->
