@@ -34,7 +34,7 @@ type Msg
     | ToggleGhostPiece
     | ToggleVerticalStripes
     | ExitStartDialog
-    | ShowRestartDialog
+    | ShowQuitDialog
     | TogglePauseDialog
     | ToggleHelpDialog
     | AnswerYes

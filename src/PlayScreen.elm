@@ -137,8 +137,8 @@ updatePlayScreen msg model =
         RemoveFullRows ->
             updateForRemoveFullRows model
 
-        ShowRestartDialog ->
-            ( { model | screen = RestartDialog }
+        ShowQuitDialog ->
+            ( { model | screen = QuitDialog }
             , Cmd.none
             )
 

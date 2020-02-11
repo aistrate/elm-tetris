@@ -169,8 +169,8 @@ toKeyboardMsg key =
         "s" ->
             ExitStartDialog
 
-        "r" ->
-            ShowRestartDialog
+        "q" ->
+            ShowQuitDialog
 
         "p" ->
             TogglePauseDialog

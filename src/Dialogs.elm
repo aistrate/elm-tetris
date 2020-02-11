@@ -15,7 +15,7 @@ type Screen
     | CountdownScreen { timer : TimeInterval, afterCmd : Cmd Msg }
     | StartDialog
     | GameOverDialog
-    | RestartDialog
+    | QuitDialog
     | PauseDialog { afterCmd : Cmd Msg }
     | HelpDialog { returnScreen : Screen }
 
@@ -36,8 +36,8 @@ updateDialog msg screen =
         GameOverDialog ->
             updateGameOverDialog msg screen
 
-        RestartDialog ->
-            updateRestartDialog msg screen
+        QuitDialog ->
+            updateQuitDialog msg screen
 
         PauseDialog { afterCmd } ->
             updatePauseDialog afterCmd msg screen
@@ -144,8 +144,8 @@ updateGameOverDialog msg screen =
             )
 
 
-updateRestartDialog : Msg -> Screen -> ( Screen, Cmd Msg )
-updateRestartDialog msg screen =
+updateQuitDialog : Msg -> Screen -> ( Screen, Cmd Msg )
+updateQuitDialog msg screen =
     case msg of
         AnswerYes ->
             ( PlayScreen
@@ -239,8 +239,8 @@ viewDialogIfAny screen =
         GameOverDialog ->
             viewGameOverDialog
 
-        RestartDialog ->
-            viewRestartDialog
+        QuitDialog ->
+            viewQuitDialog
 
         PauseDialog _ ->
             viewPauseDialog
@@ -305,14 +305,14 @@ viewGameOverDialog =
     viewDialog
         [ LargeText "Game Over"
         , EmptyLine
-        , LargeText "Restart? (Y/N)"
+        , LargeText "New game? (Y/N)"
         ]
 
 
-viewRestartDialog : Svg msg
-viewRestartDialog =
+viewQuitDialog : Svg msg
+viewQuitDialog =
     viewDialog
-        [ LargeText "Restart? (Y/N)"
+        [ LargeText "Quit game? (Y/N)"
         ]
 
 
@@ -338,7 +338,7 @@ viewHelpDialog =
         , Shortcut "Space" "Drop"
         , EmptyLine
         , Shortcut "Esc or P" "Pause"
-        , Shortcut "R" "Restart"
+        , Shortcut "Q" "Quit game"
         , EmptyLine
         , Shortcut "+" ("Level up (0 - " ++ String.fromInt maxLevel ++ ")")
         , Shortcut "-" "Level down"
