@@ -31,7 +31,7 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { initModel | screen = StartDialog }
+    ( initModel
     , Cmd.none
     )
 

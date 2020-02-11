@@ -53,7 +53,7 @@ initModel =
     , dropAnimationTimer = Nothing
     , lockDelay = zeroLockDelay
     , fullRowsDelayTimer = Nothing
-    , screen = PlayScreen
+    , screen = StartDialog
     , sidePanel = initSidePanel
     , settings =
         { showGhostPiece = True
@@ -459,15 +459,8 @@ updateForRemoveFullRows model =
 
 updateForNewGame : Model -> ( Model, Cmd Msg )
 updateForNewGame model =
-    let
-        initSidePanel =
-            initModel.sidePanel
-    in
-    ( { initModel
-        | sidePanel = { initSidePanel | level = model.sidePanel.level }
-        , settings = model.settings
-      }
-    , triggerMessage (Unpause (triggerMessage NewShape))
+    ( { initModel | settings = model.settings }
+    , Cmd.none
     )
 
 
