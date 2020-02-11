@@ -41,6 +41,7 @@ type Msg
     | AnswerNo
     | Exit
     | ResetGame
+    | StartGame
     | Unpause (Cmd Msg)
     | StopCountdown
     | LevelUp

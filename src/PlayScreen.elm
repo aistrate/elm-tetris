@@ -160,6 +160,9 @@ updatePlayScreen msg model =
         ResetGame ->
             updateForResetGame model
 
+        StartGame ->
+            updateForStartGame model
+
         Unpause afterCmd ->
             updateForUnpause afterCmd model
 
@@ -461,6 +464,13 @@ updateForResetGame : Model -> ( Model, Cmd Msg )
 updateForResetGame model =
     ( { initModel | settings = model.settings }
     , Cmd.none
+    )
+
+
+updateForStartGame : Model -> ( Model, Cmd Msg )
+updateForStartGame model =
+    ( model
+    , triggerMessage (Unpause (triggerMessage NewShape))
     )
 
 

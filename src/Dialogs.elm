@@ -111,7 +111,7 @@ updateStartDialog msg screen =
 
         Exit ->
             ( PlayScreen
-            , triggerMessage (Unpause (triggerMessage NewShape))
+            , triggerMessage StartGame
             )
 
         ToggleHelpDialog ->
