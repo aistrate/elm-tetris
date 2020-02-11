@@ -15,7 +15,7 @@ type Screen
     | CountdownScreen { timer : TimeInterval, afterCmd : Cmd Msg }
     | StartDialog
     | GameOverDialog
-    | QuitDialog
+    | QuitDialog { returnScreen : Screen }
     | PauseDialog { afterCmd : Cmd Msg }
     | HelpDialog { returnScreen : Screen }
 
@@ -36,8 +36,8 @@ updateDialog msg screen =
         GameOverDialog ->
             updateGameOverDialog msg screen
 
-        QuitDialog ->
-            updateQuitDialog msg screen
+        QuitDialog { returnScreen } ->
+            updateQuitDialog returnScreen msg screen
 
         PauseDialog { afterCmd } ->
             updatePauseDialog afterCmd msg screen
@@ -144,8 +144,8 @@ updateGameOverDialog msg screen =
             )
 
 
-updateQuitDialog : Msg -> Screen -> ( Screen, Cmd Msg )
-updateQuitDialog msg screen =
+updateQuitDialog : Screen -> Msg -> Screen -> ( Screen, Cmd Msg )
+updateQuitDialog returnScreen msg screen =
     case msg of
         AnswerYes ->
             ( PlayScreen
@@ -158,8 +158,12 @@ updateQuitDialog msg screen =
             )
 
         Exit ->
-            ( PlayScreen
-            , triggerMessage (Unpause Cmd.none)
+            ( returnScreen
+            , if returnScreen == PlayScreen then
+                triggerMessage (Unpause Cmd.none)
+
+              else
+                Cmd.none
             )
 
         ToggleHelpDialog ->
@@ -184,6 +188,11 @@ updatePauseDialog afterCmd msg screen =
         Exit ->
             ( PlayScreen
             , triggerMessage (Unpause afterCmd)
+            )
+
+        ShowQuitDialog ->
+            ( QuitDialog { returnScreen = screen }
+            , Cmd.none
             )
 
         ToggleHelpDialog ->
@@ -239,7 +248,7 @@ viewDialogIfAny screen =
         GameOverDialog ->
             viewGameOverDialog
 
-        QuitDialog ->
+        QuitDialog _ ->
             viewQuitDialog
 
         PauseDialog _ ->
@@ -305,7 +314,7 @@ viewGameOverDialog =
     viewDialog
         [ LargeText "Game Over"
         , EmptyLine
-        , LargeText "New game? (Y/N)"
+        , LargeText "Start new game? (Y/N)"
         ]
 
 
@@ -321,7 +330,9 @@ viewPauseDialog =
     viewDialog
         [ LargeText "Paused"
         , EmptyLine
-        , LargeText "Press Esc or P to continue"
+        , LargeText "Press Esc or P to resume"
+        , EmptyLine
+        , LargeText "Press Q to quit game"
         ]
 
 
