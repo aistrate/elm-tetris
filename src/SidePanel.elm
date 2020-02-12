@@ -22,6 +22,7 @@ type alias SidePanel =
     , previewShapes : List Shape
     , difficultLineClear : Bool
     , futureBackToBackBonus : Int
+    , levelGoal : Int
     }
 
 
@@ -35,6 +36,7 @@ initSidePanel =
     , previewShapes = []
     , difficultLineClear = False
     , futureBackToBackBonus = 0
+    , levelGoal = levelGoalStep 1
     }
 
 
@@ -143,12 +145,28 @@ updateSidePanelForRemoveFullRows rowsRemoved sidePanel =
 
             else
                 0
+
+        lines =
+            sidePanel.lines + rowsRemoved
+
+        ( level, levelGoal ) =
+            if sidePanel.level < maxLevel && lines >= sidePanel.levelGoal then
+                ( sidePanel.level + 1
+                , sidePanel.levelGoal + levelGoalStep sidePanel.level
+                )
+
+            else
+                ( sidePanel.level
+                , sidePanel.levelGoal
+                )
     in
     ( { sidePanel
         | score = sidePanel.score + points + backToBackBonus
-        , lines = sidePanel.lines + rowsRemoved
         , difficultLineClear = difficultLineClear
         , futureBackToBackBonus = futureBackToBackBonus
+        , lines = lines
+        , level = level
+        , levelGoal = levelGoal
       }
     , Cmd.none
     )
@@ -156,7 +174,10 @@ updateSidePanelForRemoveFullRows rowsRemoved sidePanel =
 
 updateSidePanelForStartGame : Int -> SidePanel -> ( SidePanel, Cmd Msg )
 updateSidePanelForStartGame startLevel sidePanel =
-    ( { sidePanel | level = startLevel }
+    ( { sidePanel
+        | level = startLevel
+        , levelGoal = levelGoalStep startLevel
+      }
     , Cmd.none
     )
 
@@ -185,6 +206,15 @@ calculateScorePoints rowsRemoved level =
             Basics.max 1 level
     in
     points * adjustedLevel
+
+
+levelGoalStep : Int -> Int
+levelGoalStep level =
+    if level == 0 then
+        2147483647
+
+    else
+        10
 
 
 
