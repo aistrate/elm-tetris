@@ -84,11 +84,6 @@ triggerMessage msg =
     Task.perform (always msg) (Task.succeed ())
 
 
-defaultStartLevel : Int
-defaultStartLevel =
-    1
-
-
 minLevel : Int
 minLevel =
     0

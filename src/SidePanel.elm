@@ -28,7 +28,7 @@ type alias SidePanel =
 initSidePanel : SidePanel
 initSidePanel =
     { score = 0
-    , level = defaultStartLevel
+    , level = 1
     , lines = 0
     , time = 0
     , unusedShapes = []

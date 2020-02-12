@@ -53,7 +53,7 @@ initModel =
     , dropAnimationTimer = Nothing
     , lockDelay = zeroLockDelay
     , fullRowsDelayTimer = Nothing
-    , screen = StartDialog { startLevel = defaultStartLevel }
+    , screen = StartDialog { startLevel = initSidePanel.level }
     , sidePanel = initSidePanel
     , settings =
         { showGhostPiece = True
