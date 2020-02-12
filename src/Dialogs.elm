@@ -312,11 +312,20 @@ type DialogTextLine
 
 viewStartDialog : Int -> Svg msg
 viewStartDialog startLevel =
+    let
+        startLevelExplanation =
+            if startLevel == 0 then
+                "(fixed level, zero gravity)"
+
+            else
+                " "
+    in
     viewDialog
         [ LargeText "Press Esc or S to start"
         , EmptyLine
         , LargeText "Use +/- to change the start level"
         , LargeText ("Start level: " ++ String.fromInt startLevel)
+        , LargeText startLevelExplanation
         ]
 
 

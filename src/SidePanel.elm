@@ -235,7 +235,15 @@ viewScore score =
 
 viewLevel : Int -> Svg msg
 viewLevel level =
-    viewStatistic 1 "Level" (String.fromInt level)
+    let
+        levelLabel =
+            if level == 0 then
+                "Level (fixed)"
+
+            else
+                "Level"
+    in
+    viewStatistic 1 levelLabel (String.fromInt level)
 
 
 viewLines : Int -> Svg msg
