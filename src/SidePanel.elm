@@ -28,7 +28,7 @@ type alias SidePanel =
 initSidePanel : SidePanel
 initSidePanel =
     { score = 0
-    , level = 1
+    , level = defaultStartLevel
     , lines = 0
     , time = 0
     , unusedShapes = []
@@ -50,13 +50,6 @@ previewCount =
 previewStartRow : Int
 previewStartRow =
     9
-
-
-updateSidePanelForLevelChange : Int -> SidePanel -> ( SidePanel, Cmd Msg )
-updateSidePanelForLevelChange level sidePanel =
-    ( { sidePanel | level = clamp 0 maxLevel level }
-    , Cmd.none
-    )
 
 
 updateSidePanelForNewShape : SidePanel -> ( SidePanel, Cmd Msg )
@@ -157,6 +150,13 @@ updateSidePanelForRemoveFullRows rowsRemoved sidePanel =
         , difficultLineClear = difficultLineClear
         , futureBackToBackBonus = futureBackToBackBonus
       }
+    , Cmd.none
+    )
+
+
+updateSidePanelForStartGame : Int -> SidePanel -> ( SidePanel, Cmd Msg )
+updateSidePanelForStartGame startLevel sidePanel =
+    ( { sidePanel | level = startLevel }
     , Cmd.none
     )
 

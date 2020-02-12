@@ -9,7 +9,7 @@ import Common exposing (..)
 import Dialogs exposing (..)
 import Json.Decode as Decode
 import PlayScreen exposing (..)
-import SidePanel exposing (sidePanelStyle, updateSidePanelForLevelChange)
+import SidePanel exposing (sidePanelStyle)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (..)
@@ -42,55 +42,17 @@ init _ =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        LevelUp ->
-            updateForLevelChange (model.sidePanel.level + 1) model
+    if model.screen == PlayScreen then
+        updatePlayScreen msg model
 
-        LevelDown ->
-            updateForLevelChange (model.sidePanel.level - 1) model
-
-        _ ->
-            if model.screen == PlayScreen then
-                updatePlayScreen msg model
-
-            else
-                let
-                    ( screen, cmd ) =
-                        updateDialog msg model.screen
-                in
-                ( { model | screen = screen }
-                , cmd
-                )
-
-
-updateForLevelChange : Int -> Model -> ( Model, Cmd Msg )
-updateForLevelChange level model =
-    let
-        dropAnimationTimer =
-            if
-                model.sidePanel.level
-                    == 0
-                    && level
-                    == 1
-                    && model.dropAnimationTimer
-                    == Nothing
-                    && model.fallingPiece
-                    /= Nothing
-            then
-                initialInterval DropAnimationInterval level
-
-            else
-                model.dropAnimationTimer
-
-        ( sidePanel, cmd ) =
-            updateSidePanelForLevelChange level model.sidePanel
-    in
-    ( { model
-        | dropAnimationTimer = dropAnimationTimer
-        , sidePanel = sidePanel
-      }
-    , cmd
-    )
+    else
+        let
+            ( screen, cmd ) =
+                updateDialog msg model.screen
+        in
+        ( { model | screen = screen }
+        , cmd
+        )
 
 
 

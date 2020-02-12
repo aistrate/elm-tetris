@@ -41,7 +41,7 @@ type Msg
     | AnswerNo
     | Exit
     | ResetGame
-    | StartGame
+    | StartGame Int
     | Unpause (Cmd Msg)
     | StopCountdown
     | LevelUp
@@ -82,6 +82,16 @@ updateTimer currentValue timeDelta resetValue message =
 triggerMessage : Msg -> Cmd Msg
 triggerMessage msg =
     Task.perform (always msg) (Task.succeed ())
+
+
+defaultStartLevel : Int
+defaultStartLevel =
+    1
+
+
+minLevel : Int
+minLevel =
+    0
 
 
 maxLevel : Int

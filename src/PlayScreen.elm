@@ -53,7 +53,7 @@ initModel =
     , dropAnimationTimer = Nothing
     , lockDelay = zeroLockDelay
     , fullRowsDelayTimer = Nothing
-    , screen = StartDialog
+    , screen = StartDialog { startLevel = defaultStartLevel }
     , sidePanel = initSidePanel
     , settings =
         { showGhostPiece = True
@@ -160,8 +160,8 @@ updatePlayScreen msg model =
         ResetGame ->
             updateForResetGame model
 
-        StartGame ->
-            updateForStartGame model
+        StartGame startLevel ->
+            updateForStartGame startLevel model
 
         Unpause afterCmd ->
             updateForUnpause afterCmd model
@@ -467,10 +467,14 @@ updateForResetGame model =
     )
 
 
-updateForStartGame : Model -> ( Model, Cmd Msg )
-updateForStartGame model =
-    ( model
-    , triggerMessage (Unpause (triggerMessage NewShape))
+updateForStartGame : Int -> Model -> ( Model, Cmd Msg )
+updateForStartGame startLevel model =
+    let
+        ( sidePanel, sidePanelCmd ) =
+            updateSidePanelForStartGame startLevel model.sidePanel
+    in
+    ( { model | sidePanel = sidePanel }
+    , Cmd.batch [ triggerMessage (Unpause (triggerMessage NewShape)), sidePanelCmd ]
     )
 
 

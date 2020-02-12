@@ -13,7 +13,7 @@ import Svg.Lazy exposing (..)
 type Screen
     = PlayScreen
     | CountdownScreen { timer : TimeInterval, afterCmd : Cmd Msg }
-    | StartDialog
+    | StartDialog { startLevel : Int }
     | GameOverDialog
     | QuitDialog { returnScreen : Screen }
     | PauseDialog { afterCmd : Cmd Msg }
@@ -30,8 +30,8 @@ updateDialog msg screen =
         CountdownScreen { timer, afterCmd } ->
             updateCountdownScreen timer afterCmd msg screen
 
-        StartDialog ->
-            updateStartDialog msg screen
+        StartDialog { startLevel } ->
+            updateStartDialog startLevel msg screen
 
         GameOverDialog ->
             updateGameOverDialog msg screen
@@ -101,8 +101,8 @@ updateCountdownScreen timer afterCmd msg screen =
             )
 
 
-updateStartDialog : Msg -> Screen -> ( Screen, Cmd Msg )
-updateStartDialog msg screen =
+updateStartDialog : Int -> Msg -> Screen -> ( Screen, Cmd Msg )
+updateStartDialog startLevel msg screen =
     case msg of
         ExitStartDialog ->
             ( screen
@@ -111,7 +111,17 @@ updateStartDialog msg screen =
 
         Exit ->
             ( PlayScreen
-            , triggerMessage StartGame
+            , triggerMessage (StartGame startLevel)
+            )
+
+        LevelUp ->
+            ( StartDialog { startLevel = Basics.min maxLevel (startLevel + 1) }
+            , Cmd.none
+            )
+
+        LevelDown ->
+            ( StartDialog { startLevel = Basics.max minLevel (startLevel - 1) }
+            , Cmd.none
             )
 
         ToggleHelpDialog ->
@@ -242,8 +252,8 @@ viewDialogIfAny screen =
         CountdownScreen { timer } ->
             viewCountdownScreen timer
 
-        StartDialog ->
-            viewStartDialog
+        StartDialog { startLevel } ->
+            viewStartDialog startLevel
 
         GameOverDialog ->
             viewGameOverDialog
@@ -300,12 +310,13 @@ type DialogTextLine
     | EmptyLine
 
 
-viewStartDialog : Svg msg
-viewStartDialog =
+viewStartDialog : Int -> Svg msg
+viewStartDialog startLevel =
     viewDialog
         [ LargeText "Press Esc or S to start"
         , EmptyLine
-        , LargeText "Press H for Help"
+        , LargeText "Use +/- to change the start level"
+        , LargeText ("Start level: " ++ String.fromInt startLevel)
         ]
 
 
@@ -350,9 +361,6 @@ viewHelpDialog =
         , EmptyLine
         , Shortcut "Esc or P" "Pause"
         , Shortcut "Q" "Quit game"
-        , EmptyLine
-        , Shortcut "+" ("Level up (0 - " ++ String.fromInt maxLevel ++ ")")
-        , Shortcut "-" "Level down"
         , EmptyLine
         , Shortcut "G" "Ghost piece"
         , Shortcut "V" "Vertical stripes"
