@@ -143,12 +143,26 @@ updateSidePanelForRemoveFullRows rowsRemoved sidePanel =
 
             else
                 0
+
+        lines =
+            sidePanel.lines + rowsRemoved
+
+        levelGoal =
+            calculateLevelGoal sidePanel.level
+
+        level =
+            if lines >= levelGoal then
+                Basics.min maxLevel (sidePanel.level + 1)
+
+            else
+                sidePanel.level
     in
     ( { sidePanel
         | score = sidePanel.score + points + backToBackBonus
-        , lines = sidePanel.lines + rowsRemoved
         , difficultLineClear = difficultLineClear
         , futureBackToBackBonus = futureBackToBackBonus
+        , lines = lines
+        , level = level
       }
     , Cmd.none
     )
@@ -185,6 +199,15 @@ calculateScorePoints rowsRemoved level =
             Basics.max 1 level
     in
     points * adjustedLevel
+
+
+calculateLevelGoal : Int -> Int
+calculateLevelGoal level =
+    if 0 < level && level < maxLevel then
+        10 * level
+
+    else
+        2147483647
 
 
 
