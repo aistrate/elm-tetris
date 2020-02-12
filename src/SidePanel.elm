@@ -301,7 +301,7 @@ viewStatistic row label value =
             [ x (String.fromFloat (sidePanelStyle.x + sidePanelStyle.width - sidePanelStyle.paddingRight))
             , textAnchor "end"
             , fontSize (String.fromFloat (blockStyle.size * 0.65))
-            , fontFamily "Courier New, sans-serif"
+            , fontFamily "Courier New, monospace"
             , fontWeight "bold"
             ]
             [ text value
