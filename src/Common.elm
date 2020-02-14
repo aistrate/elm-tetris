@@ -61,11 +61,37 @@ type alias TimeInterval =
 
 updateTimer : TimeInterval -> Float -> TimeInterval -> Msg -> ( TimeInterval, Cmd Msg )
 updateTimer currentValue timeDelta resetValue message =
+    let
+        countRepeats : Float -> ( TimeInterval, Int )
+        countRepeats value =
+            case resetValue of
+                Just justResetValue ->
+                    if value + justResetValue <= 0 then
+                        let
+                            ( newValue, repeats ) =
+                                countRepeats (value + justResetValue)
+                        in
+                        ( newValue, repeats + 1 )
+
+                    else
+                        ( Just (value + justResetValue)
+                        , 1
+                        )
+
+                Nothing ->
+                    ( Nothing
+                    , 1
+                    )
+    in
     case currentValue of
         Just value ->
             if value - timeDelta <= 0 then
-                ( Maybe.map ((+) (value - timeDelta)) resetValue
-                , triggerMsg message
+                let
+                    ( newValue, repeats ) =
+                        countRepeats (value - timeDelta)
+                in
+                ( newValue
+                , Cmd.batch (List.repeat repeats (triggerMsg message))
                 )
 
             else
@@ -91,7 +117,7 @@ minLevel =
 
 maxLevel : Int
 maxLevel =
-    12
+    20
 
 
 

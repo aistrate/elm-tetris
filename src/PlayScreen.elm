@@ -554,6 +554,14 @@ dropAnimationIntervals =
         , ( 10, Just 64.15 )
         , ( 11, Just 42.98 )
         , ( 12, Just 28.22 )
+        , ( 13, Just 18.15 )
+        , ( 14, Just 11.44 )
+        , ( 15, Just 7.06 )
+        , ( 16, Just 4.26 )
+        , ( 17, Just 2.52 )
+        , ( 18, Just 1.46 )
+        , ( 19, Just 0.82 )
+        , ( 20, Just 0.46 )
         ]
 
 
