@@ -236,6 +236,9 @@ updateForSpawn shape model =
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
 updateForAnimationFrame timeDelta model =
     let
+        lockDelay =
+            model.lockDelay
+
         ( dropAnimationTimer, dropAnimationCmd ) =
             updateTimer
                 model.dropAnimationTimer
@@ -245,7 +248,7 @@ updateForAnimationFrame timeDelta model =
 
         ( lockDelayTimer, lockDelayCmd ) =
             updateTimer
-                model.lockDelay.timer
+                lockDelay.timer
                 timeDelta
                 Nothing
                 LockToBottom
@@ -256,9 +259,6 @@ updateForAnimationFrame timeDelta model =
                 timeDelta
                 Nothing
                 RemoveFullRows
-
-        lockDelay =
-            model.lockDelay
 
         ( sidePanel, sidePanelCmd ) =
             updateSidePanelForAnimationFrame timeDelta model.sidePanel
