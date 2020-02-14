@@ -211,34 +211,26 @@ updateForSpawn shape model =
 
         gameOver =
             collision spawnedPiece.blocks model.board
-
-        ( fallingPiece, ghostPiece, screen ) =
-            if not gameOver then
-                ( Just spawnedPiece
-                , calculateGhostPiece spawnedPiece.blocks model.board
-                , PlayScreen
-                )
-
-            else
-                ( Nothing
-                , []
-                , GameOverDialog
-                )
     in
-    ( { model
-        | fallingPiece = fallingPiece
-        , ghostPiece = ghostPiece
-        , dropAnimationTimer = initialInterval SpawningDropAnimationInterval model.sidePanel.level
-        , lockDelay =
-            { timer = initialInterval LockDelayInterval model.sidePanel.level
-            , movesRemaining = maxLockDelayMoves
-            , maxRowReached = pieceBottomRow
-            }
-        , fullRowsDelayTimer = Nothing
-        , screen = screen
-      }
-    , Cmd.none
-    )
+    if not gameOver then
+        ( { model
+            | fallingPiece = Just spawnedPiece
+            , ghostPiece = calculateGhostPiece spawnedPiece.blocks model.board
+            , dropAnimationTimer = initialInterval SpawningDropAnimationInterval model.sidePanel.level
+            , lockDelay =
+                { timer = initialInterval LockDelayInterval model.sidePanel.level
+                , movesRemaining = maxLockDelayMoves
+                , maxRowReached = pieceBottomRow
+                }
+            , fullRowsDelayTimer = Nothing
+          }
+        , Cmd.none
+        )
+
+    else
+        ( { model | screen = GameOverDialog }
+        , Cmd.none
+        )
 
 
 updateForAnimationFrame : Float -> Model -> ( Model, Cmd Msg )
