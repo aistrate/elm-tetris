@@ -60,48 +60,48 @@ type alias TimeInterval =
 
 
 updateTimer : TimeInterval -> Float -> TimeInterval -> Msg -> ( TimeInterval, Cmd Msg )
-updateTimer currentValue timeDelta resetValue message =
-    let
-        countRepeats : Float -> ( TimeInterval, Int )
-        countRepeats value =
-            case resetValue of
-                Just justResetValue ->
-                    if value + justResetValue <= 0 then
-                        let
-                            ( newValue, repeats ) =
-                                countRepeats (value + justResetValue)
-                        in
-                        ( newValue, repeats + 1 )
-
-                    else
-                        ( Just (value + justResetValue)
-                        , 1
-                        )
-
-                Nothing ->
-                    ( Nothing
-                    , 1
-                    )
-    in
-    case currentValue of
-        Just value ->
-            if value - timeDelta <= 0 then
+updateTimer timer timeDelta repeatInterval message =
+    case timer of
+        Just justTimer ->
+            if justTimer - timeDelta <= 0 then
                 let
-                    ( newValue, repeats ) =
-                        countRepeats (value - timeDelta)
+                    ( newTimer, repeats ) =
+                        countTriggerRepeats (justTimer - timeDelta) repeatInterval
                 in
-                ( newValue
+                ( newTimer
                 , Cmd.batch (List.repeat repeats (triggerMsg message))
                 )
 
             else
-                ( Just (value - timeDelta)
+                ( Just (justTimer - timeDelta)
                 , Cmd.none
                 )
 
         Nothing ->
             ( Nothing
             , Cmd.none
+            )
+
+
+countTriggerRepeats : Float -> TimeInterval -> ( TimeInterval, Int )
+countTriggerRepeats negativeValue repeatInterval =
+    case repeatInterval of
+        Just justRepeatInterval ->
+            if negativeValue + justRepeatInterval <= 0 then
+                let
+                    ( newValue, repeats ) =
+                        countTriggerRepeats (negativeValue + justRepeatInterval) repeatInterval
+                in
+                ( newValue, repeats + 1 )
+
+            else
+                ( Just (negativeValue + justRepeatInterval)
+                , 1
+                )
+
+        Nothing ->
+            ( Nothing
+            , 1
             )
 
 
