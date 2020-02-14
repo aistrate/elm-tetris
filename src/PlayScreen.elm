@@ -393,33 +393,46 @@ updateForLockToBottom model =
             in
             if hasReachedBottom && model.lockDelay.timer == Nothing then
                 let
-                    bottomBlocks =
-                        model.bottomBlocks ++ fallingPiece.blocks
+                    ( _, pieceBottomRow ) =
+                        rowRange fallingPiece.blocks
 
-                    hasFullRows =
-                        not (List.isEmpty (fullRows game.columns bottomBlocks))
-
-                    ( fullRowsDelayTimer, command ) =
-                        if hasFullRows then
-                            ( initialInterval FullRowsDelayInterval model.sidePanel.level
-                            , Cmd.none
-                            )
-
-                        else
-                            ( Nothing
-                            , triggerMsg NewShape
-                            )
+                    gameOver =
+                        pieceBottomRow < 0
                 in
-                ( { model
-                    | fallingPiece = Nothing
-                    , ghostPiece = []
-                    , bottomBlocks = bottomBlocks
-                    , board = createBoard game.columns game.rows bottomBlocks
-                    , dropAnimationTimer = Nothing
-                    , fullRowsDelayTimer = fullRowsDelayTimer
-                  }
-                , command
-                )
+                if not gameOver then
+                    let
+                        bottomBlocks =
+                            model.bottomBlocks ++ fallingPiece.blocks
+
+                        hasFullRows =
+                            not (List.isEmpty (fullRows game.columns bottomBlocks))
+
+                        ( fullRowsDelayTimer, command ) =
+                            if hasFullRows then
+                                ( initialInterval FullRowsDelayInterval model.sidePanel.level
+                                , Cmd.none
+                                )
+
+                            else
+                                ( Nothing
+                                , triggerMsg NewShape
+                                )
+                    in
+                    ( { model
+                        | fallingPiece = Nothing
+                        , ghostPiece = []
+                        , bottomBlocks = bottomBlocks
+                        , board = createBoard game.columns game.rows bottomBlocks
+                        , dropAnimationTimer = Nothing
+                        , fullRowsDelayTimer = fullRowsDelayTimer
+                      }
+                    , command
+                    )
+
+                else
+                    ( { model | screen = GameOverDialog }
+                    , Cmd.none
+                    )
 
             else
                 ( model
