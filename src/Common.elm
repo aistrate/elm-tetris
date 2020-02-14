@@ -65,7 +65,7 @@ updateTimer currentValue timeDelta resetValue message =
         Just value ->
             if value - timeDelta <= 0 then
                 ( Maybe.map ((+) (value - timeDelta)) resetValue
-                , triggerMessage message
+                , triggerMsg message
                 )
 
             else
@@ -79,8 +79,8 @@ updateTimer currentValue timeDelta resetValue message =
             )
 
 
-triggerMessage : Msg -> Cmd Msg
-triggerMessage msg =
+triggerMsg : Msg -> Cmd Msg
+triggerMsg msg =
     Task.perform (always msg) (Task.succeed ())
 
 

@@ -78,7 +78,7 @@ updateSidePanelForNewShape sidePanel =
             | unusedShapes = List.drop missingCount sidePanel.unusedShapes
             , previewShapes = List.drop 1 previewShapes
           }
-        , triggerMessage (Spawn fallingPieceShape)
+        , triggerMsg (Spawn fallingPieceShape)
         )
 
     else
@@ -90,7 +90,7 @@ updateSidePanelForNewShape sidePanel =
 updateSidePanelForShapesGenerated : List Shape -> SidePanel -> ( SidePanel, Cmd Msg )
 updateSidePanelForShapesGenerated shapes sidePanel =
     ( { sidePanel | unusedShapes = sidePanel.unusedShapes ++ shapes }
-    , triggerMessage NewShape
+    , triggerMsg NewShape
     )
 
 

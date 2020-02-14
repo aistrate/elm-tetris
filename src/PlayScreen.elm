@@ -149,7 +149,7 @@ updatePlayScreen msg model =
 
         Exit ->
             ( model
-            , triggerMessage TogglePauseDialog
+            , triggerMsg TogglePauseDialog
             )
 
         ToggleHelpDialog ->
@@ -186,7 +186,7 @@ updatePlayScreen msg model =
 
         WindowMinimized ->
             ( model
-            , triggerMessage TogglePauseDialog
+            , triggerMsg TogglePauseDialog
             )
 
         _ ->
@@ -415,7 +415,7 @@ updateForLockToBottom model =
 
                         else
                             ( Nothing
-                            , triggerMessage NewShape
+                            , triggerMsg NewShape
                             )
                 in
                 ( { model
@@ -456,7 +456,7 @@ updateForRemoveFullRows model =
         , board = createBoard game.columns game.rows bottomBlocks
         , sidePanel = sidePanel
       }
-    , Cmd.batch [ triggerMessage NewShape, sidePanelCmd ]
+    , Cmd.batch [ triggerMsg NewShape, sidePanelCmd ]
     )
 
 
@@ -474,7 +474,7 @@ updateForStartGame startLevel model =
             updateSidePanelForStartGame startLevel model.sidePanel
     in
     ( { model | sidePanel = sidePanel }
-    , Cmd.batch [ triggerMessage (Unpause (triggerMessage NewShape)), sidePanelCmd ]
+    , Cmd.batch [ triggerMsg (Unpause (triggerMsg NewShape)), sidePanelCmd ]
     )
 
 

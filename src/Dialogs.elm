@@ -72,7 +72,7 @@ updateCountdownScreen timer afterCmd msg screen =
 
                 Nothing ->
                     ( screen
-                    , triggerMessage StopCountdown
+                    , triggerMsg StopCountdown
                     )
 
         StopCountdown ->
@@ -87,7 +87,7 @@ updateCountdownScreen timer afterCmd msg screen =
 
         Exit ->
             ( screen
-            , triggerMessage TogglePauseDialog
+            , triggerMsg TogglePauseDialog
             )
 
         WindowMinimized ->
@@ -106,12 +106,12 @@ updateStartDialog startLevel msg screen =
     case msg of
         ExitStartDialog ->
             ( screen
-            , triggerMessage Exit
+            , triggerMsg Exit
             )
 
         Exit ->
             ( PlayScreen
-            , triggerMessage (StartGame startLevel)
+            , triggerMsg (StartGame startLevel)
             )
 
         LevelUp ->
@@ -140,7 +140,7 @@ updateGameOverDialog msg screen =
     case msg of
         AnswerYes ->
             ( PlayScreen
-            , triggerMessage ResetGame
+            , triggerMsg ResetGame
             )
 
         ToggleHelpDialog ->
@@ -159,18 +159,18 @@ updateQuitDialog returnScreen msg screen =
     case msg of
         AnswerYes ->
             ( PlayScreen
-            , triggerMessage ResetGame
+            , triggerMsg ResetGame
             )
 
         AnswerNo ->
             ( screen
-            , triggerMessage Exit
+            , triggerMsg Exit
             )
 
         Exit ->
             ( returnScreen
             , if returnScreen == PlayScreen then
-                triggerMessage (Unpause Cmd.none)
+                triggerMsg (Unpause Cmd.none)
 
               else
                 Cmd.none
@@ -192,12 +192,12 @@ updatePauseDialog afterCmd msg screen =
     case msg of
         TogglePauseDialog ->
             ( screen
-            , triggerMessage Exit
+            , triggerMsg Exit
             )
 
         Exit ->
             ( PlayScreen
-            , triggerMessage (Unpause afterCmd)
+            , triggerMsg (Unpause afterCmd)
             )
 
         ShowQuitDialog ->
@@ -221,13 +221,13 @@ updateHelpDialog returnScreen msg screen =
     case msg of
         ToggleHelpDialog ->
             ( screen
-            , triggerMessage Exit
+            , triggerMsg Exit
             )
 
         Exit ->
             ( returnScreen
             , if returnScreen == PlayScreen then
-                triggerMessage (Unpause Cmd.none)
+                triggerMsg (Unpause Cmd.none)
 
               else
                 Cmd.none
