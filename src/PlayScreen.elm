@@ -345,6 +345,7 @@ updateLockDelay pieceBottomRow level lockDelay =
 
             else
                 ( 0
+                  -- schedule LockToBottom on next animation frame
                 , Just 0
                 )
     in
@@ -371,7 +372,7 @@ updateForDropAndLock model =
             ( { model
                 | fallingPiece = Just droppedPiece
                 , ghostPiece = calculateGhostPiece droppedPiece.blocks model.board
-                , lockDelay = zeroLockDelay
+                , lockDelay = zeroLockDelay -- schedule LockToBottom on next animation frame
                 , sidePanel = sidePanel
               }
             , sidePanelCmd
