@@ -457,23 +457,24 @@ interval intervalType level =
 
 dropAnimationIntervals : Dict Int (Maybe Float)
 dropAnimationIntervals =
-    Dict.fromList
-        (List.concat
-            [ [ ( 0, Nothing )
-              ]
-            , List.range 1 12
-                |> List.map
-                    (\level ->
-                        ( level
-                        , Just <|
-                            toFloat <|
-                                round <|
-                                    1000
-                                        * pow (0.8 - ((toFloat level - 1) * 0.007)) (level - 1)
+    Debug.log "dropAnimationIntervals" <|
+        Dict.fromList
+            (List.concat
+                [ [ ( 0, Nothing )
+                  ]
+                , List.range 1 20
+                    |> List.map
+                        (\level ->
+                            ( level
+                            , Just <|
+                                --toFloat <|
+                                --round <|
+                                1000
+                                    * pow (0.8 - ((toFloat level - 1) * 0.007)) (level - 1)
+                            )
                         )
-                    )
-            ]
-        )
+                ]
+            )
 
 
 pow : Float -> Int -> Float
