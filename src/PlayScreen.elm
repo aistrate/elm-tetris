@@ -534,7 +534,7 @@ initialInterval intervalType level =
 
 
 
--- See https://tetris.fandom.com/wiki/Tetris_Worlds, under heading Gravity.
+-- See https://tetris.fandom.com/wiki/Tetris_Worlds, section Gravity.
 -- Formula: round (1000 * pow (0.8 - ((toFloat level - 1) * 0.007)) (level - 1)),
 -- where (pow x n) is x to the nth power
 
@@ -544,16 +544,16 @@ dropAnimationIntervals =
     Dict.fromList
         [ ( 1, Just 1000 )
         , ( 2, Just 793 )
-        , ( 3, Just 618 )
-        , ( 4, Just 473 )
-        , ( 5, Just 355 )
+        , ( 3, Just 617.8 )
+        , ( 4, Just 472.73 )
+        , ( 5, Just 355.2 )
         , ( 6, Just 262 )
-        , ( 7, Just 190 )
-        , ( 8, Just 135 )
-        , ( 9, Just 94 )
-        , ( 10, Just 64 )
-        , ( 11, Just 43 )
-        , ( 12, Just 28 )
+        , ( 7, Just 189.68 )
+        , ( 8, Just 134.73 )
+        , ( 9, Just 93.88 )
+        , ( 10, Just 64.15 )
+        , ( 11, Just 42.98 )
+        , ( 12, Just 28.22 )
         ]
 
 
