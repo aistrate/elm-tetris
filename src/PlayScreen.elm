@@ -297,7 +297,7 @@ updateForAnimationMoveDown rows model =
                     movedPiece =
                         translateBy { dCol = 0, dRow = dRow } fallingPiece
                 in
-                updateForMove movedPiece False model
+                updateForActualMove movedPiece False model
 
             else
                 ( model
@@ -323,7 +323,7 @@ updateForKeyboardMove move alternativeTranslations softDrop model =
             in
             case maybeMovedPiece of
                 Just movedPiece ->
-                    updateForMove movedPiece softDrop model
+                    updateForActualMove movedPiece softDrop model
 
                 Nothing ->
                     ( model
@@ -336,8 +336,8 @@ updateForKeyboardMove move alternativeTranslations softDrop model =
             )
 
 
-updateForMove : Tetromino -> Bool -> Model -> ( Model, Cmd Msg )
-updateForMove movedPiece softDrop model =
+updateForActualMove : Tetromino -> Bool -> Model -> ( Model, Cmd Msg )
+updateForActualMove movedPiece softDrop model =
     let
         ( _, pieceBottomRow ) =
             rowRange movedPiece.blocks
