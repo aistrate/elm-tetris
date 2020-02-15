@@ -63,45 +63,34 @@ updateTimer : TimeInterval -> Float -> TimeInterval -> Msg -> ( TimeInterval, Cm
 updateTimer timer timeDelta repeatInterval message =
     case timer of
         Just justTimer ->
-            if justTimer - timeDelta <= 0 then
-                let
-                    ( newTimer, repeats ) =
-                        countTriggerRepeats (justTimer - timeDelta) repeatInterval
-                in
-                ( newTimer
-                , Cmd.batch (List.repeat repeats (triggerMsg message))
-                )
+            let
+                newTimer =
+                    justTimer - timeDelta
+            in
+            if newTimer <= 0 then
+                case repeatInterval of
+                    Just justRepeatInterval ->
+                        let
+                            repeats =
+                                floor (-newTimer / justRepeatInterval) + 1
+                        in
+                        ( Just (newTimer + justRepeatInterval * toFloat repeats)
+                        , Cmd.batch (List.repeat repeats (triggerMsg message))
+                        )
+
+                    Nothing ->
+                        ( Nothing
+                        , triggerMsg message
+                        )
 
             else
-                ( Just (justTimer - timeDelta)
+                ( Just newTimer
                 , Cmd.none
                 )
 
         Nothing ->
             ( Nothing
             , Cmd.none
-            )
-
-
-countTriggerRepeats : Float -> TimeInterval -> ( TimeInterval, Int )
-countTriggerRepeats negativeValue repeatInterval =
-    case repeatInterval of
-        Just justRepeatInterval ->
-            if negativeValue + justRepeatInterval <= 0 then
-                let
-                    ( newValue, repeats ) =
-                        countTriggerRepeats (negativeValue + justRepeatInterval) repeatInterval
-                in
-                ( newValue, repeats + 1 )
-
-            else
-                ( Just (negativeValue + justRepeatInterval)
-                , 1
-                )
-
-        Nothing ->
-            ( Nothing
-            , 1
             )
 
 
