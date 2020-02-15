@@ -41,25 +41,33 @@ calculateGhostPiece : List Block -> Board -> List Block
 calculateGhostPiece blocks board =
     if not (List.isEmpty blocks) then
         let
-            initial =
+            ghostPiece =
                 List.map (\block -> { block | color = Gray }) blocks
 
-            moveToBottomFrom : List Block -> List Block
-            moveToBottomFrom current =
-                let
-                    next =
-                        List.map (\block -> { block | row = block.row + 1 }) current
-                in
-                if collision next board then
-                    current
-
-                else
-                    moveToBottomFrom next
+            infinity =
+                10000
         in
-        moveToBottomFrom initial
+        moveDown ghostPiece infinity board
 
     else
         []
+
+
+moveDown : List Block -> Int -> Board -> List Block
+moveDown blocks maxRows board =
+    if maxRows == 0 then
+        blocks
+
+    else
+        let
+            next =
+                List.map (\block -> { block | row = block.row + 1 }) blocks
+        in
+        if collision next board then
+            blocks
+
+        else
+            moveDown next (maxRows - 1) board
 
 
 firstViableAlternative : List Translation -> Tetromino -> Board -> Maybe Tetromino
