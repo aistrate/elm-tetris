@@ -93,36 +93,39 @@ updatePlayScreen msg model =
         AnimationFrame timeDelta ->
             updateForAnimationFrame timeDelta model
 
-        MoveDown moveType ->
-            updateForMove
+        AnimationMoveDown rows ->
+            updateForAnimationMoveDown rows model
+
+        MoveDown ->
+            updateForKeyboardMove
                 (translateBy { dCol = 0, dRow = 1 })
                 noAlternatives
-                (moveType == KeyboardMove)
+                True
                 model
 
         MoveLeft ->
-            updateForMove
+            updateForKeyboardMove
                 (translateBy { dCol = -1, dRow = 0 })
                 noAlternatives
                 False
                 model
 
         MoveRight ->
-            updateForMove
+            updateForKeyboardMove
                 (translateBy { dCol = 1, dRow = 0 })
                 noAlternatives
                 False
                 model
 
         RotateClockwise ->
-            updateForMove
+            updateForKeyboardMove
                 (Tetromino.rotate Clockwise)
                 (wallKickAlternatives Clockwise)
                 False
                 model
 
         RotateCounterclockwise ->
-            updateForMove
+            updateForKeyboardMove
                 (Tetromino.rotate Counterclockwise)
                 (wallKickAlternatives Counterclockwise)
                 False
@@ -244,21 +247,21 @@ updateForAnimationFrame timeDelta model =
                 model.dropAnimationTimer
                 timeDelta
                 (initialInterval DropAnimationInterval model.sidePanel.level)
-                (MoveDown AnimationMove)
+                AnimationMoveDown
 
         ( lockDelayTimer, lockDelayCmd ) =
             updateTimer
                 lockDelay.timer
                 timeDelta
                 Nothing
-                LockToBottom
+                (always LockToBottom)
 
         ( fullRowsDelayTimer, fullRowsDelayCmd ) =
             updateTimer
                 model.fullRowsDelayTimer
                 timeDelta
                 Nothing
-                RemoveFullRows
+                (always RemoveFullRows)
 
         ( sidePanel, sidePanelCmd ) =
             updateSidePanelForAnimationFrame timeDelta model.sidePanel
@@ -278,8 +281,37 @@ updateForAnimationFrame timeDelta model =
     )
 
 
-updateForMove : (Tetromino -> Tetromino) -> (Tetromino -> List Translation) -> Bool -> Model -> ( Model, Cmd Msg )
-updateForMove move alternativeTranslations softDrop model =
+updateForAnimationMoveDown : Int -> Model -> ( Model, Cmd Msg )
+updateForAnimationMoveDown rows model =
+    case model.fallingPiece of
+        Just fallingPiece ->
+            let
+                distanceToBottom =
+                    vertDistance fallingPiece.blocks model.ghostPiece
+
+                dRow =
+                    Basics.min rows distanceToBottom
+            in
+            if dRow > 0 then
+                let
+                    movedPiece =
+                        translateBy { dCol = 0, dRow = dRow } fallingPiece
+                in
+                updateForMove movedPiece False model
+
+            else
+                ( model
+                , Cmd.none
+                )
+
+        Nothing ->
+            ( model
+            , Cmd.none
+            )
+
+
+updateForKeyboardMove : (Tetromino -> Tetromino) -> (Tetromino -> List Translation) -> Bool -> Model -> ( Model, Cmd Msg )
+updateForKeyboardMove move alternativeTranslations softDrop model =
     case model.fallingPiece of
         Just fallingPiece ->
             let
@@ -291,24 +323,7 @@ updateForMove move alternativeTranslations softDrop model =
             in
             case maybeMovedPiece of
                 Just movedPiece ->
-                    let
-                        ( _, pieceBottomRow ) =
-                            rowRange movedPiece.blocks
-
-                        lockDelay =
-                            updateLockDelay pieceBottomRow model.sidePanel.level model.lockDelay
-
-                        ( sidePanel, sidePanelCmd ) =
-                            updateSidePanelForMove softDrop model.sidePanel
-                    in
-                    ( { model
-                        | fallingPiece = Just movedPiece
-                        , ghostPiece = calculateGhostPiece movedPiece.blocks model.board
-                        , lockDelay = lockDelay
-                        , sidePanel = sidePanel
-                      }
-                    , sidePanelCmd
-                    )
+                    updateForMove movedPiece softDrop model
 
                 Nothing ->
                     ( model
@@ -319,6 +334,28 @@ updateForMove move alternativeTranslations softDrop model =
             ( model
             , Cmd.none
             )
+
+
+updateForMove : Tetromino -> Bool -> Model -> ( Model, Cmd Msg )
+updateForMove movedPiece softDrop model =
+    let
+        ( _, pieceBottomRow ) =
+            rowRange movedPiece.blocks
+
+        lockDelay =
+            updateLockDelay pieceBottomRow model.sidePanel.level model.lockDelay
+
+        ( sidePanel, sidePanelCmd ) =
+            updateSidePanelForMove softDrop model.sidePanel
+    in
+    ( { model
+        | fallingPiece = Just movedPiece
+        , ghostPiece = calculateGhostPiece movedPiece.blocks model.board
+        , lockDelay = lockDelay
+        , sidePanel = sidePanel
+      }
+    , sidePanelCmd
+    )
 
 
 updateLockDelay : Int -> Int -> LockDelay -> LockDelay

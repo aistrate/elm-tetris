@@ -23,7 +23,8 @@ type Msg
     | ShapesGenerated (List Shape)
     | Spawn Shape
     | AnimationFrame Float
-    | MoveDown MoveType
+    | AnimationMoveDown Int
+    | MoveDown
     | MoveLeft
     | MoveRight
     | RotateClockwise
@@ -59,7 +60,7 @@ type alias TimeInterval =
     Maybe Float
 
 
-updateTimer : TimeInterval -> Float -> TimeInterval -> Msg -> ( TimeInterval, Cmd Msg )
+updateTimer : TimeInterval -> Float -> TimeInterval -> (Int -> Msg) -> ( TimeInterval, Cmd Msg )
 updateTimer timer timeDelta repeatInterval message =
     case timer of
         Just justTimer ->
@@ -75,12 +76,12 @@ updateTimer timer timeDelta repeatInterval message =
                                 floor (-newTimer / justRepeatInterval) + 1
                         in
                         ( Just (newTimer + justRepeatInterval * toFloat repeats)
-                        , Cmd.batch (List.repeat repeats (triggerMsg message))
+                        , triggerMsg (message repeats)
                         )
 
                     Nothing ->
                         ( Nothing
-                        , triggerMsg message
+                        , triggerMsg (message 1)
                         )
 
             else
