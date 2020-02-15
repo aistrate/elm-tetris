@@ -5,6 +5,7 @@ import Shape exposing (Shape)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Task
+import Time
 
 
 game : { columns : Int, rows : Int }
@@ -97,7 +98,15 @@ updateTimer timer timeDelta repeatInterval message =
 
 triggerMsg : Msg -> Cmd Msg
 triggerMsg msg =
-    Task.perform (always msg) (Task.succeed ())
+    Task.perform
+        (\time ->
+            let
+                t =
+                    Debug.log "( msg, time )" ( msg, time )
+            in
+            msg
+        )
+        Time.now
 
 
 minLevel : Int
