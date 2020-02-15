@@ -297,7 +297,7 @@ updateForAnimationMoveDown rows model =
                     movedPiece =
                         translateBy { dCol = 0, dRow = actualRowsMoved } fallingPiece
                 in
-                updateForMove movedPiece False model
+                updateForMove movedPiece False False model
 
             else
                 ( model
@@ -323,7 +323,7 @@ updateForKeyboardMove move alternativeTranslations softDrop model =
             in
             case maybeMovedPiece of
                 Just movedPiece ->
-                    updateForMove movedPiece softDrop model
+                    updateForMove movedPiece True softDrop model
 
                 Nothing ->
                     ( model
@@ -336,14 +336,14 @@ updateForKeyboardMove move alternativeTranslations softDrop model =
             )
 
 
-updateForMove : Tetromino -> Bool -> Model -> ( Model, Cmd Msg )
-updateForMove movedPiece softDrop model =
+updateForMove : Tetromino -> Bool -> Bool -> Model -> ( Model, Cmd Msg )
+updateForMove movedPiece keyboardMove softDrop model =
     let
         ( _, pieceBottomRow ) =
             rowRange movedPiece.blocks
 
         lockDelay =
-            updateLockDelay pieceBottomRow model.sidePanel.level model.lockDelay
+            updateLockDelay pieceBottomRow model.sidePanel.level keyboardMove model.lockDelay
 
         ( sidePanel, sidePanelCmd ) =
             updateSidePanelForMove softDrop model.sidePanel
@@ -358,8 +358,8 @@ updateForMove movedPiece softDrop model =
     )
 
 
-updateLockDelay : Int -> Int -> LockDelay -> LockDelay
-updateLockDelay pieceBottomRow level lockDelay =
+updateLockDelay : Int -> Int -> Bool -> LockDelay -> LockDelay
+updateLockDelay pieceBottomRow level keyboardMove lockDelay =
     let
         maxRowReached =
             Basics.max pieceBottomRow lockDelay.maxRowReached
@@ -371,9 +371,15 @@ updateLockDelay pieceBottomRow level lockDelay =
                 )
 
             else if lockDelay.movesRemaining > 0 then
-                ( lockDelay.movesRemaining - 1
-                , initialInterval LockDelayInterval level
-                )
+                if keyboardMove then
+                    ( lockDelay.movesRemaining - 1
+                    , initialInterval LockDelayInterval level
+                    )
+
+                else
+                    ( lockDelay.movesRemaining
+                    , lockDelay.timer
+                    )
 
             else if lockDelay.timer /= Nothing then
                 ( 0
