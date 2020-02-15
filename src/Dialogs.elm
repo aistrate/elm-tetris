@@ -315,7 +315,7 @@ viewStartDialog startLevel =
     let
         startLevelExplanation =
             if startLevel == 0 then
-                "(fixed level, zero gravity)"
+                "(fixed level; zero gravity)"
 
             else
                 " "
