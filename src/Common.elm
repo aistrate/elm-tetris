@@ -107,7 +107,7 @@ minLevel =
 
 maxLevel : Int
 maxLevel =
-    20
+    15
 
 
 
