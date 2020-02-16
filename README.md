@@ -1,10 +1,14 @@
 # Elm Tetris
 
-Elm Tetris is the game of [Tetris](https://en.wikipedia.org/wiki/Tetris) implemented in the [Elm](<https://en.wikipedia.org/wiki/Elm_(programming_language)>) programming language.
+Elm Tetris is a game of [Tetris](https://en.wikipedia.org/wiki/Tetris) implemented in the [Elm](<https://en.wikipedia.org/wiki/Elm_(programming_language)>) programming language.
 
-See [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
+See a live [Demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
 
 ## Building and Deploying
+
+The project uses Elm version **0.19**.
+
+See instructions for installing the latest Elm [here](https://guide.elm-lang.org/install/elm.html). Historical versions can be installed from [here](https://github.com/elm/compiler/releases).
 
 ### Development:
 
