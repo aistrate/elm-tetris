@@ -55,8 +55,8 @@ type alias TimeInterval =
     Maybe Float
 
 
-updateTimer : TimeInterval -> Float -> TimeInterval -> (Int -> Msg) -> ( TimeInterval, Cmd Msg )
-updateTimer timer timeDelta repeatInterval message =
+updateTimer : TimeInterval -> Float -> TimeInterval -> (Int -> Cmd msg) -> ( TimeInterval, Cmd msg )
+updateTimer timer timeDelta repeatInterval command =
     case timer of
         Just justTimer ->
             let
@@ -71,12 +71,12 @@ updateTimer timer timeDelta repeatInterval message =
                                 floor (-newTimer / justRepeatInterval) + 1
                         in
                         ( Just (newTimer + justRepeatInterval * toFloat repeats)
-                        , triggerMsg (message repeats)
+                        , command repeats
                         )
 
                     Nothing ->
                         ( Nothing
-                        , triggerMsg (message 1)
+                        , command 1
                         )
 
             else
@@ -90,7 +90,7 @@ updateTimer timer timeDelta repeatInterval message =
             )
 
 
-triggerMsg : Msg -> Cmd Msg
+triggerMsg : msg -> Cmd msg
 triggerMsg msg =
     Task.perform (always msg) (Task.succeed ())
 

@@ -61,7 +61,7 @@ updateCountdownScreen timer afterCmd msg screen =
                                 timer
                                 timeDelta
                                 Nothing
-                                (always StopCountdown)
+                                (\_ -> triggerMsg StopCountdown)
                     in
                     ( CountdownScreen
                         { timer = updatedTimer
