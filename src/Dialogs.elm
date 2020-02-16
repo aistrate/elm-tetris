@@ -59,10 +59,10 @@ updateCountdownScreen timer afterCmd msg screen =
                     let
                         ( updatedTimer, cmd ) =
                             updateTimer
-                                timer
                                 timeDelta
                                 NoInterval
                                 (\_ -> triggerMsg StopCountdown)
+                                timer
                     in
                     ( CountdownScreen
                         { timer = updatedTimer

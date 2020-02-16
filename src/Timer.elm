@@ -6,8 +6,8 @@ type TimeInterval
     | NoInterval
 
 
-updateTimer : TimeInterval -> Float -> TimeInterval -> (Int -> Cmd msg) -> ( TimeInterval, Cmd msg )
-updateTimer timer timeDelta repeatInterval command =
+updateTimer : Float -> TimeInterval -> (Int -> Cmd msg) -> TimeInterval -> ( TimeInterval, Cmd msg )
+updateTimer timeDelta repeatInterval command timer =
     case timer of
         Interval timerValue ->
             let

@@ -245,24 +245,24 @@ updateForAnimationFrame timeDelta model =
 
         ( dropAnimationTimer, dropAnimationCmd ) =
             updateTimer
-                model.dropAnimationTimer
                 timeDelta
                 (initialInterval DropAnimationInterval model.sidePanel.level)
                 (\repeats -> triggerMsg (AnimationMoveDown repeats))
+                model.dropAnimationTimer
 
         ( lockDelayTimer, lockDelayCmd ) =
             updateTimer
-                lockDelay.timer
                 timeDelta
                 NoInterval
                 (\_ -> triggerMsg LockToBottom)
+                lockDelay.timer
 
         ( fullRowsDelayTimer, fullRowsDelayCmd ) =
             updateTimer
-                model.fullRowsDelayTimer
                 timeDelta
                 NoInterval
                 (\_ -> triggerMsg RemoveFullRows)
+                model.fullRowsDelayTimer
 
         ( sidePanel, sidePanelCmd ) =
             updateSidePanelForAnimationFrame timeDelta model.sidePanel
