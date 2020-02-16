@@ -573,8 +573,8 @@ initialInterval intervalType level =
 
 
 -- See https://tetris.fandom.com/wiki/Tetris_Worlds, section Gravity.
--- Formula: round (1000 * pow (0.8 - ((toFloat level - 1) * 0.007)) (level - 1)),
--- where (pow x n) is x to the nth power
+-- Formula: 1000 * pow (0.8 - ((toFloat level - 1) * 0.007)) (level - 1),
+-- where (pow x n) is x to the nth power.
 
 
 dropAnimationIntervals : Dict Int TimeInterval
