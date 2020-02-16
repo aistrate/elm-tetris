@@ -51,11 +51,6 @@ type Msg
     | NoOp
 
 
-type MoveType
-    = KeyboardMove
-    | AnimationMove
-
-
 type alias TimeInterval =
     Maybe Float
 
