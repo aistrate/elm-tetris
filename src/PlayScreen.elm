@@ -11,6 +11,7 @@ import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (..)
 import Tetromino exposing (..)
+import Timer exposing (..)
 
 
 

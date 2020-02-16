@@ -4,6 +4,7 @@ import Common exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Lazy exposing (..)
+import Timer exposing (..)
 
 
 
