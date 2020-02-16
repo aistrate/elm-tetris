@@ -55,13 +55,13 @@ updateCountdownScreen timer afterCmd msg screen =
     case msg of
         AnimationFrame timeDelta ->
             case timer of
-                Just _ ->
+                Interval _ ->
                     let
                         ( updatedTimer, cmd ) =
                             updateTimer
                                 timer
                                 timeDelta
-                                Nothing
+                                NoInterval
                                 (\_ -> triggerMsg StopCountdown)
                     in
                     ( CountdownScreen
@@ -71,7 +71,7 @@ updateCountdownScreen timer afterCmd msg screen =
                     , cmd
                     )
 
-                Nothing ->
+                NoInterval ->
                     ( screen
                     , triggerMsg StopCountdown
                     )
@@ -272,8 +272,16 @@ viewDialogIfAny screen =
 viewCountdownScreen : TimeInterval -> Svg msg
 viewCountdownScreen timer =
     let
+        timerValue =
+            case timer of
+                Interval value ->
+                    value
+
+                NoInterval ->
+                    0
+
         countdown =
-            ceiling (Maybe.withDefault 0 timer / 1000)
+            ceiling (timerValue / 1000)
     in
     g
         []

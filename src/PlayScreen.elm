@@ -51,9 +51,9 @@ initModel =
     , ghostPiece = []
     , bottomBlocks = []
     , board = createBoard game.columns game.rows []
-    , dropAnimationTimer = Nothing
+    , dropAnimationTimer = NoInterval
     , lockDelay = zeroLockDelay
-    , fullRowsDelayTimer = Nothing
+    , fullRowsDelayTimer = NoInterval
     , screen = StartDialog { startLevel = initSidePanel.level }
     , sidePanel = initSidePanel
     , settings =
@@ -226,7 +226,7 @@ updateForSpawn shape model =
                 , movesRemaining = maxLockDelayMoves
                 , maxRowReached = pieceBottomRow
                 }
-            , fullRowsDelayTimer = Nothing
+            , fullRowsDelayTimer = NoInterval
           }
         , Cmd.none
         )
@@ -254,14 +254,14 @@ updateForAnimationFrame timeDelta model =
             updateTimer
                 lockDelay.timer
                 timeDelta
-                Nothing
+                NoInterval
                 (\_ -> triggerMsg LockToBottom)
 
         ( fullRowsDelayTimer, fullRowsDelayCmd ) =
             updateTimer
                 model.fullRowsDelayTimer
                 timeDelta
-                Nothing
+                NoInterval
                 (\_ -> triggerMsg RemoveFullRows)
 
         ( sidePanel, sidePanelCmd ) =
@@ -376,7 +376,7 @@ updateLockDelay pieceBottomRow level lockDelay =
                 , initialInterval LockDelayInterval level
                 )
 
-            else if lockDelay.timer /= Nothing then
+            else if lockDelay.timer /= NoInterval then
                 ( 0
                 , lockDelay.timer
                 )
@@ -384,7 +384,7 @@ updateLockDelay pieceBottomRow level lockDelay =
             else
                 ( 0
                   -- schedule LockToBottom on next animation frame
-                , Just 0
+                , Interval 0
                 )
     in
     { timer = timer
@@ -430,7 +430,7 @@ updateForLockToBottom model =
                 hasReachedBottom =
                     vertDistance fallingPiece.blocks model.ghostPiece == 0
             in
-            if hasReachedBottom && model.lockDelay.timer == Nothing then
+            if hasReachedBottom && model.lockDelay.timer == NoInterval then
                 let
                     ( _, pieceBottomRow ) =
                         rowRange fallingPiece.blocks
@@ -453,7 +453,7 @@ updateForLockToBottom model =
                                 )
 
                             else
-                                ( Nothing
+                                ( NoInterval
                                 , triggerMsg NewShape
                                 )
                     in
@@ -462,7 +462,7 @@ updateForLockToBottom model =
                         , ghostPiece = []
                         , bottomBlocks = bottomBlocks
                         , board = createBoard game.columns game.rows bottomBlocks
-                        , dropAnimationTimer = Nothing
+                        , dropAnimationTimer = NoInterval
                         , fullRowsDelayTimer = fullRowsDelayTimer
                       }
                     , command
@@ -548,27 +548,27 @@ initialInterval intervalType level =
     case intervalType of
         SpawningDropAnimationInterval ->
             if level == 0 then
-                Nothing
+                NoInterval
 
             else
-                Just 0
+                Interval 0
 
         DropAnimationInterval ->
             if level == 0 then
-                Nothing
+                NoInterval
 
             else
                 Dict.get level dropAnimationIntervals
-                    |> Maybe.withDefault Nothing
+                    |> Maybe.withDefault NoInterval
 
         LockDelayInterval ->
-            Just 500
+            Interval 500
 
         FullRowsDelayInterval ->
-            Just 200
+            Interval 200
 
         CountdownInterval ->
-            Just 250
+            Interval 250
 
 
 
@@ -580,26 +580,26 @@ initialInterval intervalType level =
 dropAnimationIntervals : Dict Int TimeInterval
 dropAnimationIntervals =
     Dict.fromList
-        [ ( 1, Just 1000 )
-        , ( 2, Just 793 )
-        , ( 3, Just 617.8 )
-        , ( 4, Just 472.73 )
-        , ( 5, Just 355.2 )
-        , ( 6, Just 262 )
-        , ( 7, Just 189.68 )
-        , ( 8, Just 134.73 )
-        , ( 9, Just 93.88 )
-        , ( 10, Just 64.15 )
-        , ( 11, Just 42.98 )
-        , ( 12, Just 28.22 )
-        , ( 13, Just 18.15 )
-        , ( 14, Just 11.44 )
-        , ( 15, Just 7.06 )
-        , ( 16, Just 4.26 )
-        , ( 17, Just 2.52 )
-        , ( 18, Just 1.46 )
-        , ( 19, Just 0.82 )
-        , ( 20, Just 0.46 )
+        [ ( 1, Interval 1000 )
+        , ( 2, Interval 793 )
+        , ( 3, Interval 617.8 )
+        , ( 4, Interval 472.73 )
+        , ( 5, Interval 355.2 )
+        , ( 6, Interval 262 )
+        , ( 7, Interval 189.68 )
+        , ( 8, Interval 134.73 )
+        , ( 9, Interval 93.88 )
+        , ( 10, Interval 64.15 )
+        , ( 11, Interval 42.98 )
+        , ( 12, Interval 28.22 )
+        , ( 13, Interval 18.15 )
+        , ( 14, Interval 11.44 )
+        , ( 15, Interval 7.06 )
+        , ( 16, Interval 4.26 )
+        , ( 17, Interval 2.52 )
+        , ( 18, Interval 1.46 )
+        , ( 19, Interval 0.82 )
+        , ( 20, Interval 0.46 )
         ]
 
 
@@ -620,7 +620,7 @@ maxLockDelayMoves =
 zeroLockDelay : LockDelay
 zeroLockDelay =
     -- lock immediately (if on the bottom now, or when moving there later)
-    { timer = Just 0
+    { timer = Interval 0
     , movesRemaining = 0
     , maxRowReached = game.rows
     }

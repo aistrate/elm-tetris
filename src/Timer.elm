@@ -1,40 +1,41 @@
 module Timer exposing (..)
 
 
-type alias TimeInterval =
-    Maybe Float
+type TimeInterval
+    = Interval Float
+    | NoInterval
 
 
 updateTimer : TimeInterval -> Float -> TimeInterval -> (Int -> Cmd msg) -> ( TimeInterval, Cmd msg )
 updateTimer timer timeDelta repeatInterval command =
     case timer of
-        Just justTimer ->
+        Interval timerValue ->
             let
-                newTimer =
-                    justTimer - timeDelta
+                updatedTimerValue =
+                    timerValue - timeDelta
             in
-            if newTimer <= 0 then
+            if updatedTimerValue <= 0 then
                 case repeatInterval of
-                    Just justRepeatInterval ->
+                    Interval repeatIntervalValue ->
                         let
                             repeats =
-                                floor (-newTimer / justRepeatInterval) + 1
+                                floor (-updatedTimerValue / repeatIntervalValue) + 1
                         in
-                        ( Just (newTimer + justRepeatInterval * toFloat repeats)
+                        ( Interval (updatedTimerValue + repeatIntervalValue * toFloat repeats)
                         , command repeats
                         )
 
-                    Nothing ->
-                        ( Nothing
+                    NoInterval ->
+                        ( NoInterval
                         , command 1
                         )
 
             else
-                ( Just newTimer
+                ( Interval updatedTimerValue
                 , Cmd.none
                 )
 
-        Nothing ->
-            ( Nothing
+        NoInterval ->
+            ( NoInterval
             , Cmd.none
             )
