@@ -37,20 +37,25 @@ The values of 500 ms for lock delay and 15 for the reset limit are standard for 
 
 - **Mouse-based dialogs** instead of keyboard-based ones
 - **Settings dialog**:
-  - ability to assign keyboard shortcuts (Move left, Move right, Move down, Rotate clockwise, Rotate counterclockwise, Drop)
+  - reassigning keyboard shortcuts (Move left, Move right, Move down, Rotate clockwise, Rotate counterclockwise, Drop)
   - Lock Delay: Limited Spin (default) / Infinite Spin / Step Reset
   - Random Generation: 7-Bag (default) / Simple
   - Ghost Piece: On (default) / Off
   - Vertical Stripes : On / Off (default)
-- **Pause/Play button** (alternative to keyboard shortcut P)
-- **Hold piece**: storing a falling Tetromino for later use
-- Score points for **T-Spins**
-- Score points for **Combos** (optional, many games don't have it)
+- **Pause/Play button**, mouse-based alternative to keyboard shortcut P
+- [**Hold piece**](https://tetris.wiki/Hold_piece), storing a falling piece for later use
+- Award [score points](https://tetris.wiki/Scoring#Recent_guideline_compatible_games) for:
+  - [**T-Spin**](https://tetris.wiki/T-Spin), twisting a T tetromino into a tight space
+  - [**Combos**](https://tetris.wiki/Combo), multiple line clears in quick succession (optional, many games don't have it)
 - **Levels above 15**: For now, the higher the level, the higher the speed of the drop animation. Above level 15, the falling piece drops to the bottom almost instantly, so increasing the speed would not increase difficulty. _Lock delay_ (now 500 ms) and _maximum lock delay moves_ (now 15) will have to gradually decrease in order to make the game more challenging.
-- **Game modes**, for example: Marathon (normal), Challenge (10 min), Sprint (40 lines), Master (instant lock to bottom / zero lock delay)
+- **Game modes**, for example (in [Tetris Zone](https://web.archive.org/web/20140701182459/http://zone.tetris.com/page/manual)):
+  - Marathon (normal): level will increase for every 10 lines cleared
+  - Challenge: highest score in 10 minutes
+  - Sprint: fastest time to clear 40 lines
+  - Master: same as Marathon, but with instant lock
 - **Smoother movement** of the falling piece, with less animation flicker, especially on levels 7-12 (if SVG allows it)
 - **Play by mouse**, not just by keyboard (as on [tetris.com](https://tetris.com/))
-- **Save Settings** locally between visits (to browser localStorage)
+- **Save settings** locally between visits (into browser localStorage)
 
 ## Developing
 
