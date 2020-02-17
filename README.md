@@ -4,6 +4,19 @@ Elm Tetris is a game of [Tetris](https://en.wikipedia.org/wiki/Tetris) implement
 
 See a live [Demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
 
+## Contents
+
+- [Possible Future Features](#possible-future-features)
+- [Developing](#developing)
+  - [Installing Elm](#installing-elm)
+  - [Reactor](#reactor)
+  - [Time-Travelling Debugger](#time-travelling-debugger)
+  - [REPL](#repl)
+  - [Elm Documentation](#elm-documentation)
+- [Building and Deploying](#building-and-deploying)
+  - [Development](#development)
+  - [Production](#production)
+
 ## Possible Future Features
 
 - **Mouse-based dialogs** instead of keyboard-based ones
@@ -17,7 +30,7 @@ See a live [Demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
 - **Hold piece**: storing a falling Tetromino for later use
 - Score points for **T-Spins**
 - Score points for **Combos** (optional, many games don't have it)
-- **Levels above 15**: For now, the higher the level, the higher the speed of the drop animation. Above level 15, the falling piece drops to the bottom almost instantly, so increasing the speed does not increase difficulty. **Lock delay** (now 500 ms) and **maximum lock delay moves** (now 15) will have to gradually decrease in order to make the game more challenging.
+- **Levels above 15**: For now, the higher the level, the higher the speed of the drop animation. Above level 15, the falling piece drops to the bottom almost instantly, so increasing the speed would not increase difficulty. **Lock delay** (now 500 ms) and **maximum lock delay moves** (now 15) will have to gradually decrease in order to make the game more challenging.
 - **Game modes**, for example: Marathon (normal), Challenge (10 min), Sprint (40 lines), Master (instant lock to bottom / zero lock delay)
 - **Smoother movement** of the falling piece, with less animation flicker, especially on levels 7-12 (if SVG allows it)
 - **Play by mouse**, not just by keyboard (as on [tetris.com](https://tetris.com/))
@@ -45,7 +58,7 @@ Then go to `http://localhost:8000` to see the project dashboard (file viewer). I
 
 Every time you edit `Main.elm` or one of its dependencies, just refresh the browser and `reactor` will recompile everything.
 
-### Time-travelling debugger
+### Time-Travelling Debugger
 
 Occasionally it can be useful to rewind and replay events in order to fix tricky bugs. To start the time-travelling debugger, first run:
 
@@ -55,7 +68,7 @@ elm make src/Main.elm --output=main.js --debug
 
 Then load `index.html` in the browser, which will show the running application with a little Elm icon in the bottom right corner of the page. Click it to open the time-travelling debugger.
 
-Unfortunatelly, this application is subscribing to `Browser.Events.onAnimationFrameDelta`, which will flood the message queue with one message every 16 ms (60 times/s), making the use of the time-travelling debugger a bit difficult.
+Unfortunatelly, this application is subscribing to `Browser.Events.onAnimationFrameDelta`, which will flood the message queue with one message every 16 ms (60 times/s), thus making the use of the time-travelling debugger a bit difficult.
 
 ### REPL
 
@@ -65,13 +78,13 @@ Another useful tool is the Elm REPL (read–eval–print loop):
 elm repl
 ```
 
-To see a list of all Elm tools (install, etc.), use:
+To see a list of all Elm commands (install, etc.), use:
 
 ```
 elm --help
 ```
 
-### Documentation
+### Elm Documentation
 
 The most useful links:
 
