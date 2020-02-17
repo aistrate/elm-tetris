@@ -6,6 +6,8 @@ See a live [Demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
 
 ## Contents
 
+- [Features](#features)
+  - [Lock Delay](#lock-delay)
 - [Possible Future Features](#possible-future-features)
 - [Developing](#developing)
   - [Installing Elm](#installing-elm)
@@ -17,20 +19,34 @@ See a live [Demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
   - [Development](#development)
   - [Production](#production)
 
+## Features
+
+### Lock Delay
+
+[Lock delay](https://tetris.wiki/Lock_delay) is the time interval between the falling piece reaching the bottom and its locking to the bottom. It's normally 500 ms, but can be extended by player moves or rotations. The goal is to allow the player a few correction moves after reaching the bottom, but not so many that it makes the game unchallenging (and certainly not [infinite spin](https://tetris.wiki/Infinity), floating the piece indefinitely). The current implementation might be called _limited move reset lock delay_. The gory details:
+
+- every time the _deepest row reached_ changes, lock delay is reset to 500 ms, and the _allowed moves counter_ is reset to 15
+- when the player makes a move but the _deepest row reached_ does not change, the _allowed moves counter_ is decreased by 1, and lock delay is reset to 500 ms (only actual moves count; trying to move into a wall does not)
+- when the player makes a move but the _allowed moves counter_ is 0, lock delay is not extended anymore
+- after the end of lock delay (when the 500 ms interval ends), the piece will lock as soon as it touches the bottom
+- if the _deepest row reached_ changes again at any point, lock delay is again reset to 500 ms and the _allowed moves counter_ is reset to 15
+
+The values of 500 ms for lock delay and 15 for the reset limit are standard for existing Tetris implementations. See subsection _Lock Down_ of the [Tetris Guideline](https://tetris.wiki/Tetris_Guideline#Indispensable_rules) for details, and for descriptions of the 3 types of lock delay.
+
 ## Possible Future Features
 
 - **Mouse-based dialogs** instead of keyboard-based ones
 - **Settings dialog**:
   - ability to assign keyboard shortcuts (Move left, Move right, Move down, Rotate clockwise, Rotate counterclockwise, Drop)
-  - Lock delay: Limited Spin (default) / Infinite Spin / Step
-  - Random generation: 7-Bag (default) / Simple
-  - Ghost piece: On (default) / Off
-  - Vertical stripes : On / Off (default)
+  - Lock Delay: Limited Spin (default) / Infinite Spin / Step Reset
+  - Random Generation: 7-Bag (default) / Simple
+  - Ghost Piece: On (default) / Off
+  - Vertical Stripes : On / Off (default)
 - **Pause/Play button** (alternative to keyboard shortcut P)
 - **Hold piece**: storing a falling Tetromino for later use
 - Score points for **T-Spins**
 - Score points for **Combos** (optional, many games don't have it)
-- **Levels above 15**: For now, the higher the level, the higher the speed of the drop animation. Above level 15, the falling piece drops to the bottom almost instantly, so increasing the speed would not increase difficulty. **Lock delay** (now 500 ms) and **maximum lock delay moves** (now 15) will have to gradually decrease in order to make the game more challenging.
+- **Levels above 15**: For now, the higher the level, the higher the speed of the drop animation. Above level 15, the falling piece drops to the bottom almost instantly, so increasing the speed would not increase difficulty. _Lock delay_ (now 500 ms) and _maximum lock delay moves_ (now 15) will have to gradually decrease in order to make the game more challenging.
 - **Game modes**, for example: Marathon (normal), Challenge (10 min), Sprint (40 lines), Master (instant lock to bottom / zero lock delay)
 - **Smoother movement** of the falling piece, with less animation flicker, especially on levels 7-12 (if SVG allows it)
 - **Play by mouse**, not just by keyboard (as on [tetris.com](https://tetris.com/))
