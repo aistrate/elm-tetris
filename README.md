@@ -4,6 +4,25 @@ Elm Tetris is a game of [Tetris](https://en.wikipedia.org/wiki/Tetris) implement
 
 See a live [Demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
 
+## Possible Future Features
+
+- **Mouse-based dialogs** instead of keyboard-based ones
+- **Settings dialog**:
+  - ability to assign keyboard shortcuts (Move left, Move right, Move down, Rotate clockwise, Rotate counterclockwise, Drop)
+  - Lock delay: Limited Spin (default) / Infinite Spin / Step
+  - Random generation: 7-Bag (default) / Simple
+  - Ghost piece: On (default) / Off
+  - Vertical stripes : On / Off (default)
+- **Pause/Play button** (alternative to keyboard shortcut P)
+- **Hold piece**: storing a falling Tetromino for later use
+- Score points for **T-Spins**
+- Score points for **Combos** (optional, many games don't have it)
+- **Levels above 15**: For now, the higher the level, the higher the speed of the drop animation. Above level 15, the falling piece drops to the bottom almost instantly, so increasing the speed does not increase difficulty. **Lock delay** (now 500 ms) and **maximum lock delay moves** (now 15) will have to gradually decrease in order to make the game more challenging.
+- **Game modes**, for example: Marathon (normal), Challenge (10 min), Sprint (40 lines), Master (instant lock to bottom / zero lock delay)
+- **Smoother movement** of the falling piece, with less animation flicker, especially on levels 7-12 (if SVG allows it)
+- **Play by mouse**, not just by keyboard (as on [tetris.com](https://tetris.com/))
+- **Save Settings** locally between visits (to browser localStorage)
+
 ## Building and Deploying
 
 The project uses Elm version **0.19**.
