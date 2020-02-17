@@ -568,7 +568,7 @@ initialInterval intervalType level =
             Interval 200
 
         CountdownInterval ->
-            Interval 250
+            Interval 3000
 
 
 
