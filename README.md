@@ -2,7 +2,7 @@
 
 Elm Tetris is a game of [Tetris](https://en.wikipedia.org/wiki/Tetris) implemented in the [Elm](<https://en.wikipedia.org/wiki/Elm_(programming_language)>) programming language.
 
-See a live [Demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
+See a live [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
 
 ## Contents
 
@@ -31,7 +31,7 @@ See a live [Demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
 - after the end of lock delay (when the 500 ms interval ends), the piece will lock as soon as it touches the bottom
 - if the _deepest row reached_ changes again at any point, lock delay is again reset to 500 ms and the _allowed moves counter_ is reset to 15
 
-The values of 500 ms for lock delay and 15 for the reset limit are standard for existing Tetris implementations. See subsection _Lock Down_ of the [Tetris Guideline](https://tetris.wiki/Tetris_Guideline#Indispensable_rules) for details, and for descriptions of the 3 types of lock delay.
+The values of 500 ms for lock delay and 15 for the reset limit are standard for existing Tetris implementations. See subsection _Lock Down_ of the [Tetris Guideline](https://tetris.wiki/Tetris_Guideline#Indispensable_rules) for details, and for a description of the 3 types of lock delay.
 
 ## Possible Future Features
 
@@ -45,7 +45,7 @@ The values of 500 ms for lock delay and 15 for the reset limit are standard for 
 - **Pause/Play button**, mouse-based alternative to keyboard shortcut P
 - [**Hold piece**](https://tetris.wiki/Hold_piece), storing a falling piece for later use
 - Award [score points](https://tetris.wiki/Scoring#Recent_guideline_compatible_games) for:
-  - [**T-Spin**](https://tetris.wiki/T-Spin), twisting a T tetromino into a tight space
+  - [**T-Spin**](https://tetris.wiki/T-Spin), twisting a T-shaped piece into a tight space
   - [**Combos**](https://tetris.wiki/Combo), multiple line clears in quick succession (optional, many games don't have it)
 - **Levels above 15**: For now, the higher the level, the higher the speed of the drop animation. Above level 15, the falling piece drops to the bottom almost instantly, so increasing the speed would not increase difficulty. _Lock delay_ (now 500 ms) and _maximum lock delay moves_ (now 15) will have to gradually decrease in order to make the game more challenging.
 - **Game modes**, for example (in [Tetris Zone](https://web.archive.org/web/20140701182459/http://zone.tetris.com/page/manual)):
@@ -56,6 +56,7 @@ The values of 500 ms for lock delay and 15 for the reset limit are standard for 
 - **Smoother movement** of the falling piece, with less animation flicker, especially on levels 7-12 (if SVG allows it)
 - **Play by mouse**, not just by keyboard (as on [tetris.com](https://tetris.com/))
 - **Save settings** locally between visits (into browser localStorage)
+- **Play with [pentominos](https://en.wikipedia.org/wiki/Pentomino)** instead of [tetrominos](https://en.wikipedia.org/wiki/Tetromino) (option in Settings dialog)
 
 ## Developing
 
