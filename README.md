@@ -17,6 +17,7 @@ See a live [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
   - [Vertical Stripes](#vertical-stripes)
   - [Dialogs](#dialogs)
   - [Countdown Screen](#countdown-screen)
+  - [Line Clearing Delay](#line-clearing-delay)
   - [Auto Pause](#auto-pause)
 - [Possible Future Features](#possible-future-features)
 - [Developing](#developing)
@@ -152,6 +153,10 @@ All dialogs pause the game. They (and the game in general) can only be controlle
 When control goes from a dialog back to the play screen, a countdown screen is displayed, counting down 3-2-1, for 1 second each. This is to allow the player to position their hands over the keyboard in anticipation of the game. Standard feature in most games.
 
 The countdown screen can be interrupted with the P key (or Esc), which brings up the Pause dialog.
+
+### Line Clearing Delay
+
+There is a short delay (200 ms) between the moment the player completely fills one or more lines, and the moment the game [clears](https://tetris.wiki/Line_clear) those lines off the board. This is meant to let the player "take in" the line clearing event, while not slowing down the game too much. A common way for games to mark this event is to show small explosions for a brief moment.
 
 ### Auto Pause
 
