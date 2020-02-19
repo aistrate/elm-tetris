@@ -13,6 +13,8 @@ See a live [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
   - [Lock Delay](#lock-delay)
   - [Hard Drop](#hard-drop)
   - [Game Over Conditions](#game-over-conditions)
+  - [Ghost Piece](#ghost-piece)
+  - [Vertical Stripes](#vertical-stripes)
   - [Dialogs](#dialogs)
   - [Countdown Screen](#countdown-screen)
   - [Auto Pause](#auto-pause)
@@ -121,6 +123,18 @@ There are two conditions in which the game ends (also called _top out_ condition
 - **Block out**: when part of a newly-generated piece overlaps with an existing block on the board
 - **Lock out**: when a piece locks entirely above the ceiling
 
+### Ghost Piece
+
+The [ghost piece](https://tetris.wiki/Ghost_piece) is a visualization of where the falling piece will land if allowed to drop to the bottom. Standard feature in most games.
+
+It is shown in gray color, and can be switched on/off by pressing G (on by default).
+
+### Vertical Stripes
+
+Vertical stripes are alternating white-gray stripes on the board's background, designed to help the player track where the falling piece will land if allowed to drop (similar in purpose to the ghost piece). Non-standard feature.
+
+Vertical stripes can be switched on/off by pressing V (off by default).
+
 ### Dialogs
 
 The game consists of the play screen and several modal dialogs:
@@ -141,7 +155,7 @@ The countdown screen can be interrupted with the P key (or Esc), which brings up
 
 ### Auto Pause
 
-When the player minimizes the browser window or switches to another browser tab, the game pauses automatically (opens the [Pause dialog](#dialogs)). This has to do with the way browsers deal with these events: they stop sending animation frame updates for the duration the window is minimized or the tab inactive. On reactivating the window/tab, the first frame update will report a very large time delta (e.g., 5000 ms), which the application can then use to "catch up" with the time lost. In our case, this is not really useful, and means the game is neither fully playing nor paused, so we switch to paused mode to make it official. This makes time calculations more simple, deterministic and precise.
+When the player minimizes the browser window or switches to another browser tab, the game pauses automatically (opens the [Pause dialog](#dialogs)). This has to do with the way browsers deal with these events: they stop sending animation frame updates for the duration the window is minimized, or the tab inactive. On reactivating the window/tab, the first frame update will report a very large time delta (e.g., 5000 ms, as opposed to the usual 16 ms), which the application can then use to "catch up" with the time lost. In our case, this is not really useful, and means the game is neither fully playing nor paused, so we switch to paused mode to make it official. This also has the advantage of making time calculations more simple, precise and deterministic.
 
 ## Possible Future Features
 
