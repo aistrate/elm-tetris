@@ -83,15 +83,15 @@ There is also a **Level 0**, which is non-standard (no other games implement it)
 
 Scoring follows the [Tetris Guideline](https://tetris.wiki/Scoring#Recent_guideline_compatible_games):
 
-- Soft drop: 1 \* distance (regardless of level)
-- Hard drop: 2 \* distance (regardless of level)
-- Single line clear: 100 \* level
-- Double line clear: 300 \* level
-- Triple line clear: 500 \* level
-- Tetris (4) line clear: 800 \* level
-- Back-to-back bonus (Tetris): 0.5 \* action total
+- Soft drop: 1 &times; distance (regardless of level)
+- Hard drop: 2 &times; distance (regardless of level)
+- Single line clear: 100 &times; level
+- Double line clear: 300 &times; level
+- Triple line clear: 500 &times; level
+- Tetris (4) line clear: 800 &times; level
+- Back-to-back bonus (Tetrises): 0.5 &times; action total
 
-A **back-to-back bonus** is awarded for two or more Tetris line clears in a row, uninterrupted by single/double/triple line clears. So, for example, 2 Tetrises in a row will be awarded a back-to-back bonus of (800 + 800) \* 0.5 = 800 points. This will be added to the normal points for 2 Tetrises, 800 + 800 = 1600, for a total of 2400 (assuming level 1). The timing will be: 800 points after the first Tetris (not back-to-back yet), and 1600 points after the second.
+A **back-to-back bonus** is awarded for two or more Tetris line clears in a row, uninterrupted by single/double/triple line clears. So, for example, 2 Tetrises in a row will be awarded a back-to-back bonus of (800 + 800) &times; 0.5 = 800 points. This will be added to the normal points for 2 Tetrises, 800 + 800 = 1600, for a total of 2400 (assuming level 1). The timing will be: 800 points after the first Tetris (not back-to-back yet), and 1600 points after the second.
 
 The Guideline's scoring has been only partially implemented (no score points for [T-Spins](https://tetris.wiki/T-Spin) or [Combos](https://tetris.wiki/Combo)).
 
