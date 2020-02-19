@@ -12,6 +12,9 @@ See a live [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
   - [Scoring](#scoring)
   - [Lock Delay](#lock-delay)
   - [Hard Drop](#hard-drop)
+  - [Game Over Conditions](#game-over-conditions)
+  - [Dialogs](#dialogs)
+  - [Countdown Screen](#countdown-screen)
 - [Possible Future Features](#possible-future-features)
 - [Developing](#developing)
   - [Installing Elm](#installing-elm)
@@ -40,11 +43,11 @@ See the official [Tetris Glossary](https://tetris.wiki/Glossary) for definitions
 - G: Toggle ghost piece
 - V: Toggle vertical stripes
 
-During game play, this list is also available in the Help dialog (H key).
+This list is also available in the [Help dialog](#dialogs) (H key).
 
 ### Levels
 
-A level represents the speed by which the falling piece drops to the bottom. There are 15 levels (16 if counting Level 0; see below).
+A level represents the speed by which the falling piece drops to the bottom. There are 15 levels (16 if counting Level 0, see below).
 
 The Tetris Guideline [formula](https://tetris.wiki/Tetris_Worlds#Gravity) for the interval (in milliseconds) between two successive drops is:
 
@@ -72,9 +75,9 @@ The formula yields:
 
 For intervals shorter than the frame rate (16 ms), the falling piece will drop several rows at a time to achieve that interval on average. So, for example, if the interval is 7 ms, the falling piece will drop 2 or 3 rows at a time (16 / 7 = 2.29).
 
-The level can be changed directly by the player in the Start dialog (after loading the page, and after the Quit and Game Over dialogs). While playing the game, the level will be increased automatically for every 10 lines cleared.
+The level can be changed directly by the player in the [Start dialog](#dialogs) (after loading the page, or after the Quit and Game Over dialogs). While playing the game, the level will be increased automatically for every 10 lines cleared.
 
-There is also a **Level 0**, which is non-standard (no other games implement it), and does not follow the formula above. This level has no gravity (the falling piece does not drop by itself), and the level is not increased automatically (stays 0 forever). When the piece reaches the bottom (the player moves it there with the Arrow Down key), it locks normally, with [lock delay](#lock-delay). [Hard drop](#hard-drop) (Space key) also works normally.
+There is also a **Level 0**, which is non-standard (no other games implement it), and does not follow the formula above. This level has no gravity (the falling piece does not drop by itself), and will not increase automatically (stays 0 forever). When the piece reaches the bottom (the player moves it there with the Arrow Down key), it locks normally, with [lock delay](#lock-delay). [Hard drop](#hard-drop) (Space key) also works normally.
 
 ### Scoring
 
@@ -109,6 +112,31 @@ The values of 500 ms for lock delay and 15 for the reset limit are standard for 
 A _hard drop_ (Space key) instantly moves the falling piece to the bottom, then instantly locks it (zero lock delay). Useful when the player wants to move the game faster. Standard feature in most games.
 
 To be contrasted with _soft drop_ (Arrow Down key), which drops the piece one row at a time, and locks it to the bottom after a [lock delay](#lock-delay).
+
+### Game Over Conditions
+
+These are the conditions in which the game ends (also called _top out_ conditions). There are two cases:
+
+- **Block out**: when part of a newly-generated piece overlaps with an existing block on the board
+- **Lock out**: when a piece locks entirely above the ceiling
+
+### Dialogs
+
+The game consists of the play screen and several modal dialogs:
+
+- **Start dialog**: displayed on loading the page, and after the Quit and Game Over confirmation dialogs; pressing +/- will change the start [level](#levels) (0-15, default 1); pressing S or Esc will start the game
+- **Pause dialog**: can be opened from the play screen by pressing P or Esc; it simply pauses the game
+- **Quit dialog**: can be opened from the play screen or the Pause dialog by pressing Q (Quit game); its role is to ask for confirmation (Y/N); on Yes, it goes to the Start dialog
+- **Game Over dialog**: triggered by [Game Over conditions](#game-over-conditions) during play; its role is to ask for confirmation, "Start new game? (Y/N)"; on Yes, it goes to the Start dialog
+- **Help dialog**: can be opened from the play screen and from all other dialogs by pressing H; shows the keyboard shortcuts
+
+All dialogs pause the game. They (and the game in general) can only be controlled by keyboard, not by mouse. All dialogs can be closed with the Esc key (except the Game Over dialog, which only accepts Y, to start a new game).
+
+### Countdown Screen
+
+When control goes from a dialog back to the play screen, a countdown screen is displayed, counting down 3-2-1, for 1 second each. This is to allow the player to position their hands over the keyboard in anticipation of the game. Standard feature in most games.
+
+The countdown screen can be interrupted with the P key (or Esc), which brings up the Pause dialog.
 
 ## Possible Future Features
 
