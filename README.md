@@ -15,6 +15,7 @@ See a live [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
   - [Game Over Conditions](#game-over-conditions)
   - [Dialogs](#dialogs)
   - [Countdown Screen](#countdown-screen)
+  - [Auto Pause](#auto-pause)
 - [Possible Future Features](#possible-future-features)
 - [Developing](#developing)
   - [Installing Elm](#installing-elm)
@@ -115,7 +116,7 @@ To be contrasted with _soft drop_ (Arrow Down key), which drops the piece one ro
 
 ### Game Over Conditions
 
-These are the conditions in which the game ends (also called _top out_ conditions). There are two cases:
+There are two conditions in which the game ends (also called _top out_ conditions):
 
 - **Block out**: when part of a newly-generated piece overlaps with an existing block on the board
 - **Lock out**: when a piece locks entirely above the ceiling
@@ -137,6 +138,10 @@ All dialogs pause the game. They (and the game in general) can only be controlle
 When control goes from a dialog back to the play screen, a countdown screen is displayed, counting down 3-2-1, for 1 second each. This is to allow the player to position their hands over the keyboard in anticipation of the game. Standard feature in most games.
 
 The countdown screen can be interrupted with the P key (or Esc), which brings up the Pause dialog.
+
+### Auto Pause
+
+When the player minimizes the browser window or switches to another browser tab, the game pauses automatically (opens the [Pause dialog](#dialogs)). This has to do with the way browsers deal with these events: they stop sending animation frame updates for the duration the window is minimized or the tab inactive. On reactivating the window/tab, the first frame update will report a very large time delta (e.g., 5000 ms), which the application can then use to "catch up" with the time lost. In our case, this is not really useful, and means the game is neither fully playing nor paused, so we switch to paused mode to make it official. This makes time calculations more simple, deterministic and precise.
 
 ## Possible Future Features
 
