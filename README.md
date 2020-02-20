@@ -13,6 +13,8 @@ See a live [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
   - [Lock Delay](#lock-delay)
   - [Hard Drop](#hard-drop)
   - [Game Over Conditions](#game-over-conditions)
+  - [Statistics](#statistics)
+  - [Piece Preview](#piece-preview)
   - [Ghost Piece](#ghost-piece)
   - [Vertical Stripes](#vertical-stripes)
   - [Dialogs](#dialogs)
@@ -51,7 +53,7 @@ This list is also available in the [Help dialog](#dialogs) (H key).
 
 ### Levels
 
-A level represents the speed by which the falling piece drops to the bottom. There are 15 levels (16 if counting Level 0, see below).
+A _level_ represents the speed by which the falling piece drops to the bottom. There are 15 levels (16 if counting Level 0, see below).
 
 The Tetris Guideline [formula](https://tetris.wiki/Tetris_Worlds#Gravity) for the interval (in milliseconds) between two successive drops is:
 
@@ -119,10 +121,27 @@ To be contrasted with _soft drop_ (Arrow Down key), which drops the piece one ro
 
 ### Game Over Conditions
 
-There are two conditions in which the game ends (also called _top out_ conditions):
+There are two conditions in which the game ends (also called **top out** conditions):
 
-- **Block out**: when part of a newly-generated piece overlaps with an existing block on the board
+- **Block out**: when part of a newly-generated piece overlaps with an existing block on the playfield
 - **Lock out**: when a piece locks entirely above the ceiling
+
+### Statistics
+
+The following statistics are shown on the side panel:
+
+- [**Score**](#scoring)
+- [**Level**](#levels)
+- **Lines**: number of lines cleared
+- **Time**: time actually played (not including time paused); it shows minutes and seconds, and will also show hours and days, if the game continues
+
+Statistics are cleared when a new game is started.
+
+### Piece Preview
+
+The [piece preview](https://tetris.wiki/Piece_preview) is an area that displays the next piece that will enter the playfield. It is positioned to the right of the playfield, under the statistics. Standard feature in most games.
+
+At this moment only one piece is shown in the preview, but the game is already capable of showing more. The decision to show only one piece comes from wanting a minimalist look. Commercial games show between 1 to 6 preview pieces.
 
 ### Ghost Piece
 
@@ -132,7 +151,7 @@ It is shown in gray color, and can be switched on/off by pressing G (on by defau
 
 ### Vertical Stripes
 
-Vertical stripes are alternating white-gray stripes on the board's background, designed to help the player track where the falling piece will land if allowed to drop (similar in purpose to the ghost piece). Non-standard feature.
+Vertical stripes are alternating white-gray stripes on the background of the playfield, designed to help the player track where the falling piece will land if allowed to drop (similar in purpose to the ghost piece). Non-standard feature.
 
 Vertical stripes can be switched on/off by pressing V (off by default).
 
@@ -156,7 +175,7 @@ The countdown screen can be interrupted with the P key (or Esc), which brings up
 
 ### Line Clearing Delay
 
-There is a short delay (200 ms) between the moment the player completely fills one or more lines, and the moment the game [clears](https://tetris.wiki/Line_clear) those lines off the board. This is meant to let the player "take in" the line clearing event, while not slowing down the game too much. A common way for games to mark this event is to show small explosions for a brief moment.
+There is a short delay (200 ms) between the moment the player completely fills one or more lines, and the moment the game [clears](https://tetris.wiki/Line_clear) those lines off the playfield. This is meant to let the player "take in" the line clearing event, while not slowing down the game too much. A common way for games to mark this event is to show little explosion animations for a brief moment.
 
 ### Auto Pause
 
@@ -169,6 +188,7 @@ When the player minimizes the browser window or switches to another browser tab,
   - reassigning keyboard shortcuts (Move left, Move right, Move down, Rotate clockwise, Rotate counterclockwise, Drop)
   - Lock Delay: Limited Spin (default) / Infinite Spin / Step Reset
   - Random Generation: 7-Bag (default) / Simple
+  - Piece Preview: 1 to 6 Pieces
   - Ghost Piece: On (default) / Off
   - Vertical Stripes : On / Off (default)
 - **Pause/Play button**, mouse-based alternative to keyboard shortcut P
