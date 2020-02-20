@@ -20,6 +20,7 @@ See a live [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
   - [Dialogs](#dialogs)
   - [Countdown Screen](#countdown-screen)
   - [Line Clearing Delay](#line-clearing-delay)
+  - [Window Resizing](#window-resizing)
   - [Auto Pause](#auto-pause)
 - [Possible Future Features](#possible-future-features)
 - [Developing](#developing)
@@ -83,7 +84,7 @@ For intervals shorter than the frame rate (16 ms), the falling piece will drop s
 
 The level can be changed directly by the player in the [Start dialog](#dialogs) (after loading the page, or after the Quit and Game Over dialogs). While playing the game, the level will be increased automatically for every 10 lines cleared.
 
-There is also a **Level 0**, which is non-standard (no other games implement it), and does not follow the formula above. This level has no gravity (the falling piece does not drop by itself), and will not increase automatically (stays 0 forever). When the piece reaches the bottom (the player moves it there with the Arrow Down key), it locks normally, with [lock delay](#lock-delay). [Hard drop](#hard-drop) (Space key) also works normally.
+**Level 0** is a non-standard level (no other games implement it), and does not follow the formula above. This level has no gravity (the falling piece does not drop by itself), and will not increase automatically (stays 0 forever). When the piece reaches the bottom (the player moves it there with the Arrow Down key), it locks normally, with [lock delay](#lock-delay). [Hard drop](#hard-drop) (Space key) also works normally. [Scoring](#scoring) for level 0 is the same as for level 1.
 
 ### Scoring
 
@@ -177,6 +178,20 @@ The countdown screen can be interrupted with the P key (or Esc), which brings up
 
 There is a short delay (200 ms) between the moment the player completely fills one or more lines, and the moment the game [clears](https://tetris.wiki/Line_clear) those lines off the playfield. This is meant to let the player "take in" the line clearing event, while not slowing down the game too much. A common way for games to mark this event is to show little explosion animations for a brief moment.
 
+### Window Resizing
+
+When the browser window is resized, the game will resize within it, so that no scrollbars are needed and no game areas are hidden.
+
+Game rendering is implemented using [SVG](https://en.wikipedia.org/wiki/Scalable_Vector_Graphics) (Scalable Vector Graphics). The whole game is contained within one `<svg>` element, and there is no significant HTML outside it. One property of SVG is that it scales up/down well, without the image becoming pixelated.
+
+This is how game size reacts to browser window size:
+
+- If the window is large enough (for example, a maximized window on a large monitor), the game will display in its default size (about 620&times;730 pixels).
+- If the player resizes the window to a smaller size, the game will also resize, while keeping aspect ratio constant. Therefore, the whole game will always be visible, without needing scrollbars, or game areas being hidden. A resize also happens when the maximized window size is smaller than the game default size (such as on a small laptop or tablet).
+- The player can use the Zoom In/Zoom Out functionality of the browser (_Ctrl +_ and _Ctrl -_) to increase/decrease the size of the game. If zooming in (_Ctrl +_), the game will only become as large as the window (no scrollbars, no game areas hidden).
+
+As far as alignment within the window is concerned, the game will always be horizontally centered and vertically top-aligned.
+
 ### Auto Pause
 
 When the player minimizes the browser window or switches to another browser tab, the game pauses automatically (opens the [Pause dialog](#dialogs)). This has to do with the way browsers deal with these events: they stop sending animation frame updates for the duration the window is minimized, or the tab inactive. On reactivating the window/tab, the first frame update will report a very large time delta (e.g., 5000 ms, as opposed to the usual 16 ms), which the application can then use to "catch up" with the time lost. In our case, this is not really useful, and means the game is neither fully playing nor paused, so we switch to paused mode to make it official. This also has the advantage of making time calculations more simple, precise and deterministic.
@@ -194,7 +209,7 @@ When the player minimizes the browser window or switches to another browser tab,
 - **Pause/Play button**, mouse-based alternative to keyboard shortcut P
 - [**Hold piece**](https://tetris.wiki/Hold_piece), storing a falling piece for later use
 - Award [score points](https://tetris.wiki/Scoring#Recent_guideline_compatible_games) for:
-  - [**T-Spin**](https://tetris.wiki/T-Spin), twisting a T-shaped piece into a tight space
+  - [**T-Spins**](https://tetris.wiki/T-Spin), twisting a T-shaped piece into a tight space
   - [**Combos**](https://tetris.wiki/Combo), multiple line clears in quick succession (optional, many games don't have it)
 - **Levels above 15**: For now, the higher the level, the higher the speed of the drop animation. Above level 15, the falling piece drops to the bottom almost instantly, so increasing the speed would not increase difficulty. _Lock delay_ (now 500 ms) and _maximum lock delay moves_ (now 15) will have to gradually decrease in order to make the game more challenging.
 - **Game modes**, for example (in [Tetris Zone](https://web.archive.org/web/20140701182459/http://zone.tetris.com/page/manual)):
