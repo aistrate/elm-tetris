@@ -54,7 +54,7 @@ This list is also available in the [Help dialog](#dialogs) (H key).
 
 ### Levels
 
-A _level_ represents the speed by which the falling piece drops to the bottom. There are 15 levels (16 if counting Level 0, see below).
+A _level_ represents the speed by which the falling piece drops to the bottom. There are 15 levels (16, if counting Level 0, see below).
 
 The Tetris Guideline [formula](https://tetris.wiki/Tetris_Worlds#Gravity) for the interval (in milliseconds) between two successive drops is:
 
@@ -80,9 +80,9 @@ The formula yields:
 - Level 14: 11.44 ms
 - Level 15: 7.06 ms
 
-For intervals shorter than the frame rate (16 ms), the falling piece will drop several rows at a time to achieve that interval on average. So, for example, if the interval is 7 ms, the falling piece will drop 2 or 3 rows at a time (16 / 7 = 2.29).
+For intervals shorter than the frame rate (16 ms), the falling piece will drop several rows at a time to achieve that interval on average. For example, if the interval is 7 ms, the falling piece will drop 2 or 3 rows per frame (16 / 7 = 2.29).
 
-The level can be changed directly by the player in the [Start dialog](#dialogs) (after loading the page, or after the Quit and Game Over dialogs). While playing the game, the level will be increased automatically for every 10 lines cleared.
+The level can be changed directly by the player in the [Start dialog](#dialogs) (after loading the page, or after the Quit or Game Over dialogs). While playing the game, the level will be increased automatically for every 10 lines cleared.
 
 **Level 0** is a non-standard level (no other games implement it), and does not follow the formula above. This level has no gravity (the falling piece does not drop by itself), and will not increase automatically (stays 0 forever). When the piece reaches the bottom (the player moves it there with the Arrow Down key), it locks normally, with [lock delay](#lock-delay). [Hard drop](#hard-drop) (Space key) also works normally. [Scoring](#scoring) for level 0 is the same as for level 1.
 
@@ -92,15 +92,15 @@ Scoring follows the [Tetris Guideline](https://tetris.wiki/Scoring#Recent_guidel
 
 - Soft drop: 1 &times; distance (regardless of level)
 - Hard drop: 2 &times; distance (regardless of level)
-- Single line clear: 100 &times; level
+- Single line clear: 100 &times; [level](#levels)
 - Double line clear: 300 &times; level
 - Triple line clear: 500 &times; level
 - Tetris (4) line clear: 800 &times; level
 - Back-to-back bonus (Tetrises): 0.5 &times; action total
 
-A **back-to-back bonus** is awarded for two or more Tetris line clears in a row, uninterrupted by single/double/triple line clears. So, for example, 2 Tetrises in a row will be awarded a back-to-back bonus of (800 + 800) &times; 0.5 = 800 points. This will be added to the normal points for 2 Tetrises, 800 + 800 = 1600, for a total of 2400 (assuming level 1). The timing will be: 800 points after the first Tetris (not back-to-back yet), and 1600 points after the second.
+A **back-to-back bonus** is awarded for two or more Tetris line clears in a row, uninterrupted by single/double/triple line clears. For example, 2 Tetrises in a row will be awarded a back-to-back bonus of (800 + 800) &times; 0.5 = 800 points. This will be added to the normal points for 2 Tetrises, 800 + 800 = 1600, for a total of 2400 (assuming level 1). The timing will be: 800 points after the first Tetris (not back-to-back yet), and 1600 points after the second.
 
-The Guideline's scoring has been only partially implemented (no score points for [T-Spins](https://tetris.wiki/T-Spin) or [Combos](https://tetris.wiki/Combo)).
+The Guideline scoring has been only partially implemented (no points for [T-Spins](https://tetris.wiki/T-Spin) or [Combos](https://tetris.wiki/Combo)).
 
 ### Lock Delay
 
@@ -190,7 +190,7 @@ This is how game size reacts to browser window size:
 - If the player resizes the window to a smaller size, the game will also resize, while keeping aspect ratio constant. Therefore, the whole game will always be visible, without needing scrollbars, or game areas being hidden. A resize also happens when the maximized window size is smaller than the game default size (such as on a small laptop or tablet).
 - The player can use the Zoom In/Zoom Out functionality of the browser (_Ctrl +_ and _Ctrl -_) to increase/decrease the size of the game. If zooming in (_Ctrl +_), the game will only become as large as the window (no scrollbars, no game areas hidden).
 
-As far as alignment within the window is concerned, the game will always be horizontally centered and vertically top-aligned.
+As far as alignment within the window is concerned, the game is always horizontally centered and vertically top-aligned.
 
 ### Auto Pause
 
