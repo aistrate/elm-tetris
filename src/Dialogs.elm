@@ -298,7 +298,7 @@ viewCountdownText countdown =
             [ x (String.fromFloat middleBoardX)
             , y (String.fromFloat (toFloat game.rows * blockStyle.size / 2))
             , textAnchor "middle"
-            , dominantBaseline "middle"
+            , dominantBaseline "central"
             , fontSize (String.fromFloat (blockStyle.size * 3))
             , fontWeight "bold"
             ]
