@@ -10,6 +10,7 @@ See a live [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
   - [Keyboard Shortcuts](#keyboard-shortcuts)
   - [Levels](#levels)
   - [Scoring](#scoring)
+  - [Random Generator](#random-generator)
   - [Lock Delay](#lock-delay)
   - [Hard Drop](#hard-drop)
   - [Game Over Conditions](#game-over-conditions)
@@ -101,6 +102,14 @@ Scoring follows the [Tetris Guideline](https://tetris.wiki/Scoring#Recent_guidel
 A **back-to-back bonus** is awarded for two or more Tetris line clears in a row, uninterrupted by single/double/triple line clears. For example, 2 Tetrises in a row will be awarded a back-to-back bonus of (800 + 800) &times; 0.5 = 800 points. This will be added to the normal points for 2 Tetrises, 800 + 800 = 1600, for a total of 2400 (assuming level 1). The timing will be: 800 points after the first Tetris (not back-to-back yet), and 1600 points after the second.
 
 The Guideline scoring has been only partially implemented (no points for [T-Spins](https://tetris.wiki/T-Spin) or [Combos](https://tetris.wiki/Combo)).
+
+### Random Generator
+
+The implemented [random generator](https://tetris.wiki/Random_Generator) generates a sequence of all seven [tetrominoes](https://tetris.wiki/Tetromino) (Tetris pieces: I, J, L, O, S, T, Z) permuted randomly, as if drawn from a bag. Then it deals all seven to the game before generating another bag. This algorithm makes it much less likely that the player will get an obscenely long run without a desired tetromino. It can produce a maximum of 12 tetrominoes between one I and the next, and a run of S and Z tetrominoes is limited to a maximum of 4.
+
+Long "droughts" of I tetrominoes and long sequences of S and Z tetrominoes are undesirable because they increase the probability of prematurely ending the game. It has been demonstrated that long enough sequences of S and Z pieces make [infinite gameplay impossible](https://en.wikipedia.org/wiki/Tetris#Infinite_gameplay_impossibility) (although a good player can survive over 150 consecutive S and Z tetrominoes).
+
+Using a 7-bag random generator is one of Tetris Guideline's [indispensable rules](https://tetris.wiki/Tetris_Guideline#Indispensable_rules) (see subsection _Random Generator_), to be followed by all licensed games.
 
 ### Lock Delay
 
@@ -202,7 +211,7 @@ When the player minimizes the browser window or switches to another browser tab,
 - **Settings dialog**:
   - reassigning keyboard shortcuts (Move left, Move right, Move down, Rotate clockwise, Rotate counterclockwise, Drop)
   - Lock Delay: Limited Spin (default) / Infinite Spin / Step Reset
-  - Random Generation: 7-Bag (default) / Simple
+  - Random Generator: 7-Bag (default) / Simple
   - Piece Preview: 1 to 6 Pieces
   - Ghost Piece: On (default) / Off
   - Vertical Stripes : On / Off (default)
@@ -220,7 +229,7 @@ When the player minimizes the browser window or switches to another browser tab,
 - **Smoother movement** of the falling piece, with less animation flicker, especially on levels 7-12 (if SVG allows it)
 - **Play by mouse**, not just by keyboard (as on [tetris.com](https://tetris.com/))
 - **Save settings** locally between visits (into browser localStorage)
-- **Play with [pentominos](https://en.wikipedia.org/wiki/Pentomino)** instead of [tetrominos](https://en.wikipedia.org/wiki/Tetromino) (option in the Settings dialog)
+- **Play with [pentominoes](https://en.wikipedia.org/wiki/Pentomino)** instead of [tetrominoes](https://en.wikipedia.org/wiki/Tetromino) (option in the Settings dialog)
 
 ## Developing
 
