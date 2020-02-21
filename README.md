@@ -13,6 +13,8 @@ See a live [demo](https://aistrate.github.io/demo/elm-tetris/index.html) here.
   - [Random Generator](#random-generator)
   - [Lock Delay](#lock-delay)
   - [Hard Drop](#hard-drop)
+  - [Rotation](#rotation)
+  - [Wall Kicks](#wall-kicks)
   - [Game Over Conditions](#game-over-conditions)
   - [Statistics](#statistics)
   - [Piece Preview](#piece-preview)
@@ -128,6 +130,24 @@ The values of 500 ms for lock delay and 15 for the reset limit are standard for 
 A _hard drop_ (Space key) instantly moves the falling piece to the bottom, then instantly locks it (zero lock delay). Useful when the player wants to move the game faster. Standard feature in most games.
 
 To be contrasted with _soft drop_ (Arrow Down key), which drops the piece one row at a time, and locks it to the bottom after a [lock delay](#lock-delay).
+
+### Rotation
+
+Falling piece rotation is specified by a [Tetris Guideline](https://tetris.wiki/Tetris_Guideline) standard bombastically named [Super Rotation System](https://tetris.wiki/Super_Rotation_System#Basic_Rotation) (SRS), which also describes [wall kicks](#wall-kicks).
+
+When implementing rotation, each [tetromino](https://tetris.wiki/Tetromino) (Tetris piece) has a _pivot_ around which it rotates, and which it carries along as it rotates or moves. See a visual representation [here](https://tetris.wiki/images/3/3d/SRS-pieces.png), where the pivot is shown as a white circle. Notice that for the I and O tetrominoes, the pivot is at the _intersection of gridlines_, whereas for the J, L, S, T and Z tetrominoes, the pivot is at the _center of a square block_.
+
+Early games (before the first Tetris Guideline in 1996) each used a different rotation system, usually simpler but slightly awkward (see [comparison](https://strategywiki.org/wiki/Tetris/Rotation_systems#Rotation_systems)). SRS standardized rotation for later games, and made it easier to implement [wall kicks](#wall-kicks).
+
+### Wall Kicks
+
+Wall kicks are specified by the [Super Rotation System](https://tetris.wiki/Super_Rotation_System#Wall_Kicks) (SRS) standard, similarly to [rotation](#rotation).
+
+When the player attempts to rotate a [tetromino](https://tetris.wiki/Tetromino) (Tetris piece), but the position it would normally occupy after basic rotation is obstructed (either by the wall or floor of the playfield, or by the stack), the game will attempt to "kick" the tetromino into an alternative position nearby. In SRS, 4 alternative positions are sequentially tested, and if none is available, the rotation fails completely.
+
+See details on how to implement wall kicks [here](https://tetris.wiki/Super_Rotation_System#Wall_Kicks), with examples.
+
+A common criticism of SRS wall kicks is that the algorithm doesn't make intuitive sense. It just supplies a list of 4 alternatives, with no explanation of why those specific 4. This is a valid criticism.
 
 ### Game Over Conditions
 
